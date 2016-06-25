@@ -1,0 +1,47 @@
+env:
+    global:
+        - OPENBLAS_VERSION=0.2.18
+        - PLAT=x86_64
+        - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
+        # Following generated with
+        # travis encrypt -r MacPython/openblas-libs WHEELHOUSE_UPLOADER_SECRET=<the api key>
+        - secure:
+            "NRSuGmMTcNSbpQwiXWS4o2dKQr9bXgDEHD3D6SjDdEe44rsLMDRt8xaUoFIcvfI7zalazn5k545RsxOECeXG2k0xJGIAGtJFlianq9Fk+6ICQZdCGS46EEp95zzjYhWc8GQWAdqFVxJ/j6hPP2NXlvjQgvMKQi0hkM/dlc7f2YOYt9JNin8K2m0v/bE3l8JtF3T/VUGYKMhpLquFVRdZP16MUgNc9K0eiGtOqz2HLctez/b3PoHa2VjqyilgUAMFGQRZdlhd+GIC4TNBxiYlbCgiY81sehkM4TXIQrLVJqNeafM1qRtVLssCT4A3mZcmS3QiwMFuhwD6mDKw60brYOWGlcOZ8W4wm8qx3XXDxHfkVengiAZEvTlimTfx2k4gYrRYvXawTmAsSBFZmQom1rfx0IUC9Nfd9q3E08ZWcjaMkqr3hLdVnSr/2j+8D6yJQuuxj6NrCv2EXB5cEPgM9Cya3cLjBO7QzI9hjWsgRBSg2UcDr8Cy/apxIvnJWftLUs5BUv1BvczDxZ8OqiDYUh2LkJBzLG1Z4/ZHxovvWcDy9VKR681cxjBIde2CY2vMYhYyuVcoeQimsinxzFP+N6DyHEsEb/jYGBPkQTUnqh1PtgHouvOSSw8RDoq6JLjSdhEnZ1cHeQ1CTPzjld/Y6QIecLRcCsYif6ZNdCv3rik="
+
+language: python
+sudo: required
+dist: trusty
+services: docker
+
+matrix:
+  include:
+    - os: linux
+    - os: linux
+      env:
+        - PLAT=i686
+    - os: osx
+      language: objective-c
+    - os: osx
+      language: objective-c
+      env:
+        - PLAT=i686
+
+before_install:
+    - source build_steps.sh
+    - before_build
+
+install:
+    # Maybe get and clean and patch source
+    - (cd OpenBLAS && git fetch origin && git checkout "v${OPENBLAS_VERSION}")
+
+script:
+    # Build library and collect into libs subdirectory
+    - build_lib $PLAT
+
+after_success:
+    # Upload wheels to Rackspace container
+    - pip install wheelhouse-uploader
+    - python -m wheelhouse_uploader upload --local-folder
+          ${TRAVIS_BUILD_DIR}/libs/
+          --no-update-index
+          wheels
