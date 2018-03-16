@@ -59,6 +59,7 @@ function do_build_lib {
     (cd OpenBLAS \
         && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness > /dev/null \
         && make PREFIX=$BUILD_PREFIX install )
+    # Chop "v" prefix from git-describe output.
     local out_name="openblas-${version:1}-$(uname)-${plat}${suffix}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \

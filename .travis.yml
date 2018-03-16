@@ -1,6 +1,9 @@
 env:
     global:
-        - OPENBLAS_VERSION=5f998ef
+        # The archive that gets built has name from ``git describe`` on this
+        # commit.
+        - BUILD_COMMIT=5f998ef
+        - REPO_DIR=OpenBLAS
         - PLAT=x86_64
         - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
         # Following generated with
@@ -27,12 +30,13 @@ matrix:
         - PLAT=i686
 
 before_install:
+    - source multibuild/common_utils.sh
     - source build_steps.sh
     - before_build
 
 install:
     # Maybe get and clean and patch source
-    - (cd OpenBLAS && git fetch origin && git checkout "v${OPENBLAS_VERSION}")
+    - clean_code $REPO_DIR $BUILD_COMMIT
 
 script:
     # Build library and collect into libs subdirectory
