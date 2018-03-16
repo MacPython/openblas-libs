@@ -1,6 +1,6 @@
 env:
     global:
-        - OPENBLAS_VERSION=0.2.18
+        - OPENBLAS_VERSION=5f998ef
         - PLAT=x86_64
         - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
         # Following generated with
