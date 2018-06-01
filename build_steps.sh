@@ -58,7 +58,7 @@ function do_build_lib {
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
     mkdir -p libs
-    local version=$(cd OpenBLAS && git describe)
+    local version=$(cd OpenBLAS && git describe --tags)
     start_spinner
     (cd OpenBLAS \
         && patch -p1 < ../manylinux-compile.patch \
