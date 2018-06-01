@@ -30,7 +30,7 @@ matrix:
         - PLAT=i686
 
 before_install:
-    - source build_steps.sh
+    - source travis-ci/build_steps.sh
     - before_build
 
 install:
@@ -42,7 +42,7 @@ script:
     - build_lib $PLAT
 
 after_success:
-    # Upload wheels to Rackspace container
+    # Upload libraries to Rackspace container
     - pip install wheelhouse-uploader
     - python -m wheelhouse_uploader upload --local-folder
           ${TRAVIS_BUILD_DIR}/libs/
