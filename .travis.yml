@@ -30,7 +30,6 @@ matrix:
         - PLAT=i686
 
 before_install:
-    - source multibuild/common_utils.sh
     - source build_steps.sh
     - before_build
 

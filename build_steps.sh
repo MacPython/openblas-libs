@@ -3,6 +3,9 @@ BUILD_PREFIX=/usr/local
 # OSX gfortran archive
 GFORTRAN_DMG="archives/gfortran-4.9.0-Mavericks.dmg"
 
+source multibuild/common_utils.sh
+
+
 function before_build {
     if [ "$(uname)" == "Darwin" ]; then
         source multibuild/osx_utils.sh
@@ -56,10 +59,12 @@ function do_build_lib {
     esac
     mkdir -p libs
     local version=$(cd OpenBLAS && git describe)
+    start_spinner
     (cd OpenBLAS \
         && patch -p1 < ../manylinux-compile.patch \
         && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness > /dev/null \
         && make PREFIX=$BUILD_PREFIX install )
+    stop_spinner
     # Chop "v" prefix from git-describe output.
     local out_name="openblas-${version:1}-$(uname)-${plat}${suffix}.tar.gz"
     tar zcvf libs/$out_name \
