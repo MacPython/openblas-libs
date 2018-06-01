@@ -57,6 +57,7 @@ function do_build_lib {
     mkdir -p libs
     local version=$(cd OpenBLAS && git describe)
     (cd OpenBLAS \
+        && patch -p1 < ../manylinux-compile.patch \
         && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness > /dev/null \
         && make PREFIX=$BUILD_PREFIX install )
     # Chop "v" prefix from git-describe output.
