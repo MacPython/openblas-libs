@@ -17,7 +17,7 @@ function get_distutils_platform {
         echo "plat must be i686 or x86_64"
         return 1
     fi
-    if [ -z "IS_OSX" ]; then
+    if [ -z "$IS_OSX" ]; then
         echo "manylinux1_$1"
         return
     fi
@@ -28,8 +28,8 @@ function get_distutils_platform {
 }
 
 function get_macosx_target {
-    # Report MACOSX_DEPLOYMENT_TARGET as given by disutils get_platform.
-    python -c "import distutils.util as du; t=du.get_platform(); print(t.split('-')[1])"
+    # Report MACOSX_DEPLOYMENT_TARGET as given by distutils get_platform.
+    python -c "import sysconfig as s; print(s.get_config_vars()['MACOSX_DEPLOYMENT_TARGET'])"
 }
 
 function before_build {
