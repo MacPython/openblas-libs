@@ -56,7 +56,7 @@ function build_lib {
         -e PLAT="${plat}" \
         -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
         -v $PWD:/io \
-        $docker_image /io/docker_build_wrap.sh
+        $docker_image /io/travis-ci/docker_build_wrap.sh
 }
 
 function patch_source {

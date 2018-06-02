@@ -6,5 +6,5 @@ set -e
 
 # Change into root directory of repo
 cd /io
-source build_steps.sh
+source travis-ci/build_steps.sh
 do_build_lib $PLAT
