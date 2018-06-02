@@ -40,7 +40,7 @@ build_script:
   - git submodule update --init --recursive
   - set MSYSTEM=MINGW%BUILD_BITS%
   - set START_DIR=%__CD__%
-  - set SCRIPT_DIR=%START_DIR%\appveyor\
+  - set SCRIPT_DIR=%START_DIR%appveyor\
   # Need --login to process MSYSTEM variable
   - bash --login %SCRIPT_DIR%build_openblas.sh
   - bash --login %SCRIPT_DIR%build_gfortran.sh

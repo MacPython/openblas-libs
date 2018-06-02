@@ -11,7 +11,7 @@ OPENBLAS_ROOT=$(cygpath "$OPENBLAS_ROOT")
 VC9_ROOT=$(cygpath "$VC9_ROOT")
 
 # Our directory for later copying
-our_wd=$(dirname "${BASH_SOURCE[0]}")
+our_wd=$(cygpath "$START_DIR")
 cd $our_wd
 # Make output directory for build artifacts
 rm -rf builds
