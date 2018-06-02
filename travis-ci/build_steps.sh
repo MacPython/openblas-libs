@@ -9,9 +9,22 @@ source ${ROOT_DIR}/multibuild/common_utils.sh
 MB_PYTHON_VERSION=3.5.1
 
 function get_distutils_platform {
-    # Report platform as given by disutils get_platform.
-    # This is the platform tag that pip will use.
-    python -c "import distutils.util; print(distutils.util.get_platform())"
+    # Report platform as in form of distutils get_platform.
+    # This is like the platform tag that pip will use.
+    # Modify fat architecture tags on macOS to reflect compiled architecture
+    local plat=$1
+    if [ ! "$plat" == "i686" ] && [ ! "$plat" == "x86_64" ]; then
+        echo "plat must be i686 or x86_64"
+        return 1
+    fi
+    if [ -z "IS_OSX" ]; then
+        echo "manylinux1_$1"
+        return
+    fi
+    # macOS 32-bit arch is i386
+    [ "$plat" == "i686" ] && plat="i386"
+    local target=$(get_macosx_target | tr .- _)
+    echo "macosx_${target}_${plat}"
 }
 
 function get_macosx_target {
@@ -92,7 +105,7 @@ function do_build_lib {
     && make PREFIX=$BUILD_PREFIX install )
     stop_spinner
     local version=$(cd OpenBLAS && git describe --tags)
-    local plat_tag=$(get_distutils_platform)
+    local plat_tag=$(get_distutils_platform $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
     local out_name="openblas-${version}-${plat_tag}${suff}.tar.gz"
