@@ -45,7 +45,7 @@ cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$cflags -frecursive -ffpe-summary=invalid,zero"
 
 # Build name for output library from gcc version and OpenBLAS commit.
-GCC_TAG="$(gcc -dumpversion | tr . _)"
+GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags)
 # Build OpenBLAS
 # Variable used in creating output libraries
