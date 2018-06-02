@@ -1,0 +1,64 @@
+# vim ft=yaml
+
+os: Visual Studio 2015
+
+environment:
+  global:
+    OPENBLAS_COMMIT: v0.3.0
+    OPENBLAS_ROOT: c:\opt
+    MSYS2_ROOT: c:\msys64
+    WHEELHOUSE_UPLOADER_USERNAME: travis-worker
+    WHEELHOUSE_UPLOADER_SECRET:
+      secure: 9s0gdDGnNnTt7hvyNpn0/ZzOMGPdwPp2SewFTfGzYk7uI+rdAN9rFq2D1gAP4NQh
+    PYTHON: "C:\\Python27"
+
+  # Need for mingw-builds discussed at
+  # https://github.com/xianyi/OpenBLAS/issues/1503
+  # Downloads via https://sourceforge.net/projects/mingw-w64/files
+  # Note spaces instead of %20 in URL, to avoid Windows env var expansion
+  matrix:
+    - BUILD_BITS: 32
+      MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win32/Personal Builds/mingw-builds/7.1.0/threads-posix/dwarf/i686-7.1.0-release-posix-dwarf-rt_v5-rev0.7z/download"
+
+    - BUILD_BITS: 64
+      MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win64/Personal Builds/mingw-builds/7.1.0/threads-posix/seh/x86_64-7.1.0-release-posix-seh-rt_v5-rev0.7z/download"
+
+build_script:
+  # Build OpenBLAS, build and install the test file
+  - if "%BUILD_BITS%"=="32" (set PLAT=i686) else (set PLAT=x86_64)
+  - set VC9_ROOT=C:\Users\appveyor\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC
+  - PATH=%MSYS2_ROOT%\usr\bin;%PATH%
+  # Get mingw-builds compiler chain, put on path
+  # Quote for env var to protect spaces.
+  - curl -L "%MINGW_URL%" -o downloads\mingw_distro.7z
+  - 7z x downloads\mingw_distro.7z
+  - PATH=%__CD__%\mingw%BUILD_BITS%\bin;%PATH%
+  # Remove competing gcc / gfortran
+  - pacman -Rs --noconfirm gcc gcc-fortran mingw-w64-%PLAT%-toolchain
+  # zip needed for packing archive
+  - pacman -Sy --noconfirm zip
+  - git submodule update --init --recursive
+  - set MSYSTEM=MINGW%BUILD_BITS%
+  - set START_DIR=%__CD__%
+  - set SCRIPT_DIR=%START_DIR%\appveyor\
+  # Need --login to process MSYSTEM variable
+  - bash --login %SCRIPT_DIR%build_openblas.sh
+  - bash --login %SCRIPT_DIR%build_gfortran.sh
+
+test_script:
+  - bash --login -c "$(cygpath $START_DIR)test.exe"
+  - copy test.exe builds
+
+artifacts:
+  - path: builds\*.*
+
+on_success:
+  # Upload the generated package to Rackspace
+  # On Windows, Apache Libcloud cannot find a standard CA cert bundle so we
+  # disable the ssl checks.
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - pip install wheelhouse-uploader
+  - python -m wheelhouse_uploader upload
+    --no-ssl-check --local-folder=builds
+    --no-update-index
+    wheels
