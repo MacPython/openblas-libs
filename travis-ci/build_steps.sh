@@ -5,32 +5,9 @@ GFORTRAN_DMG="archives/gfortran-4.9.0-Mavericks.dmg"
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 source ${ROOT_DIR}/multibuild/common_utils.sh
+source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
 MB_PYTHON_VERSION=3.5.1
-
-function get_distutils_platform {
-    # Report platform as in form of distutils get_platform.
-    # This is like the platform tag that pip will use.
-    # Modify fat architecture tags on macOS to reflect compiled architecture
-    local plat=$1
-    if [ ! "$plat" == "i686" ] && [ ! "$plat" == "x86_64" ]; then
-        echo "plat must be i686 or x86_64"
-        return 1
-    fi
-    if [ -z "$IS_OSX" ]; then
-        echo "manylinux1_$1"
-        return
-    fi
-    # macOS 32-bit arch is i386
-    [ "$plat" == "i686" ] && plat="i386"
-    local target=$(get_macosx_target | tr .- _)
-    echo "macosx_${target}_${plat}"
-}
-
-function get_macosx_target {
-    # Report MACOSX_DEPLOYMENT_TARGET as given by distutils get_platform.
-    python -c "import sysconfig as s; print(s.get_config_vars()['MACOSX_DEPLOYMENT_TARGET'])"
-}
 
 function before_build {
     # Manylinux Python version set in build_lib
@@ -39,7 +16,7 @@ function before_build {
         get_macpython_environment ${MB_PYTHON_VERSION} venv
         source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
         install_gfortran
-        export MACOSX_DEPLOYMENT_TARGET=$(get_macosx_target)
+        # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
     fi
 }
