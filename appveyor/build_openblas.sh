@@ -33,6 +33,8 @@ rm -rf $OPENBLAS_ROOT/$BUILD_BITS
 # Set architecture flags
 if [ "$BUILD_BITS" == 64 ]; then
     march="x86-64"
+    # https://csharp.wekeepcoding.com/article/10463345/invalid+register+for+.seh_savexmm+in+Cygwin
+    extra="-fno-asynchronous-unwind-tables"
     vc_arch="X64"
     plat_tag="win_amd64"
 else
