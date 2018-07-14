@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - BUILD_COMMIT=v0.3.0
+        - BUILD_COMMIT=v0.3.1
         - REPO_DIR=OpenBLAS
         - PLAT=x86_64
         - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
