@@ -9,8 +9,9 @@ env:
         # Following generated with
         # travis encrypt -r MacPython/openblas-libs WHEELHOUSE_UPLOADER_SECRET=<the api key>
         - secure: "NRSuGmMTcNSbpQwiXWS4o2dKQr9bXgDEHD3D6SjDdEe44rsLMDRt8xaUoFIcvfI7zalazn5k545RsxOECeXG2k0xJGIAGtJFlianq9Fk+6ICQZdCGS46EEp95zzjYhWc8GQWAdqFVxJ/j6hPP2NXlvjQgvMKQi0hkM/dlc7f2YOYt9JNin8K2m0v/bE3l8JtF3T/VUGYKMhpLquFVRdZP16MUgNc9K0eiGtOqz2HLctez/b3PoHa2VjqyilgUAMFGQRZdlhd+GIC4TNBxiYlbCgiY81sehkM4TXIQrLVJqNeafM1qRtVLssCT4A3mZcmS3QiwMFuhwD6mDKw60brYOWGlcOZ8W4wm8qx3XXDxHfkVengiAZEvTlimTfx2k4gYrRYvXawTmAsSBFZmQom1rfx0IUC9Nfd9q3E08ZWcjaMkqr3hLdVnSr/2j+8D6yJQuuxj6NrCv2EXB5cEPgM9Cya3cLjBO7QzI9hjWsgRBSg2UcDr8Cy/apxIvnJWftLUs5BUv1BvczDxZ8OqiDYUh2LkJBzLG1Z4/ZHxovvWcDy9VKR681cxjBIde2CY2vMYhYyuVcoeQimsinxzFP+N6DyHEsEb/jYGBPkQTUnqh1PtgHouvOSSw8RDoq6JLjSdhEnZ1cHeQ1CTPzjld/Y6QIecLRcCsYif6ZNdCv3rik="
-        # Adapt to current installer
-        - MACOSX_DEPLOYMENT_TARGET=10.6
+        # > 10.6 needed for OpenBLAS 0.3.1 to avoid thread-local storage error
+        # in memory.c
+        - MACOSX_DEPLOYMENT_TARGET=10.9
 
 language: python
 sudo: required
