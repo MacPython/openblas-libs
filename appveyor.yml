@@ -17,6 +17,10 @@ environment:
   # Downloads via https://sourceforge.net/projects/mingw-w64/files
   # Note spaces instead of %20 in URL, to avoid Windows env var expansion
   matrix:
+    - BUILD_BITS: 64
+      INTERFACE64: 1
+      MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win64/Personal Builds/mingw-builds/7.1.0/threads-posix/seh/x86_64-7.1.0-release-posix-seh-rt_v5-rev0.7z/download"
+
     - BUILD_BITS: 32
       MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win32/Personal Builds/mingw-builds/7.1.0/threads-posix/dwarf/i686-7.1.0-release-posix-dwarf-rt_v5-rev0.7z/download"
 

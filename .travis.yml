@@ -30,6 +30,13 @@ matrix:
       language: objective-c
       env:
         - PLAT=i686
+    - os: linux
+      env:
+        - INTERFACE64=1
+    - os: osx
+      language: objective-c
+      env:
+        - INTERFACE64=1
 
 before_install:
     - source travis-ci/build_steps.sh
@@ -41,7 +48,7 @@ install:
 
 script:
     # Build library and collect into libs subdirectory
-    - build_lib $PLAT
+    - build_lib "$PLAT" "$INTERFACE64"
 
 after_success:
     # Upload libraries to Rackspace container

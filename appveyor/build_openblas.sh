@@ -46,6 +46,16 @@ fi
 cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$cflags -frecursive -ffpe-summary=invalid,zero"
 
+# Set suffixed-ILP64 flags
+if [ "$INTERFACE64" == "1" ]; then
+    interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_"
+    SYMBOLSUFFIX=64_
+    # We override FCOMMON_OPT, so we need to set default integer manually
+    fflags="$fflags -fdefault-integer-8"
+else
+    interface64_flags=""
+fi
+
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags)
@@ -57,25 +67,30 @@ make BINARY=$BUILD_BITS DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      BUILD_LAPACK_DEPRECATED=1 \
      COMMON_OPT="$cflags" \
      FCOMMON_OPT="$fflags" \
-     MAX_STACK_ALLOC=2048
-make PREFIX=$OPENBLAS_ROOT/$BUILD_BITS install
-DLL_BASENAME=libopenblas_${LIBNAMESUFFIX}
+     MAX_STACK_ALLOC=2048 \
+     $interface64_flags
+make PREFIX=$OPENBLAS_ROOT/$BUILD_BITS $interface64_flags install
+DLL_BASENAME=libopenblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 cd $OPENBLAS_ROOT
 # Copy library link file for custom name
 cd $BUILD_BITS/lib
 # At least for the mingwpy wheel, we have to use the VC tools to build the
 # export library. Maybe fixed in later binutils by patch referred to in
 # https://sourceware.org/ml/binutils/2016-02/msg00002.html
-cp ${our_wd}/OpenBLAS/exports/libopenblas.def ${DLL_BASENAME}.def
+if [ "$INTERFACE64" == "1" ]; then
+    cp ${our_wd}/OpenBLAS/exports/${DLL_BASENAME}.def ${DLL_BASENAME}.def
+else
+    cp ${our_wd}/OpenBLAS/exports/libopenblas.def ${DLL_BASENAME}.def
+fi
 "$VC9_ROOT/bin/lib.exe" /machine:${vc_arch} /def:${DLL_BASENAME}.def
 cd ../..
 # Build template site.cfg for using this build
 cat > ${BUILD_BITS}/site.cfg.template << EOF
-[openblas]
+[openblas${SYMBOLSUFFIX}]
 libraries = $DLL_BASENAME
 library_dirs = {openblas_root}\\${BUILD_BITS}\\lib
 include_dirs = {openblas_root}\\${BUILD_BITS}\\include
 EOF
-ZIP_NAME="openblas-${OPENBLAS_VERSION}-${plat_tag}-${GCC_TAG}.zip"
+ZIP_NAME="openblas${SYMBOLSUFFIX}-${OPENBLAS_VERSION}-${plat_tag}-${GCC_TAG}.zip"
 zip -r $ZIP_NAME $BUILD_BITS
 cp $ZIP_NAME $our_wd/builds

@@ -26,15 +26,17 @@ function build_lib {
     #
     # Input arg
     #     plat - one of i686, x86_64
+    #     interface64 - 1 if build with INTERFACE64 and SYMBOLSUFFIX
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     #     GFORTRAN_DMG
     local plat=${1:-$PLAT}
+    local interface64=${2:-$INTERFACE64}
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
-        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}"
+        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64"
         return
     fi
     # Manylinux wrapper
@@ -44,6 +46,7 @@ function build_lib {
     docker run --rm \
         -e BUILD_PREFIX="$BUILD_PREFIX" \
         -e PLAT="${plat}" \
+        -e INTERFACE64="${interface64}" \
         -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
         -v $PWD:/io \
         $docker_image /io/travis-ci/docker_build_wrap.sh
@@ -64,28 +67,42 @@ function do_build_lib {
     #     plat - one of i686, x86_64
     #     suffix (optional) - suffix for output archive name
     #                         Suffix added with hyphen prefix
+    #     interface64 (optional) - whether to build ILP64 openblas
+    #                              with 64_ symbol suffix
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     local plat=$1
     local suffix=$2
+    local interface64=$3
+    echo "Building with settings: '$plat' '$suffix' '$interface64'"
     case $plat in
         x86_64) local bitness=64 ;;
         i686) local bitness=32 ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
+    case $interface64 in
+        1)
+            local interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_";
+            local symbolsuffix="64_";
+            ;;
+        *)
+            local interface64_flags=""
+            local symbolsuffix="";
+            ;;
+    esac
     mkdir -p libs
     start_spinner
     (cd OpenBLAS \
     && patch_source \
-    && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness > /dev/null \
-    && make PREFIX=$BUILD_PREFIX install )
+    && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags > /dev/null \
+    && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
     local version=$(cd OpenBLAS && git describe --tags)
     local plat_tag=$(get_distutils_platform $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
-    local out_name="openblas-${version}-${plat_tag}${suff}.tar.gz"
+    local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
