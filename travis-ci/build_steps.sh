@@ -18,6 +18,11 @@ function before_build {
         install_gfortran
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
+
+        if [ "$INTERFACE64" = "1" ]; then
+            # Build the objconv tool
+            (cd ${ROOT_DIR}/objconv && bash ../travis-ci/build_objconv.sh)
+        fi
     fi
 }
 
@@ -83,8 +88,11 @@ function do_build_lib {
     esac
     case $interface64 in
         1)
-            local interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_";
+            local interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
             local symbolsuffix="64_";
+            if [ -n "$IS_OSX" ]; then
+                $PWD/objconv/objconv --help
+            fi
             ;;
         *)
             local interface64_flags=""
