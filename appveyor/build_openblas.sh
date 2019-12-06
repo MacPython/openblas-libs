@@ -71,6 +71,17 @@ make BINARY=$BUILD_BITS DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      $interface64_flags
 make PREFIX=$OPENBLAS_ROOT/$BUILD_BITS $interface64_flags install
 DLL_BASENAME=libopenblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
+if [ "$INTERFACE64" == "1" ]; then
+    # OpenBLAS does not build a symbol-suffixed static library on Windows:
+    # do it ourselves
+    static_libname=`find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' -printf '%P\n'`
+    set -x  # echo commands
+    make -C exports $interface64_flags objcopy.def
+    objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
+    cp -f "${static_libname}.renamed" "$OPENBLAS_ROOT/$BUILD_BITS/lib/${static_libname}"
+    cp -f "${static_libname}.renamed" "$OPENBLAS_ROOT/$BUILD_BITS/lib/${DLL_BASENAME}.a"
+    set +x
+fi
 cd $OPENBLAS_ROOT
 # Copy library link file for custom name
 cd $BUILD_BITS/lib

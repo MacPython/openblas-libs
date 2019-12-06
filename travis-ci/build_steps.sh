@@ -110,6 +110,15 @@ function do_build_lib {
     local plat_tag=$(get_distutils_platform $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
+    if [ "$interface64" = "1" ]; then
+        # OpenBLAS does not install the symbol suffixed static library,
+        # do it ourselves
+        static_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a'`)
+        renamed_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.renamed'`)
+        set -x  # echo commands
+        cp -f "OpenBLAS/${renamed_libname}" "$BUILD_PREFIX/lib/${static_libname}"
+        set +x
+    fi
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
