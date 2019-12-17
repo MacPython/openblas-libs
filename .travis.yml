@@ -4,7 +4,6 @@ env:
         # commit.
         - BUILD_COMMIT=c815b8f
         - REPO_DIR=OpenBLAS
-        - PLAT=x86_64
         - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
         # Following generated with
         # travis encrypt -r MacPython/openblas-libs WHEELHOUSE_UPLOADER_SECRET=<the api key>
@@ -15,28 +14,49 @@ env:
 
 language: python
 sudo: required
-dist: trusty
+dist: xenial
 services: docker
 
 matrix:
   include:
     - os: linux
+      env:
+        - PLAT=x86_64
     - os: linux
       env:
         - PLAT=i686
     - os: osx
       language: objective-c
+      env:
+        - PLAT=x86_64
     - os: osx
       language: objective-c
       env:
         - PLAT=i686
     - os: linux
       env:
+        - PLAT=x86_64
         - INTERFACE64=1
     - os: osx
       language: objective-c
       env:
+        - PLAT=x86_64
         - INTERFACE64=1
+    - os: linux
+      arch: arm64
+      env:
+        - PLAT=aarch64
+        - MB_ML_VER=2014
+    - os: linux
+      arch: s390x
+      env:
+        - MB_ML_VER=2014
+        - PLAT=s390x
+    - os: linux
+      arch: ppc64le
+      env:
+        - MB_ML_VER=2014
+        - PLAT=ppc64le
 
 before_install:
     - source travis-ci/build_steps.sh
