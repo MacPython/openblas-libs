@@ -80,7 +80,6 @@ function do_build_lib {
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
-    set -v
     local plat=$1
     local suffix=$2
     local interface64=$3
@@ -113,6 +112,7 @@ function do_build_lib {
     && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
+    set -x
     local version=$(cd OpenBLAS && git describe --tags)
     local plat_tag=$(get_distutils_platform $plat)
     local suff=""
@@ -122,9 +122,9 @@ function do_build_lib {
         # do it ourselves
         static_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a'`)
         renamed_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.renamed'`)
-        set -x  # echo commands
+        # set -x  # echo commands
         cp -f "OpenBLAS/${renamed_libname}" "$BUILD_PREFIX/lib/${static_libname}"
-        set +x
+        # set +x
     fi
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
