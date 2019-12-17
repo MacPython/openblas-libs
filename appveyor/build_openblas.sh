@@ -6,6 +6,8 @@
 #  BUILD_BITS
 #  VC9_ROOT
 
+set -e
+
 # Paths in Unix format
 OPENBLAS_ROOT=$(cygpath "$OPENBLAS_ROOT")
 VC9_ROOT=$(cygpath "$VC9_ROOT")

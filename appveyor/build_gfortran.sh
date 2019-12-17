@@ -1,4 +1,7 @@
 # Build gfortran binary against OpenBLAS
+
+set -e
+
 cd $(cygpath "$START_DIR")
 OBP=$(cygpath $OPENBLAS_ROOT\\$BUILD_BITS)
 
