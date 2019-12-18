@@ -48,15 +48,33 @@ matrix:
         - PLAT=aarch64
         - MB_ML_VER=2014
     - os: linux
+      arch: arm64
+      env:
+        - PLAT=aarch64
+        - INTERFACE64=1
+        - MB_ML_VER=2014
+    - os: linux
       arch: s390x
       env:
-        - MB_ML_VER=2014
         - PLAT=s390x
+        - MB_ML_VER=2014
+    - os: linux
+      arch: s390x
+      env:
+        - PLAT=s390x
+        - INTERFACE64=1
+        - MB_ML_VER=2014
     - os: linux
       arch: ppc64le
       env:
-        - MB_ML_VER=2014
         - PLAT=ppc64le
+        - MB_ML_VER=2014
+    - os: linux
+      arch: ppc64le
+      env:
+        - PLAT=ppc64le
+        - INTERFACE64=1
+        - MB_ML_VER=2014
 
 before_install:
     - source travis-ci/build_steps.sh
