@@ -117,12 +117,12 @@ function do_build_lib {
     esac
     mkdir -p libs
     start_spinner
+    set -x
     (cd OpenBLAS \
     && patch_source \
     && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
-    set -x
     local version=$(cd OpenBLAS && git describe --tags)
     local plat_tag=$(get_distutils_platform_local $plat)
     local suff=""

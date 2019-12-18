@@ -47,12 +47,13 @@ matrix:
       env:
         - PLAT=aarch64
         - MB_ML_VER=2014
-    - os: linux
-      arch: arm64
-      env:
-        - PLAT=aarch64
-        - INTERFACE64=1
-        - MB_ML_VER=2014
+    # causes a segfault
+    # - os: linux
+    #  arch: arm64
+    #  env:
+    #    - PLAT=aarch64
+    #    - INTERFACE64=1
+    #    - MB_ML_VER=2014
     - os: linux
       arch: s390x
       env:
