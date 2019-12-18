@@ -69,6 +69,16 @@ function patch_source {
     patch -p1 < ../manylinux-compile.patch
 }
 
+# There are two versions of get_distutils_platform: one in multibuild and one
+# in gfortran-install. Until that is sorted out, copy the one from multibuild
+# which can handle different architectures, at the cost of some slight
+# differences on macOS
+function get_distutils_platform_local {
+    # Report platform as given by distutils get_platform.
+    # This is the platform tag that pip will use.
+    python -c "import distutils.util; print(distutils.util.get_platform())"
+}
+
 function do_build_lib {
     # Build openblas lib
     # Input arg
@@ -114,7 +124,7 @@ function do_build_lib {
     stop_spinner
     set -x
     local version=$(cd OpenBLAS && git describe --tags)
-    local plat_tag=$(get_distutils_platform $plat)
+    local plat_tag=$(get_distutils_platform_local $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
     if [ "$interface64" = "1" ]; then
