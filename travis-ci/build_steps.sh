@@ -36,8 +36,11 @@ function build_lib {
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     #     GFORTRAN_DMG
+    #     MB_ML_VER
+    set -x
     local plat=${1:-$PLAT}
     local interface64=${2:-$INTERFACE64}
+    local manylinux=${MB_ML_VER:-1}
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
@@ -45,7 +48,7 @@ function build_lib {
         return
     fi
     # Manylinux wrapper
-    local docker_image=quay.io/pypa/manylinux1_$plat
+    local docker_image=quay.io/pypa/manylinux${manylinux}_${plat}
     docker pull $docker_image
     # Docker sources this script, and runs `do_build_lib`
     docker run --rm \
@@ -53,6 +56,7 @@ function build_lib {
         -e PLAT="${plat}" \
         -e INTERFACE64="${interface64}" \
         -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
+        -e MB_ML_VER=${manylinux} \
         -v $PWD:/io \
         $docker_image /io/travis-ci/docker_build_wrap.sh
 }
@@ -84,6 +88,9 @@ function do_build_lib {
     case $plat in
         x86_64) local bitness=64 ;;
         i686) local bitness=32 ;;
+        aarch64) local bitness=64 ;;
+        s390x) local bitness=64 ;;
+        ppc64le) local bitness=64 ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
     case $interface64 in
@@ -101,13 +108,14 @@ function do_build_lib {
     esac
     mkdir -p libs
     start_spinner
+    set -x
     (cd OpenBLAS \
     && patch_source \
     && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
     local version=$(cd OpenBLAS && git describe --tags)
-    local plat_tag=$(get_distutils_platform $plat)
+    local plat_tag=$(get_distutils_platform_ex $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
     if [ "$interface64" = "1" ]; then
@@ -115,9 +123,9 @@ function do_build_lib {
         # do it ourselves
         static_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a'`)
         renamed_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.renamed'`)
-        set -x  # echo commands
+        # set -x  # echo commands
         cp -f "OpenBLAS/${renamed_libname}" "$BUILD_PREFIX/lib/${static_libname}"
-        set +x
+        # set +x
     fi
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
