@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - BUILD_COMMIT=c815b8f
+        - BUILD_COMMIT=v0.3.7
         - REPO_DIR=OpenBLAS
         - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
         # Following generated with
@@ -20,40 +20,10 @@ services: docker
 matrix:
   include:
     - os: linux
-      env:
-        - PLAT=x86_64
-    - os: linux
-      env:
-        - PLAT=i686
-    - os: osx
-      language: objective-c
-      env:
-        - PLAT=x86_64
-    - os: osx
-      language: objective-c
-      env:
-        - PLAT=i686
-    - os: linux
-      env:
-        - PLAT=x86_64
-        - INTERFACE64=1
-    - os: osx
-      language: objective-c
-      env:
-        - PLAT=x86_64
-        - INTERFACE64=1
-    - os: linux
       arch: arm64
       env:
         - PLAT=aarch64
         - MB_ML_VER=2014
-    # causes a segfault
-    # - os: linux
-    #  arch: arm64
-    #  env:
-    #    - PLAT=aarch64
-    #    - INTERFACE64=1
-    #    - MB_ML_VER=2014
     - os: linux
       arch: s390x
       env:
