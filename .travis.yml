@@ -92,7 +92,9 @@ script:
 after_success:
     # Upload libraries to Rackspace container
     - pip install wheelhouse-uploader
-    - python -m wheelhouse_uploader upload --local-folder
-          ${TRAVIS_BUILD_DIR}/libs/
-          --no-update-index
-          wheels
+    # Now disabled because we have lost free
+    # services with Rackspace
+    #- python -m wheelhouse_uploader upload --local-folder
+    #     ${TRAVIS_BUILD_DIR}/libs/
+    #     --no-update-index
+    #     wheels
