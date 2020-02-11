@@ -65,7 +65,9 @@ on_success:
   # disable the ssl checks.
   - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - pip install wheelhouse-uploader
-  - python -m wheelhouse_uploader upload
-    --no-ssl-check --local-folder=builds
-    --no-update-index
-    wheels
+  # Now disabled because we have lost free
+  # services with Rackspace
+  #- python -m wheelhouse_uploader upload
+  # --no-ssl-check --local-folder=builds
+  # --no-update-index
+  # wheels
