@@ -98,10 +98,4 @@ after_success:
     # Note that the anaconda-client package on PyPI is too old. Install from github
     # tag instead:
     - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
-    - anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload
-            --no-progress --force -u multibuild-wheels-staging
-            -t file -p "openblas-libs"
-            -v "$(cd OpenBLAS && git describe --tags)"
-            -d "OpenBLAS for multibuild wheels"
-            -s "OpenBLAS for multibuild wheels"
-            libs/openblas*.tar.gz
+    - upload_to_anaconda
