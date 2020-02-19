@@ -4,10 +4,14 @@ env:
         # commit.
         - BUILD_COMMIT=c815b8f
         - REPO_DIR=OpenBLAS
-        - WHEELHOUSE_UPLOADER_USERNAME=travis-worker
-        # Following generated with
-        # travis encrypt -r MacPython/openblas-libs WHEELHOUSE_UPLOADER_SECRET=<the api key>
-        - secure: "NRSuGmMTcNSbpQwiXWS4o2dKQr9bXgDEHD3D6SjDdEe44rsLMDRt8xaUoFIcvfI7zalazn5k545RsxOECeXG2k0xJGIAGtJFlianq9Fk+6ICQZdCGS46EEp95zzjYhWc8GQWAdqFVxJ/j6hPP2NXlvjQgvMKQi0hkM/dlc7f2YOYt9JNin8K2m0v/bE3l8JtF3T/VUGYKMhpLquFVRdZP16MUgNc9K0eiGtOqz2HLctez/b3PoHa2VjqyilgUAMFGQRZdlhd+GIC4TNBxiYlbCgiY81sehkM4TXIQrLVJqNeafM1qRtVLssCT4A3mZcmS3QiwMFuhwD6mDKw60brYOWGlcOZ8W4wm8qx3XXDxHfkVengiAZEvTlimTfx2k4gYrRYvXawTmAsSBFZmQom1rfx0IUC9Nfd9q3E08ZWcjaMkqr3hLdVnSr/2j+8D6yJQuuxj6NrCv2EXB5cEPgM9Cya3cLjBO7QzI9hjWsgRBSg2UcDr8Cy/apxIvnJWftLUs5BUv1BvczDxZ8OqiDYUh2LkJBzLG1Z4/ZHxovvWcDy9VKR681cxjBIde2CY2vMYhYyuVcoeQimsinxzFP+N6DyHEsEb/jYGBPkQTUnqh1PtgHouvOSSw8RDoq6JLjSdhEnZ1cHeQ1CTPzjld/Y6QIecLRcCsYif6ZNdCv3rik="
+        # Following generated with:
+        # travis encrypt -r MacPython/openblas-libs OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN=<secret token value>
+        # The value of the existing token can be retrieved at the bottom of the page at:
+        #   https://anaconda.org/multibuild-wheels-staging/settings/access:
+        # To generate a new token, we need the permissions:
+        # - "Allow write access to the API site"
+        # - "Allow uploads to PyPI repositories"
+        - secure: "vxMRXsnSBczv/u4HF0LT2U/f5wdTosSWmORwcNv8A/46uFK5CExbVj/LqW0e4fnrv2EZX2sDokrC/3nZAvlxRiZSkJ6dR34lU7ysPheD1sTdpVnKFrajcu22gmMmrORQf/v0ntkFYQj/+zRqVGb8QJLxW9bj8mEoWH4vkmnIHyRNuuIeLQrlbU3PeXusQ1/XoCrmlsU9kg8pyTwzfpG00T7BkACbZBYhRK84LCB4pIYgxxWgMKXH8DSqVxsK9egYXZM58YQwIOJGwpqw5XyYH+aKjZqSz1opNbzClWwT3hgAveVgQ7t2rZ8YZ0I6GyphLQ9JId/Vmuza0TjwzlCcexNSsAfolbqiCcwBElNBDpUzNB4bRzyGc3vckE/C+PlDoRL1be0UHoEnyzmIzwhwVrZKOyz7pGkbdtjOoqB5VgoMy04Tnd2l4mkJkx5ub3v7Z0Q74LWKKaZJcXBVIATIjZu43jI9Y9HYV8Ey0CcZY33EjwpOe7wSVgiSDcTv1KUS1tJwZpHX+duJSYMQyWRhkTxKtt8E1FosNQ1fRZMFmY74mAdVPIv9Vn1qgSnOCSkNGlLBIjVCozie0HVlzUk1FhvLtral3b/hp7+6JVjU1sp7HnaS/DtHTq57kceEbT56GxbQopye1zvecnhUp9tohLFeSzk/zJcvXGTIMrJlWnU="
         # > 10.6 needed for OpenBLAS 0.3.1 to avoid thread-local storage error
         # in memory.c
         - MACOSX_DEPLOYMENT_TARGET=10.9
@@ -90,11 +94,8 @@ script:
     - build_lib "$PLAT" "$INTERFACE64"
 
 after_success:
-    # Upload libraries to Rackspace container
-    - pip install wheelhouse-uploader
-    # Now disabled because we have lost free
-    # services with Rackspace
-    #- python -m wheelhouse_uploader upload --local-folder
-    #     ${TRAVIS_BUILD_DIR}/libs/
-    #     --no-update-index
-    #     wheels
+    # Upload libraries to the shared staging area on anaconda.org
+    # Note that the anaconda-client package on PyPI is too old. Install from github
+    # tag instead:
+    - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
+    - upload_to_anaconda

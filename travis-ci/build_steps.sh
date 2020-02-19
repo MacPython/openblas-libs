@@ -134,3 +134,17 @@ function do_build_lib {
         $BUILD_PREFIX/lib/libopenblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
+
+function upload_to_anaconda {
+    if [ "$OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN" == "" ]; then
+        echo "OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN is not defined: skipping."
+    else
+        anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
+            --no-progress --force -u multibuild-wheels-staging \
+            -t file -p "openblas-libs" \
+            -v "$(cd OpenBLAS && git describe --tags)" \
+            -d "OpenBLAS for multibuild wheels" \
+            -s "OpenBLAS for multibuild wheels" \
+            libs/openblas*.tar.gz
+    fi
+}
