@@ -53,12 +53,13 @@ build_script:
   - bash --login %SCRIPT_DIR%build_openblas.sh
 
 test_script:
-  - bash --login %SCRIPT_DIR%build_gfortran.sh
-  - copy test.exe builds
-  - copy test_dyn.exe builds
-  - bash --login -c "$(cygpath $START_DIR)test.exe"
-  - copy %OPENBLAS_ROOT%\%BUILD_BITS%\bin\*.dll .
-  - bash --login -c "$(cygpath $START_DIR)test_dyn.exe"
+  - bash --login -c "echo 'skipping tests'"
+  # - bash --login %SCRIPT_DIR%build_gfortran.sh
+  # - copy test.exe builds
+  # - copy test_dyn.exe builds
+  # - bash --login -c "$(cygpath $START_DIR)test.exe"
+  # - copy %OPENBLAS_ROOT%\%BUILD_BITS%\bin\*.dll .
+  # - bash --login -c "$(cygpath $START_DIR)test_dyn.exe"
 
 on_finish:
   - ps: Get-ChildItem builds\*.* | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
