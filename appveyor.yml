@@ -51,9 +51,10 @@ build_script:
   - set SCRIPT_DIR=%START_DIR%appveyor\
   # Need --login to process MSYSTEM variable
   - bash --login %SCRIPT_DIR%build_openblas.sh
+  - if "%OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN%"=="" (echo "missing token") else (echo "token ok")
 
 test_script:
-  - bash --login -c "echo 'skipping tests'"
+  - if "%OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN%"=="" (echo "missing token") else (echo "token ok")
   # - bash --login %SCRIPT_DIR%build_gfortran.sh
   # - copy test.exe builds
   # - copy test_dyn.exe builds
@@ -68,6 +69,7 @@ on_success:
   # Upload libraries to the shared staging area on anaconda.org
   # Note that the anaconda-client package on PyPI is too old. Install from github
   # tag instead:
+  - if "%OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN%"=="" (echo "missing token") else (echo "token ok")
   - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
   - bash --login %SCRIPT_DIR%upload_to_anaconda_staging.sh
