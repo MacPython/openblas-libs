@@ -84,6 +84,7 @@ rm -rf $OPENBLAS_ROOT/$BUILD_BITS
 #     cp -f "${static_libname}.renamed" "$OPENBLAS_ROOT/$BUILD_BITS/lib/${DLL_BASENAME}.a"
 #     set +x
 # fi
+mkdir -p $OPENBLAS_ROOT
 cd $OPENBLAS_ROOT
 # # Copy library link file for custom name
 # cd $BUILD_BITS/lib
