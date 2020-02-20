@@ -13,7 +13,7 @@ environment:
     # - "Allow write access to the API site"
     # - "Allow uploads to PyPI repositories"
     OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN:
-      secure: /Mt78rCFoeuoJScHSXs18o8rjJQZ3ycguPzKvo6X9I0=
+      secure: CMOhqPqFG0CdbfKNhKW4IAVPRNiTU2QFxHazcIEG+OR3SR7tBL1/fIvpXiRar5Xj
     PYTHON: "C:\\Python37"
 
   # Need for mingw-builds discussed at
