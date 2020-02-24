@@ -80,6 +80,20 @@ matrix:
         - PLAT=ppc64le
         - INTERFACE64=1
         - MB_ML_VER=2014
+    # linux manylinux2010
+    - os: linux
+      env:
+        - PLAT=x86_64
+        - MB_ML_VER=2010
+    - os: linux
+      env:
+        - PLAT=i686
+        - MB_ML_VER=2010
+    - os: linux
+      env:
+        - PLAT=x86_64
+        - INTERFACE64=1
+        - MB_ML_VER=2010
 
 before_install:
     - source travis-ci/build_steps.sh
