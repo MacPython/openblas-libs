@@ -114,7 +114,7 @@ function do_build_lib {
     && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
-    local version=$(cd OpenBLAS && git describe --tags)
+    local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
     local plat_tag=$(get_distutils_platform_ex $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
@@ -142,7 +142,7 @@ function upload_to_anaconda {
         anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
             --no-progress --force -u multibuild-wheels-staging \
             -t file -p "openblas-libs" \
-            -v "$(cd OpenBLAS && git describe --tags)" \
+            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
             -d "OpenBLAS for multibuild wheels" \
             -s "OpenBLAS for multibuild wheels" \
             libs/openblas*.tar.gz
