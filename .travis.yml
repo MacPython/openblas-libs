@@ -52,13 +52,13 @@ matrix:
         - PLAT=aarch64
         - MB_ML_VER=2014
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    #- os: linux
-    #  arch: arm64
-    #  env:
-    #    - PLAT=aarch64
-    #    - INTERFACE64=1
-    #    - MB_ML_VER=2014
-    #    - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: arm64
+      env:
+        - PLAT=aarch64
+        - INTERFACE64=1
+        - MB_ML_VER=2014
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: s390x
       env:
