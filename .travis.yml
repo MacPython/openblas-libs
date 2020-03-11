@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - BUILD_COMMIT=v0.3.9
+        - BUILD_COMMIT=b9a2a3c54
         - REPO_DIR=OpenBLAS
         # Following generated with:
         # travis encrypt -r MacPython/openblas-libs OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN=<secret token value>
@@ -52,13 +52,13 @@ matrix:
         - PLAT=aarch64
         - MB_ML_VER=2014
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    #- os: linux
-    #  arch: arm64
-    #  env:
-    #    - PLAT=aarch64
-    #    - INTERFACE64=1
-    #    - MB_ML_VER=2014
-    #    - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: arm64
+      env:
+        - PLAT=aarch64
+        - INTERFACE64=1
+        - MB_ML_VER=2014
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: s390x
       env:
