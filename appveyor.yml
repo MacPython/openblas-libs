@@ -4,7 +4,7 @@ os: Visual Studio 2015
 
 environment:
   global:
-    OPENBLAS_COMMIT: b9a2a3c54
+    OPENBLAS_COMMIT: b6a948fbe
     OPENBLAS_ROOT: c:\opt
     MSYS2_ROOT: c:\msys64
     # The value of the existing token can be retrieved at the bottom of the page at:
