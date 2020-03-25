@@ -17,11 +17,11 @@ env:
         - MACOSX_DEPLOYMENT_TARGET=10.9
 
 language: python
-sudo: required
 dist: xenial
+os: linux
 services: docker
 
-matrix:
+jobs:
   include:
     - os: linux
       env:
