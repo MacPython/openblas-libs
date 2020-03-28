@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - BUILD_COMMIT=b6a948fbe
+        - BUILD_COMMIT=79fd006c5
         - REPO_DIR=OpenBLAS
         # Following generated with:
         # travis encrypt -r MacPython/openblas-libs OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN=<secret token value>
@@ -105,7 +105,7 @@ before_install:
     - before_build
 
 install:
-    # Maybe get and clean and patch source
+    # get a clean checkout
     - clean_code $REPO_DIR $BUILD_COMMIT
 
 script:

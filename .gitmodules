@@ -1,6 +1,7 @@
 [submodule "OpenBLAS"]
 	path = OpenBLAS
-	url = https://github.com/xianyi/OpenBLAS.git
+	# url = https://github.com/xianyi/OpenBLAS.git
+	url = https://github.com/martin-frbg/OpenBLAS.git
 [submodule "multibuild"]
 	path = multibuild
 	url = https://github.com/matthew-brett/multibuild.git
