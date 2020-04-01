@@ -86,11 +86,24 @@ function do_build_lib {
     local interface64=$3
     echo "Building with settings: '$plat' '$suffix' '$interface64'"
     case $plat in
-        x86_64) local bitness=64 ;;
-        i686) local bitness=32 ;;
-        aarch64) local bitness=64 ;;
-        s390x) local bitness=64 ;;
-        ppc64le) local bitness=64 ;;
+        x86_64)
+            local bitness=64
+            local target_flags="TARGET=PRESCOTT"
+            ;;
+        i686)
+            local bitness=32
+            local target_flags="TARGET=PRESCOTT"
+            ;;
+        aarch64)
+            local bitness=64
+            local target_flags="TARGET=ARMV8"
+            ;;
+        s390x)
+            local bitness=64
+            ;;
+        ppc64le)
+            local bitness=64
+            ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
     case $interface64 in
@@ -111,7 +124,7 @@ function do_build_lib {
     set -x
     (cd OpenBLAS \
     && patch_source \
-    && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags > /dev/null \
+    && make DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
     local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
