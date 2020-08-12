@@ -25,12 +25,6 @@ environment:
       INTERFACE64: 1
       MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win64/Personal Builds/mingw-builds/7.1.0/threads-posix/seh/x86_64-7.1.0-release-posix-seh-rt_v5-rev0.7z/download"
 
-    - BUILD_BITS: 32
-      MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win32/Personal Builds/mingw-builds/7.1.0/threads-posix/dwarf/i686-7.1.0-release-posix-dwarf-rt_v5-rev0.7z/download"
-
-    - BUILD_BITS: 64
-      MINGW_URL: "https://sourceforge.net/projects/mingw-w64/files/Toolchains targetting Win64/Personal Builds/mingw-builds/7.1.0/threads-posix/seh/x86_64-7.1.0-release-posix-seh-rt_v5-rev0.7z/download"
-
 build_script:
   # Build OpenBLAS, build and install the test file
   - if "%BUILD_BITS%"=="32" (set PLAT=i686) else (set PLAT=x86_64)
@@ -62,11 +56,3 @@ test_script:
 
 on_finish:
   - ps: Get-ChildItem builds\*.* | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
-
-on_success:
-  # Upload libraries to the shared staging area on anaconda.org
-  # Note that the anaconda-client package on PyPI is too old. Install from github
-  # tag instead:
-  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
-  - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
-  - bash --login %SCRIPT_DIR%upload_to_anaconda_staging.sh
