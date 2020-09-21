@@ -41,12 +41,10 @@ build_script:
   - curl -L "%MINGW_URL%" -o downloads\mingw_distro.7z
   - 7z x downloads\mingw_distro.7z
   - PATH=%__CD__%\mingw%BUILD_BITS%\bin;%PATH%
-  # Update keys
-  - pacman-key --init; pacman-key --populate
   # Remove competing gcc / gfortran
   - pacman -Rs --noconfirm gcc gcc-fortran mingw-w64-%PLAT%-toolchain
   # zip needed for packing archive
-  - pacman -Sy --noconfirm zip
+  - pacman -Syu --noconfirm zip
   - git submodule update --init --recursive
   - set MSYSTEM=MINGW%BUILD_BITS%
   - set START_DIR=%__CD__%
