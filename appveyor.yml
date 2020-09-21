@@ -1,6 +1,6 @@
 # vim ft=yaml
 
-os: Visual Studio 2019
+os: Visual Studio 2015
 
 environment:
   global:
