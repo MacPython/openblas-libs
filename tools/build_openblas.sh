@@ -4,13 +4,13 @@
 #  OPENBLAS_ROOT
 #  OPENBLAS_COMMIT
 #  BUILD_BITS
-#  VC9_ROOT
+#  START_DIR
+# Expects "lib.exe" and "gcc" to be on the path
 
-set -e
+set -ex
 
 # Paths in Unix format
 OPENBLAS_ROOT=$(cygpath "$OPENBLAS_ROOT")
-VC9_ROOT=$(cygpath "$VC9_ROOT")
 
 # Our directory for later copying
 our_wd=$(cygpath "$START_DIR")
@@ -20,6 +20,7 @@ rm -rf builds
 mkdir builds
 
 cd OpenBLAS
+git submodule update --init --recursive
 
 # Check which gcc we're using
 which gcc
@@ -42,11 +43,12 @@ if [ "$BUILD_BITS" == 64 ]; then
 else
     march=pentium4
     extra="-mfpmath=sse -msse2"
+    fextra="-m32"
     vc_arch="i386"
     plat_tag="win32"
 fi
 cflags="-O2 -march=$march -mtune=generic $extra"
-fflags="$cflags -frecursive -ffpe-summary=invalid,zero"
+fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
 
 # Set suffixed-ILP64 flags
 if [ "$INTERFACE64" == "1" ]; then
@@ -91,7 +93,7 @@ cd $BUILD_BITS/lib
 # export library. Maybe fixed in later binutils by patch referred to in
 # https://sourceware.org/ml/binutils/2016-02/msg00002.html
 cp ${our_wd}/OpenBLAS/exports/${DLL_BASENAME}.def ${DLL_BASENAME}.def
-"$VC9_ROOT/bin/lib.exe" /machine:${vc_arch} /def:${DLL_BASENAME}.def
+"lib.exe" /machine:${vc_arch} /def:${DLL_BASENAME}.def
 cd ../..
 # Build template site.cfg for using this build
 cat > ${BUILD_BITS}/site.cfg.template << EOF

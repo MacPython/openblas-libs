@@ -2,33 +2,83 @@
 
 name: CI
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+defaults:
+  run:
+    shell: bash  
+
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  OPENBLAS_COMMIT: 349b722d8d09303
+  OPENBLAS_ROOT: "c:\\opt"
+
 jobs:
-  # This workflow contains a single job called "build"
   build:
     strategy:
       matrix:
         BUILD_BITS: [64, 32]
         INTERFACE64: ['1', '']
         os: [windows-latest]
-    # The type of runner that the job will run on
+        exclude:
+          - BUILD_BITS: 32
+            INTERFACE64: 1
+          
     runs-on: ${{ matrix.os }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - uses: ilammy/msvc-dev-cmd@v1
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Setup
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          BITS=${{ matrix.BUILD_BITS }}
+          echo "BUILD_BITS=$BITS" >> $GITHUB_ENV;
+          if [ "$BITS" == "32" ]; then
+            echo "PLAT=i686" >> $GITHUB_ENV;
+            
+          else
+            echo "PLAT=x86_64" >> $GITHUB_ENV;
+          fi
+          echo "START_DIR=$PWD" >> $GITHUB_ENV;
+          choco install -y zip
+
+      - run: |
+          choco install -y mingw --forcex86 --force --version=7.3.0
+          refreshenv
+          echo "C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw32\\bin" >> $GITHUB_PATH;
+        name: Install 32-bit mingw
+        shell: powershell
+        if: ${{ matrix.BUILD_BITS == '32' }}
+
+      - name: Build
+        run: |
+          BITS=${{ matrix.BUILD_BITS }}
+          if [ "$BITS" == "32" ]; then
+            export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
+          fi
+          echo $PATH
+          git submodule update --init --recursive
+          tools/build_openblas.sh
+
+      - name: Test
+        run: |
+          BITS=${{ matrix.BUILD_BITS }}
+          if [ "$BITS" == "32" ]; then
+            export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
+          fi
+          tools/build_gfortran.sh
+          cp test.exe builds
+          cp test_dyn.exe builds
+          ./test.exe
+          cp $(cygpath $OPENBLAS_ROOT)/$BITS/bin/*.dll .
+          ./test_dyn.exe
+        
+      - name: Upload
+        run: |
+          pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
+          # upload_to_anaconda_staging.sh
+        
