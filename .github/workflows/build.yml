@@ -48,8 +48,6 @@ jobs:
 
       - run: |
           choco install -y mingw --forcex86 --force --version=7.3.0
-          refreshenv
-          echo "C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw32\\bin" >> $GITHUB_PATH;
         name: Install 32-bit mingw
         shell: powershell
         if: ${{ matrix.BUILD_BITS == '32' }}
@@ -78,7 +76,9 @@ jobs:
           ./test_dyn.exe
         
       - name: Upload
+        env:
+         OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
         run: |
           pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
-          # upload_to_anaconda_staging.sh
+          tools/upload_to_anaconda_staging.sh
         
