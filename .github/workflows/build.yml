@@ -47,6 +47,8 @@ jobs:
           choco install -y zip
 
       - run: |
+          # use an older package since the x86 package overrides the x64 one,
+          # and ends up deleting make.exe
           choco install -y mingw --forcex86 --force --version=7.3.0
         name: Install 32-bit mingw
         shell: powershell
@@ -55,6 +57,9 @@ jobs:
       - name: Build
         run: |
           BITS=${{ matrix.BUILD_BITS }}
+          if [ "${{ matrix.INTERFACE64 }}" == "1" ]; then
+            export INTERFACE64=1
+          fi
           if [ "$BITS" == "32" ]; then
             export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
           fi
@@ -67,6 +72,9 @@ jobs:
           BITS=${{ matrix.BUILD_BITS }}
           if [ "$BITS" == "32" ]; then
             export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
+          fi
+          if [ "${{ matrix.INTERFACE64 }}" == "1" ]; then
+            export INTERFACE64=1
           fi
           tools/build_gfortran.sh
           cp test.exe builds
