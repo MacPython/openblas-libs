@@ -54,6 +54,13 @@ jobs:
         shell: powershell
         if: ${{ matrix.BUILD_BITS == '32' }}
 
+      - run: |
+          # see https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg586184.html
+          include=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/avx512fintrin.h
+          sed -i -e"s/_mm512_abs_pd (__m512 __A)/_mm512_abs_pd (__m512d __A)/" $include
+        name: Fix gcc bug
+        if: ${{ matrix.BUILD_BITS == '64' }}
+
       - name: Build
         run: |
           BITS=${{ matrix.BUILD_BITS }}
