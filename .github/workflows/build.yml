@@ -4,7 +4,7 @@ name: CI
 
 defaults:
   run:
-    shell: bash  
+    shell: bash
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
     branches: [ master ]
 
 env:
-  OPENBLAS_COMMIT: 349b722d8d09303
+  OPENBLAS_COMMIT: "4ad33c46b0c"
   OPENBLAS_ROOT: "c:\\opt"
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
         exclude:
           - BUILD_BITS: 32
             INTERFACE64: 1
-          
+      fail-fast: false
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -39,7 +39,6 @@ jobs:
           echo "BUILD_BITS=$BITS" >> $GITHUB_ENV;
           if [ "$BITS" == "32" ]; then
             echo "PLAT=i686" >> $GITHUB_ENV;
-            
           else
             echo "PLAT=x86_64" >> $GITHUB_ENV;
           fi
@@ -47,14 +46,28 @@ jobs:
           choco install -y zip
 
       - run: |
-          choco install -y mingw --forcex86 --force --version=7.3.0
+          choco install -y mingw --forcex86 --force --version=8.1.0
+          choco install -y make
         name: Install 32-bit mingw
         shell: powershell
         if: ${{ matrix.BUILD_BITS == '32' }}
 
+      - run: |
+          # see https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg586184.html
+          if [ "${{ matrix.BUILD_BITS }}" == "64" ]; then
+            include=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/avx512fintrin.h
+          else
+            include=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw32/lib/gcc/i686-w64-mingw32/8.1.0/include/avx512fintrin.h
+          fi
+          sed -i -e"s/_mm512_abs_pd (__m512 __A)/_mm512_abs_pd (__m512d __A)/" $include
+        name: Fix gcc bug
+
       - name: Build
         run: |
           BITS=${{ matrix.BUILD_BITS }}
+          if [ "${{ matrix.INTERFACE64 }}" == "1" ]; then
+            export INTERFACE64=1
+          fi
           if [ "$BITS" == "32" ]; then
             export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
           fi
@@ -68,17 +81,19 @@ jobs:
           if [ "$BITS" == "32" ]; then
             export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
           fi
+          if [ "${{ matrix.INTERFACE64 }}" == "1" ]; then
+            export INTERFACE64=1
+          fi
           tools/build_gfortran.sh
           cp test.exe builds
           cp test_dyn.exe builds
           ./test.exe
           cp $(cygpath $OPENBLAS_ROOT)/$BITS/bin/*.dll .
           ./test_dyn.exe
-        
+
       - name: Upload
         env:
          OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
         run: |
           pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
           tools/upload_to_anaconda_staging.sh
-        
