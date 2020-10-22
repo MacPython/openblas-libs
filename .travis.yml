@@ -32,10 +32,12 @@ matrix:
     - os: osx
       language: objective-c
       env:
+        - MB_PYTHON_VERSION=3.7
         - PLAT=x86_64
     - os: osx
       language: objective-c
       env:
+        - MB_PYTHON_VERSION=3.7
         - PLAT=i686
     - os: linux
       env:
@@ -44,6 +46,7 @@ matrix:
     - os: osx
       language: objective-c
       env:
+        - MB_PYTHON_VERSION=3.7
         - PLAT=x86_64
         - INTERFACE64=1
     - os: linux
@@ -131,5 +134,6 @@ after_success:
     # Upload libraries to the shared staging area on anaconda.org
     # Note that the anaconda-client package on PyPI is too old. Install from github
     # tag instead:
+    - python -c "import sys; print(sys.version)"
     - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
     - upload_to_anaconda
