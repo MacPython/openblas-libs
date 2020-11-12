@@ -62,13 +62,13 @@ fi
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
-OPENBLAS_VERSION=$(git describe --tags)
+OPENBLAS_VERSION=$(git describe --tags)-buffersize20
 # Build OpenBLAS
 # Variable used in creating output libraries
 export LIBNAMESUFFIX=${OPENBLAS_VERSION}-${GCC_TAG}
 make BINARY=$BUILD_BITS DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
-     BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT \
+     BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20 \
      COMMON_OPT="$cflags" \
      FCOMMON_OPT="$fflags" \
      MAX_STACK_ALLOC=2048 \
