@@ -1,4 +1,4 @@
-name: Build wheels
+name: Linux,macOS build
 
 on:
   push:
@@ -34,6 +34,7 @@ jobs:
       BUILD_DIR: ${{ github.workspace }}
       SCIPY_WHEELS_NIGHTLY_ACCESS: ${{ secrets.SCIPY_WHEELS_NIGHTLY_ACCESS }}
       MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }}
+      PLAT: ${{ matrix.PLAT }}
 
     steps:
     - uses: actions/checkout@v2
@@ -51,7 +52,7 @@ jobs:
     - name: Print some Environment variable
       run: |
         echo "TRAVIS_OS_NAME: ${TRAVIS_OS_NAME}"
-        echo "PLAT: ${{ matrix.PLAT }}"
+        echo "PLAT: ${PLAT}"
         echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
     - name: Install VirtualEnv
       run: |
