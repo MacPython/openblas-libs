@@ -1,0 +1,87 @@
+name: Build wheels
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        os: [ubuntu-latest, macos-latest]
+        platform: [x64]
+        PLAT: [i686, x86_64]
+        INTERFACE64: ['', '1']
+        exclude:
+          - os: macos-latest # macos-10.15
+            PLAT: i686
+          - PLAT: i686
+            INTERFACE64: '1'
+    env:
+      REPO_DIR: OpenBLAS
+      OPENBLAS_COMMIT: v0.3.13
+      MB_PYTHON_VERSION: ${{ matrix.python-version }}
+      TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
+      MB_ML_VER: ${{ matrix.MB_ML_VER }}
+      BUILD_DIR: ${{ github.workspace }}
+      SCIPY_WHEELS_NIGHTLY_ACCESS: ${{ secrets.SCIPY_WHEELS_NIGHTLY_ACCESS }}
+      MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Set extra env
+      run: |
+        if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
+        echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+    - name: Print some Environment variable
+      run: |
+        echo "TRAVIS_OS_NAME: ${TRAVIS_OS_NAME}"
+        echo "PLAT: ${{ matrix.PLAT }}"
+        echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
+    - name: Install VirtualEnv
+      run: |
+        python -m pip install --upgrade pip
+        pip install virtualenv
+    - name: Build and Install Wheels
+      run: |
+        source travis-ci/build_steps.sh
+        echo "------ BEFORE BUILD ---------"
+        before_build
+        echo "------ CLEAN CODE --------"
+        clean_code $REPO_DIR $OPENBLAS_COMMIT
+        echo "------ BUILD LIB --------"
+        build_lib "$PLAT" "$INTERFACE64"
+    - name: Upload wheels
+      run: |
+        # trigger an upload to the shared ecosystem
+        # infrastructure at: https://anaconda.org/scipy-wheels-nightly
+        # for cron jobs only (restricted to master branch once
+        # per week)
+        # SCIPY_WHEELS_NIGHTLY_ACCESS is a secret token
+        # used in Travis CI config, originally
+        #
+        # for merges (push events) we use the staging area instead;
+        # MULTIBUILD_WHEELS_STAGING_ACCESS is a secret token used in Travis
+        # CI config, originally generated at anaconda.org for
+        # multibuild-wheels-staging
+        # generated at anaconda.org for scipy-wheels-nightly
+        pip install git+https://github.com/Anaconda-Server/anaconda-client;
+        ls ${BUILD_DIR}/wheelhouse/*.whl
+        #anaconda -t ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }} upload --force -u multibuild-wheels-staging ${BUILD_DIR}/wheelhouse/*.whl;
+        anaconda -t ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }} upload -u multibuild-wheels-staging ${BUILD_DIR}/wheelhouse/*.whl;
+
