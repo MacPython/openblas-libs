@@ -67,22 +67,16 @@ jobs:
         clean_code $REPO_DIR $OPENBLAS_COMMIT
         echo "------ BUILD LIB --------"
         build_lib "$PLAT" "$INTERFACE64"
-    - name: Upload wheels
+    - name: Upload tarballs
       run: |
-        # trigger an upload to the shared ecosystem
-        # infrastructure at: https://anaconda.org/scipy-wheels-nightly
-        # for cron jobs only (restricted to master branch once
-        # per week)
-        # SCIPY_WHEELS_NIGHTLY_ACCESS is a secret token
-        # used in Travis CI config, originally
-        #
-        # for merges (push events) we use the staging area instead;
-        # MULTIBUILD_WHEELS_STAGING_ACCESS is a secret token used in Travis
-        # CI config, originally generated at anaconda.org for
-        # multibuild-wheels-staging
-        # generated at anaconda.org for scipy-wheels-nightly
         pip install git+https://github.com/Anaconda-Server/anaconda-client;
-        ls ${BUILD_DIR}/wheelhouse/*.whl
-        #anaconda -t ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }} upload --force -u multibuild-wheels-staging ${BUILD_DIR}/wheelhouse/*.whl;
-        anaconda -t ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }} upload -u multibuild-wheels-staging ${BUILD_DIR}/wheelhouse/*.whl;
+        # The first -t option refers to the token, the second is the "type"
+        # option to the "upload" command
+        anaconda -t ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }} upload \
+        --no-progress --force -u multibuild-wheels-staging \
+        -t file -p "openblas-libs" \
+        -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
+        -d "OpenBLAS for multibuild wheels" \
+        -s "OpenBLAS for multibuild wheels" \
+        libs/openblas*.tar.gz
 
