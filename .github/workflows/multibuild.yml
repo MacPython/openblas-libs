@@ -69,14 +69,20 @@ jobs:
         build_lib "$PLAT" "$INTERFACE64"
     - name: Upload tarballs
       run: |
-        pip install git+https://github.com/Anaconda-Server/anaconda-client;
-        # The first -t option refers to the token, the second is the "type"
-        # option to the "upload" command
-        anaconda -t ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }} upload \
-        --no-progress --force -u multibuild-wheels-staging \
-        -t file -p "openblas-libs" \
-        -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
-        -d "OpenBLAS for multibuild wheels" \
-        -s "OpenBLAS for multibuild wheels" \
-        libs/openblas*.tar.gz
-
+        set -ex
+        TOKEN=${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
+        if [ "$TOKEN" == "" ]; then
+            # The token is available when under the MacPython org, not on forks
+            echo "secrets.MULTIBUILD_WHEELS_STAGING_ACCESS is not defined: skipping";
+        else
+            pip install git+https://github.com/Anaconda-Server/anaconda-client;
+            # The first -t option refers to the token, the second is the "type"
+            # option to the "upload" command
+            anaconda -t  ${TOKEN} upload \
+            --no-progress --force -u multibuild-wheels-staging \
+            -t file -p "openblas-libs" \
+            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
+            -d "OpenBLAS for multibuild wheels" \
+            -s "OpenBLAS for multibuild wheels" \
+            libs/openblas*.tar.gz;
+        fi
