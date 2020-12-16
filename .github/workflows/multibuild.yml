@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7]
         os: [ubuntu-latest, macos-latest]
         platform: [x64]
         PLAT: [i686, x86_64]
@@ -79,7 +79,7 @@ jobs:
             # The first -t option refers to the token, the second is the "type"
             # option to the "upload" command
             anaconda -t  ${TOKEN} upload \
-            --no-progress --force -u multibuild-wheels-staging \
+            --no-progress --skip -u multibuild-wheels-staging \
             -t file -p "openblas-libs" \
             -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
             -d "OpenBLAS for multibuild wheels" \
