@@ -15,22 +15,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7]
         os: [ubuntu-latest, macos-latest]
         platform: [x64]
         PLAT: [i686, x86_64]
         INTERFACE64: ['', '1']
+        MB_ML_VER: ['', 2010, 2014]
         exclude:
-          - os: macos-latest # macos-10.15
+          - os: macos-latest
             PLAT: i686
+          - os: macos-latest
+            MB_ML_VER: 2010
+          - os: macos-latest
+            MB_ML_VER: 2014
           - PLAT: i686
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: v0.3.13
+      MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
+      INTERFACE64: ${{ matrix.INTERFACE64 }}
       BUILD_DIR: ${{ github.workspace }}
       SCIPY_WHEELS_NIGHTLY_ACCESS: ${{ secrets.SCIPY_WHEELS_NIGHTLY_ACCESS }}
       MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }}
@@ -41,10 +47,10 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.8
     - name: Set extra env
       run: |
         if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
