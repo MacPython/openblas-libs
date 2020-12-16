@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT=v0.3.12
+        - OPENBLAS_COMMIT=v0.3.13
         - REPO_DIR=OpenBLAS
         # Following generated with:
         # travis encrypt -r MacPython/openblas-libs OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN=<secret token value>
@@ -24,32 +24,6 @@ services: docker
 matrix:
   include:
     - os: linux
-      env:
-        - PLAT=x86_64
-    - os: linux
-      env:
-        - PLAT=i686
-    - os: osx
-      language: objective-c
-      env:
-        - MB_PYTHON_VERSION=3.7
-        - PLAT=x86_64
-    - os: osx
-      language: objective-c
-      env:
-        - MB_PYTHON_VERSION=3.7
-        - PLAT=i686
-    - os: linux
-      env:
-        - PLAT=x86_64
-        - INTERFACE64=1
-    - os: osx
-      language: objective-c
-      env:
-        - MB_PYTHON_VERSION=3.7
-        - PLAT=x86_64
-        - INTERFACE64=1
-    - os: linux
       arch: arm64
       env:
         - PLAT=aarch64
@@ -88,35 +62,6 @@ matrix:
         - INTERFACE64=1
         - MB_ML_VER=2014
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    # linux manylinux2010
-    - os: linux
-      env:
-        - PLAT=x86_64
-        - MB_ML_VER=2010
-    - os: linux
-      env:
-        - PLAT=i686
-        - MB_ML_VER=2010
-    - os: linux
-      env:
-        - PLAT=x86_64
-        - INTERFACE64=1
-        - MB_ML_VER=2010
-
-    # linux manylinux2014
-    - os: linux
-      env:
-        - PLAT=x86_64
-        - MB_ML_VER=2014
-    - os: linux
-      env:
-        - PLAT=i686
-        - MB_ML_VER=2014
-    - os: linux
-      env:
-        - PLAT=x86_64
-        - INTERFACE64=1
-        - MB_ML_VER=2014
 
 before_install:
     - source travis-ci/build_steps.sh
