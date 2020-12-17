@@ -1,0 +1,94 @@
+name: Linux,macOS build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        platform: [x64]
+        PLAT: [i686, x86_64]
+        INTERFACE64: ['', '1']
+        MB_ML_VER: ['', 2010, 2014]
+        exclude:
+          - os: macos-latest
+            PLAT: i686
+          - os: macos-latest
+            MB_ML_VER: 2010
+          - os: macos-latest
+            MB_ML_VER: 2014
+          - PLAT: i686
+            INTERFACE64: '1'
+    env:
+      REPO_DIR: OpenBLAS
+      OPENBLAS_COMMIT: v0.3.13
+      MACOSX_DEPLOYMENT_TARGET: 10.9
+      MB_PYTHON_VERSION: ${{ matrix.python-version }}
+      TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
+      MB_ML_VER: ${{ matrix.MB_ML_VER }}
+      INTERFACE64: ${{ matrix.INTERFACE64 }}
+      BUILD_DIR: ${{ github.workspace }}
+      SCIPY_WHEELS_NIGHTLY_ACCESS: ${{ secrets.SCIPY_WHEELS_NIGHTLY_ACCESS }}
+      MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }}
+      PLAT: ${{ matrix.PLAT }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Set extra env
+      run: |
+        if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
+        echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+    - name: Print some Environment variable
+      run: |
+        echo "TRAVIS_OS_NAME: ${TRAVIS_OS_NAME}"
+        echo "PLAT: ${PLAT}"
+        echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
+    - name: Install VirtualEnv
+      run: |
+        python -m pip install --upgrade pip
+        pip install virtualenv
+    - name: Build and Install Wheels
+      run: |
+        source travis-ci/build_steps.sh
+        echo "------ BEFORE BUILD ---------"
+        before_build
+        echo "------ CLEAN CODE --------"
+        clean_code $REPO_DIR $OPENBLAS_COMMIT
+        echo "------ BUILD LIB --------"
+        build_lib "$PLAT" "$INTERFACE64"
+    - name: Upload tarballs
+      run: |
+        set -ex
+        TOKEN=${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
+        if [ "$TOKEN" == "" ]; then
+            # The token is available when under the MacPython org, not on forks
+            echo "secrets.MULTIBUILD_WHEELS_STAGING_ACCESS is not defined: skipping";
+        else
+            pip install git+https://github.com/Anaconda-Server/anaconda-client;
+            # The first -t option refers to the token, the second is the "type"
+            # option to the "upload" command
+            anaconda -t  ${TOKEN} upload \
+            --no-progress --skip -u multibuild-wheels-staging \
+            -t file -p "openblas-libs" \
+            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
+            -d "OpenBLAS for multibuild wheels" \
+            -s "OpenBLAS for multibuild wheels" \
+            libs/openblas*.tar.gz;
+        fi
