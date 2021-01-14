@@ -71,6 +71,8 @@ jobs:
         before_build
         echo "------ CLEAN CODE --------"
         clean_code $REPO_DIR $OPENBLAS_COMMIT
+        echo "------ PATCH CODE --------"
+        ./patch_code.sh
         echo "------ BUILD LIB --------"
         build_lib "$PLAT" "$INTERFACE64"
     - name: Upload tarballs
@@ -87,7 +89,7 @@ jobs:
             anaconda -t  ${TOKEN} upload \
             --no-progress --skip -u multibuild-wheels-staging \
             -t file -p "openblas-libs" \
-            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
+            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)_TEST" \
             -d "OpenBLAS for multibuild wheels" \
             -s "OpenBLAS for multibuild wheels" \
             libs/openblas*.tar.gz;
