@@ -89,6 +89,9 @@ function do_build_lib {
         x86_64)
             local bitness=64
             local target_flags="TARGET=PRESCOTT"
+            if [ -n "$IS_OSX" ]; then
+                target_flags="TARGET=CORE2"
+            fi
             ;;
         i686)
             local bitness=32
@@ -98,11 +101,16 @@ function do_build_lib {
             local bitness=64
             local target_flags="TARGET=ARMV8"
             ;;
+        arm64)
+            local bitness=64
+            local target_flags="TARGET=VORTEX"
+            ;;
         s390x)
             local bitness=64
             ;;
         ppc64le)
             local bitness=64
+            local target_flags="TARGET=POWER8"
             ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac

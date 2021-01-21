@@ -20,6 +20,10 @@ jobs:
         PLAT: [i686, x86_64]
         INTERFACE64: ['', '1']
         MB_ML_VER: ['', 2010, 2014]
+        include:
+          - os: macos-latest
+            PLAT: arm64
+            INTERFACE64: ''
         exclude:
           - os: macos-latest
             PLAT: i686
