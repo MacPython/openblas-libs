@@ -7,7 +7,7 @@ ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 source ${ROOT_DIR}/multibuild/common_utils.sh
 source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
-MB_PYTHON_VERSION=3.7
+MB_PYTHON_VERSION=3.9
 
 function before_build {
     # Manylinux Python version set in build_lib
