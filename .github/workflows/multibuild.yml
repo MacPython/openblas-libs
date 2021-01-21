@@ -24,6 +24,7 @@ jobs:
           - os: macos-latest
             PLAT: arm64
             INTERFACE64: ''
+            platform: [x64]
         exclude:
           - os: macos-latest
             PLAT: i686
