@@ -26,6 +26,7 @@ jobs:
             INTERFACE64: ''
             platform: [x64]
         exclude:
+          - os: ubuntu-latest
           - os: macos-latest
             PLAT: i686
           - os: macos-latest
