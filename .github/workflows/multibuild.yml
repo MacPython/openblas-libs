@@ -21,7 +21,7 @@ jobs:
         INTERFACE64: ['', '1']
         MB_ML_VER: ['', 2010, 2014]
         include:
-          - os: macos-latest
+          - os: macos-11.0
             PLAT: arm64
             INTERFACE64: ''
             platform: [x64]
