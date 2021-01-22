@@ -81,6 +81,7 @@ function do_build_lib {
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
+    env
     local plat=$1
     local suffix=$2
     local interface64=$3
