@@ -71,8 +71,10 @@ jobs:
         pip install virtualenv
     - name: Build and Install Wheels
       run: |
-        sudo xcode-select -switch /Applications/Xcode_12.2.app
-        export SDKROOT=/Applications/Xcode_12.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk
+        if [[ "$PLAT" == "arm64" ]]; then
+          sudo xcode-select -switch /Applications/Xcode_12.2.app
+          export SDKROOT=/Applications/Xcode_12.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk
+        fi
         source travis-ci/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
