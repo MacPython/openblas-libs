@@ -26,7 +26,6 @@ jobs:
             INTERFACE64: ''
             platform: [x64]
         exclude:
-          - os: ubuntu-latest
           - os: macos-latest
             PLAT: i686
           - os: macos-latest
@@ -53,10 +52,10 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    - name: Set up Python 3.9
+    - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.8
     - name: Set extra env
       run: |
         if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
