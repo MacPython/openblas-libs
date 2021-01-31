@@ -7,7 +7,7 @@ ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 source ${ROOT_DIR}/multibuild/common_utils.sh
 source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
-MB_PYTHON_VERSION=3.7
+MB_PYTHON_VERSION=3.9
 
 function before_build {
     # Manylinux Python version set in build_lib
@@ -44,7 +44,7 @@ function build_lib {
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
-        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64"
+        wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64"
         return
     fi
     # Manylinux wrapper
@@ -85,24 +85,33 @@ function do_build_lib {
     local suffix=$2
     local interface64=$3
     echo "Building with settings: '$plat' '$suffix' '$interface64'"
-    case $plat in
-        x86_64)
+    case $(get_os)-$plat in
+        Linux-x86_64)
             local bitness=64
             local target_flags="TARGET=PRESCOTT"
             ;;
-        i686)
+        Darwin-x86_64)
+            local bitness=64
+            local target_flags="TARGET=CORE2"
+            ;;
+        *-i686)
             local bitness=32
             local target_flags="TARGET=PRESCOTT"
             ;;
-        aarch64)
+        Linux-aarch64)
             local bitness=64
             local target_flags="TARGET=ARMV8"
             ;;
-        s390x)
+        Darwin-arm64)
+            local bitness=64
+            local target_flags="TARGET=VORTEX"
+            ;;
+        *-s390x)
             local bitness=64
             ;;
-        ppc64le)
+        *-ppc64le)
             local bitness=64
+            local target_flags="TARGET=POWER8"
             ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac

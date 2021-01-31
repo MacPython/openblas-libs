@@ -20,6 +20,11 @@ jobs:
         PLAT: [i686, x86_64]
         INTERFACE64: ['', '1']
         MB_ML_VER: ['', 2010, 2014]
+        include:
+          - os: macos-latest
+            PLAT: arm64
+            INTERFACE64: ''
+            platform: [x64]
         exclude:
           - os: macos-latest
             PLAT: i686
@@ -66,6 +71,10 @@ jobs:
         pip install virtualenv
     - name: Build and Install Wheels
       run: |
+        if [[ "$PLAT" == "arm64" ]]; then
+          sudo xcode-select -switch /Applications/Xcode_12.2.app
+          export SDKROOT=/Applications/Xcode_12.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk
+        fi
         source travis-ci/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
