@@ -90,7 +90,7 @@ jobs:
             # The token is available when under the MacPython org, not on forks
             echo "secrets.MULTIBUILD_WHEELS_STAGING_ACCESS is not defined: skipping";
         else
-            pip install git+https://github.com/Anaconda-Server/anaconda-client;
+            pip install git+https://github.com/Anaconda-Server/anaconda-client@1.7.2;
             # The first -t option refers to the token, the second is the "type"
             # option to the "upload" command
             anaconda -t  ${TOKEN} upload \
