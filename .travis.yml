@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT=af2b0d0
+        - OPENBLAS_COMMIT=d6cf677
         - REPO_DIR=OpenBLAS
         # Following generated with:
         # travis encrypt -r MacPython/openblas-libs OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN=<secret token value>
@@ -61,6 +61,46 @@ matrix:
         - PLAT=ppc64le
         - INTERFACE64=1
         - MB_ML_VER=2014
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+
+    - os: linux
+      arch: arm64
+      env:
+        - PLAT=aarch64
+        - MB_ML_VER=_2_24
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: arm64
+      env:
+        - PLAT=aarch64
+        - INTERFACE64=1
+        - MB_ML_VER=_2_24
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: s390x
+      env:
+        - PLAT=s390x
+        - MB_ML_VER=_2_24
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: s390x
+      env:
+        - PLAT=s390x
+        - INTERFACE64=1
+        - MB_ML_VER=_2_24
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: ppc64le
+      env:
+        - PLAT=ppc64le
+        - MB_ML_VER=_2_24
+        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
+    - os: linux
+      arch: ppc64le
+      env:
+        - PLAT=ppc64le
+        - INTERFACE64=1
+        - MB_ML_VER=_2_24
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
 
 before_install:

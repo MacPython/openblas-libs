@@ -1,4 +1,4 @@
-name: Linux,macOS build
+name: Posix
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         platform: [x64]
         PLAT: [i686, x86_64]
         INTERFACE64: ['', '1']
-        MB_ML_VER: ['', 2010, 2014]
+        MB_ML_VER: ['', 2010, 2014, '_2_24']
         include:
           - os: macos-latest
             PLAT: arm64
@@ -36,7 +36,7 @@ jobs:
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: af2b0d0
+      OPENBLAS_COMMIT: d6cf677
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
