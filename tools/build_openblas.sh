@@ -78,8 +78,8 @@ DLL_BASENAME=libopenblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 if [ "$INTERFACE64" == "1" ]; then
     # OpenBLAS does not build a symbol-suffixed static library on Windows:
     # do it ourselves
-    static_libname=`find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' -printf '%P\n'`
     set -x  # echo commands
+    static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | head -1)
     make -C exports $interface64_flags objcopy.def
     objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
     cp -f "${static_libname}.renamed" "$OPENBLAS_ROOT/$BUILD_BITS/lib/${static_libname}"
