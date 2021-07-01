@@ -13,7 +13,7 @@ on:
     branches: [ master ]
 
 env:
-  OPENBLAS_COMMIT: "af2b0d0"
+  OPENBLAS_COMMIT: "v0.3.15"
   OPENBLAS_ROOT: "c:\\opt"
 
 jobs:
@@ -95,5 +95,5 @@ jobs:
         env:
          OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
         run: |
-          pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.7.2
+          pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.8.0
           tools/upload_to_anaconda_staging.sh

@@ -36,7 +36,7 @@ jobs:
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: af2b0d0
+      OPENBLAS_COMMIT: "v0.3.15"
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
@@ -90,7 +90,7 @@ jobs:
             # The token is available when under the MacPython org, not on forks
             echo "secrets.MULTIBUILD_WHEELS_STAGING_ACCESS is not defined: skipping";
         else
-            pip install git+https://github.com/Anaconda-Server/anaconda-client@1.7.2;
+            pip install git+https://github.com/Anaconda-Server/anaconda-client@1.8.0
             # The first -t option refers to the token, the second is the "type"
             # option to the "upload" command
             anaconda -t  ${TOKEN} upload \

@@ -5,8 +5,8 @@ set -e
 cd $(cygpath "$START_DIR")
 OBP=$(cygpath $OPENBLAS_ROOT\\$BUILD_BITS)
 
-static_libname=`find $OBP/lib -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a'`
-dynamic_libname=`find $OBP/lib -maxdepth 1 -type f -name '*.dll.a'`
+static_libname=$(find $OBP/lib -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
+dynamic_libname=$(find $OBP/lib -maxdepth 1 -type f -name '*.dll.a' | tail -1)
 
 if [ "$INTERFACE64" == "1" ]; then
   gfortran -I $OBP/include -fdefault-integer-8 -o test.exe test64_.f90 $static_libname
