@@ -23,6 +23,10 @@ jobs:
         include:
           - os: macos-latest
             PLAT: arm64
+            INTERFACE64: '1'
+            platform: [x64]
+          - os: macos-latest
+            PLAT: arm64
             INTERFACE64: ''
             platform: [x64]
         exclude:
