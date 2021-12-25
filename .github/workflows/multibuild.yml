@@ -76,8 +76,8 @@ jobs:
     - name: Build and Install Wheels
       run: |
         if [[ "$PLAT" == "arm64" ]]; then
-          sudo xcode-select -switch /Applications/Xcode_12.2.app
-          export SDKROOT=/Applications/Xcode_12.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk
+          sudo xcode-select -switch /Applications/Xcode_12.5.1.app
+          export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk
         fi
         source travis-ci/build_steps.sh
         echo "------ BEFORE BUILD ---------"
