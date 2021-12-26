@@ -63,6 +63,7 @@ jobs:
     - name: Set extra env
       run: |
         if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
+        if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV; fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
     - name: Print some Environment variable
       run: |
@@ -77,7 +78,7 @@ jobs:
       run: |
         if [[ "$PLAT" == "arm64" ]]; then
           sudo xcode-select -switch /Applications/Xcode_12.5.1.app
-          export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.0.sdk
+          export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
         fi
         source travis-ci/build_steps.sh
         echo "------ BEFORE BUILD ---------"
