@@ -49,6 +49,9 @@ function build_lib {
     fi
     # Manylinux wrapper
     local docker_image=quay.io/pypa/manylinux${manylinux}_${plat}
+    if [ "${manylinux}" == "_2_28" ]; then
+      docker_image=quay.io/pypa/manylinux${manylinux}_poc_${plat}:poc
+    fi
     docker pull $docker_image
     # Docker sources this script, and runs `do_build_lib`
     docker run --rm \

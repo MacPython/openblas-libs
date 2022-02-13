@@ -17,9 +17,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         platform: [x64]
-        PLAT: [i686, x86_64]
+        #PLAT: [i686, x86_64]
+        PLAT: [x86_64]
         INTERFACE64: ['', '1']
-        MB_ML_VER: ['', 2010, 2014]
+        #MB_ML_VER: ['', 2010, 2014, '_2_28']
+        MB_ML_VER: ['_2_28']
         include:
           - os: macos-latest
             PLAT: arm64
@@ -36,8 +38,12 @@ jobs:
             MB_ML_VER: 2010
           - os: macos-latest
             MB_ML_VER: 2014
+          - os: macos-latest
+            MB_ML_VER: '_2_28'
           - PLAT: i686
             INTERFACE64: '1'
+          - PLAT: i686
+            MB_ML_VER: '_2_28'
     env:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: "5188aed"
@@ -64,7 +70,11 @@ jobs:
       run: |
         if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
         if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV; fi
-        echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+        if [ "_2_28" == "${{ matrix.MB_ML_VER }}" ]; then
+          echo "DOCKER_TEST_IMAGE=$(echo multibuild/focal_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+        else
+          echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+        fi
     - name: Print some Environment variable
       run: |
         echo "TRAVIS_OS_NAME: ${TRAVIS_OS_NAME}"
