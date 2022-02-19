@@ -17,11 +17,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         platform: [x64]
-        #PLAT: [i686, x86_64]
-        PLAT: [x86_64]
+        PLAT: [i686, x86_64]
         INTERFACE64: ['', '1']
-        #MB_ML_VER: ['', 2010, 2014, '_2_28']
-        MB_ML_VER: ['_2_28']
+        MB_ML_VER: ['', 2010, 2014, '_2_28']
         include:
           - os: macos-latest
             PLAT: arm64
