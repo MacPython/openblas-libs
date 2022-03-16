@@ -29,6 +29,18 @@ jobs:
             PLAT: arm64
             INTERFACE64: ''
             platform: [x64]
+          - os: ubuntu-latest
+            PLAT: x86_64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+            platform: [x64]
+          - os: ubuntu-latest
+            PLAT: x86_64
+            INTERFACE64: ''
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+            platform: [x64]
         exclude:
           - os: macos-latest
             PLAT: i686
