@@ -26,6 +26,33 @@ function before_build {
     fi
 }
 
+function get_plat_tag {
+    # Copied from gfortran-install/gfortran_utils.sh, modified for MB_ML_LIBC
+
+    # Modify fat architecture tags on macOS to reflect compiled architecture
+    # For non-darwin, report manylinux version
+    local plat=$1
+    local mb_ml_ver=${MB_ML_VER:-1}
+    local mb_ml_libc=${MB_ML_LIBC:-manylinux}
+    case $plat in
+        i686|x86_64|arm64|universal2|intel|aarch64|s390x|ppc64le) ;;
+        *) echo Did not recognize plat $plat; return 1 ;;
+    esac
+    local uname=${2:-$(uname)}
+    if [ "$uname" != "Darwin" ]; then
+        if [ "$plat" == "intel" ]; then
+            echo plat=intel not allowed for Manylinux
+            return 1
+        fi
+        echo "${mb_ml_libc}${mb_ml_ver}_${plat}"
+        return
+    fi
+    # macOS 32-bit arch is i386
+    [ "$plat" == "i686" ] && plat="i386"
+    local target=$(echo $MACOSX_DEPLOYMENT_TARGET | tr .- _)
+    echo "macosx_${target}_${plat}"
+}
+
 function build_lib {
     # OSX or manylinux build
     #
@@ -138,7 +165,7 @@ function do_build_lib {
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
     local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
-    local plat_tag=$(get_distutils_platform_ex $plat)
+    local plat_tag=$(get_plat_tag $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
     if [ "$interface64" = "1" ]; then
