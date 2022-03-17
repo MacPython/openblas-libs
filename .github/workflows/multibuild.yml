@@ -29,6 +29,18 @@ jobs:
             PLAT: arm64
             INTERFACE64: ''
             platform: [x64]
+          - os: ubuntu-latest
+            PLAT: x86_64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+            platform: [x64]
+          - os: ubuntu-latest
+            PLAT: x86_64
+            INTERFACE64: ''
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+            platform: [x64]
         exclude:
           - os: macos-latest
             PLAT: i686
@@ -44,6 +56,7 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
+      MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
       BUILD_DIR: ${{ github.workspace }}
