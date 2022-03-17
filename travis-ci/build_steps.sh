@@ -48,7 +48,8 @@ function build_lib {
         return
     fi
     # Manylinux wrapper
-    local docker_image=quay.io/pypa/manylinux${manylinux}_${plat}
+    local libc=${MB_ML_LIBC:-manylinux}
+    local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
     docker pull $docker_image
     # Docker sources this script, and runs `do_build_lib`
     docker run --rm \
