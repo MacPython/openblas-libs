@@ -85,6 +85,7 @@ function build_lib {
         -e INTERFACE64="${interface64}" \
         -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
         -e MB_ML_VER=${manylinux} \
+        -e MB_ML_LIBC=${libc} \
         -v $PWD:/io \
         $docker_image /io/travis-ci/docker_build_wrap.sh
 }
