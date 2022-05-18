@@ -46,14 +46,22 @@ jobs:
           choco install -y zip
 
       - run: |
-          choco install -y mingw --forcex86 --force --version=8.1.0
+          choco install -y mingw --forcex86 --force --version=11.2
           choco install -y make
-        name: Install 32-bit mingw
+        name: Install 32-bit mingw 11.2
         shell: powershell
         if: ${{ matrix.BUILD_BITS == '32' }}
 
       - run: |
+          choco install -y mingw --force --version=11.2
+          choco install -y make
+        name: Install 64-bit mingw 11.2
+        shell: powershell
+        if: ${{ matrix.BUILD_BITS != '32' }}
+
+      - run: |
           # see https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg586184.html
+          # for gcc 8.1
           if [ "${{ matrix.BUILD_BITS }}" == "64" ]; then
             include=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/avx512fintrin.h
           else
@@ -61,6 +69,7 @@ jobs:
           fi
           sed -i -e"s/_mm512_abs_pd (__m512 __A)/_mm512_abs_pd (__m512d __A)/" $include
         name: Fix gcc bug
+        if: ${{ 0 }}
 
       - name: Build
         run: |
@@ -73,7 +82,7 @@ jobs:
           fi
           echo $PATH
           git submodule update --init --recursive
-          tools/build_openblas.sh
+          tools/build_openblas.ps1
 
       - name: Test
         run: |
