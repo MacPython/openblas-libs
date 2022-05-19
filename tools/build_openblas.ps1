@@ -1,8 +1,8 @@
 # Build script for OpenBLAS on Windows
 # Expects environment variables:
-$OPENBLAS_ROOT="c:\opt\openblas"
-$BUILD_BITS="64"
-$IF_BITS = "32"
+# $OPENBLAS_ROOT="c:\opt\openblas"
+# $INTERFACE64
+# $BITS
 $SUFFIX = "_m64"
 # Expects "gcc" to be on the path
 $march="x86-64"
@@ -13,11 +13,12 @@ $plat_tag="win_amd64"
 $cflags="-O2 -march=$march -mtune=generic $extra $long_double"
 $fflags="$extra $cflags -frecursive -ffpe-summary=invalid,zero $long_double"
 
-if ($IF_BITS -eq '64') {
-    $interface64_flags = "INTERFACE64=1 SYMBOLSUFFIX=64_"
-    $SYMBOLSUFFIX="64_"
+# Set suffixed-ILP64 flags
+if [ "$INTERFACE64" == "1" ]; then
+    interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_"
+    SYMBOLSUFFIX=64_
     # We override FCOMMON_OPT, so we need to set default integer manually
-    $fflags="$fflags -fdefault-integer-8"
+    fflags="$fflags -fdefault-integer-8"
 } else {
     $interface64_flags = ""
     $SYMBOL_SUFFIX = ""
