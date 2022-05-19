@@ -52,7 +52,7 @@ jobs:
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: "5188aed"
+      OPENBLAS_COMMIT: "v0.3.20"
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
