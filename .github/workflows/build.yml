@@ -91,6 +91,10 @@ jobs:
           cp $(cygpath $OPENBLAS_ROOT)/$BITS/bin/*.dll .
           ./test_dyn.exe
 
+      - uses: actions/upload-artifact@v3
+        with:
+          path: builds/openblas*.zip
+
       - name: Upload
         env:
          OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}

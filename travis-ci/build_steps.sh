@@ -183,6 +183,7 @@ function do_build_lib {
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
         $BUILD_PREFIX/lib/libopenblas* \
+        $BUILD_PREFIX/lib/pkgconfig* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
 

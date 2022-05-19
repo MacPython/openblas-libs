@@ -100,6 +100,11 @@ jobs:
         clean_code $REPO_DIR $OPENBLAS_COMMIT
         echo "------ BUILD LIB --------"
         build_lib "$PLAT" "$INTERFACE64"
+
+    - uses: actions/upload-artifact@v3
+      with:
+        path: libs/openblas*.tar.gz
+
     - name: Upload tarballs
       run: |
         set -ex
