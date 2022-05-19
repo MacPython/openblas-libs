@@ -160,6 +160,7 @@ function do_build_lib {
     mkdir -p libs
     start_spinner
     set -x
+    git config --global --add safe.directory '*'
     (cd OpenBLAS \
     && patch_source \
     && make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null \
@@ -183,7 +184,7 @@ function do_build_lib {
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
         $BUILD_PREFIX/lib/libopenblas* \
-        $BUILD_PREFIX/lib/pkgconfig* \
+        $BUILD_PREFIX/lib/pkgconfig/openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
 
