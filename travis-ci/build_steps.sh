@@ -163,7 +163,7 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     (cd OpenBLAS \
     && patch_source \
-    && make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null \
+    && CFLAGS="-fvisibility=protected" make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
     local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
