@@ -13,7 +13,7 @@ on:
     branches: [ master ]
 
 env:
-  OPENBLAS_COMMIT: "bfd9c1b58cd3"
+  OPENBLAS_COMMIT: "v0.3.20"
   OPENBLAS_ROOT: "c:\\opt"
 
 jobs:
