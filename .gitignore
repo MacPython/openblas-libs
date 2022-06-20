@@ -3,4 +3,4 @@ builds/
 *~
 *.pyc
 *.swp
-test.exe
+for_test/
