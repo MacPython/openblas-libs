@@ -133,7 +133,8 @@ function do_build_lib {
             ;;
         Darwin-arm64)
             local bitness=64
-            local target_flags="TARGET=VORTEX"
+            # https://github.com/xianyi/OpenBLAS/issues/3659
+            local target_flags="TARGET=VORTEX NO_EXPRECISION=1"
             ;;
         *-s390x)
             local bitness=64
