@@ -90,6 +90,11 @@ interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
+# Patch OpenBLAS to exclude stray GFortran symbol.
+# Replacement snprintf symbol only present for UCRTC 64-bit build.
+if [ "$BUILD_BITS" == 64 ]; then
+    patch -p1 < ../patches-windows/openblas-make-libs.patch
+fi
 # Build OpenBLAS
 # Variable used in creating output libraries
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \

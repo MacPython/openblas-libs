@@ -1,0 +1,27 @@
+diff --git a/exports/Makefile b/exports/Makefile
+index d8173534..4e2e0d7b 100644
+--- a/exports/Makefile
++++ b/exports/Makefile
+@@ -119,11 +119,21 @@ dll  : ../$(LIBDLLNAME)
+ # in their import table.  By instead using a stable name it is possible to
+ # upgrade between library versions, without needing to re-link an application.
+ # For more details see: https://github.com/xianyi/OpenBLAS/issues/127.
++ifeq ($(DEBUG), 1)
+ ../$(LIBDLLNAME) : ../$(LIBNAME) $(LIBPREFIX).def dllinit.$(SUFFIX)
+ 	$(RANLIB) ../$(LIBNAME)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBPREFIX).def dllinit.$(SUFFIX) \
+-	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(IMPLIBNAME) \
++	-shared -o ../$(LIBDLLNAME) -Wl,--defsym,quadmath_snprintf=snprintf \
+ 	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
++	dlltool -D $(LIBDLLNAME) -d $(LIBPREFIX).def -l ../$(LIBDLLNAME).a
++else
++../$(LIBDLLNAME) : ../$(LIBNAME) $(LIBPREFIX).def dllinit.$(SUFFIX)
++	$(RANLIB) ../$(LIBNAME)
++	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBPREFIX).def dllinit.$(SUFFIX) \
++	-shared -o ../$(LIBDLLNAME) -Wl,--defsym,quadmath_snprintf=snprintf -Wl,-gc-sections -Wl,-s \
++	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
++	dlltool -D $(LIBDLLNAME) -d $(LIBPREFIX).def -l ../$(LIBDLLNAME).a
++endif
+ 
+ $(LIBPREFIX).def : $(GENSYM)
+ 	./$(GENSYM) win2k    $(ARCH) dummy $(EXPRECISION) $(NO_CBLAS) $(NO_LAPACK) $(NO_LAPACKE) $(NEED2UNDERSCORES) $(ONLY_CBLAS) "$(SYMBOLPREFIX)" "$(SYMBOLSUFFIX)" $(BUILD_LAPACK_DEPRECATED) $(BUILD_BFLOAT16) $(BUILD_SINGLE) $(BUILD_DOUBLE) $(BUILD_COMPLEX) $(BUILD_COMPLEX16) > $(@F)
