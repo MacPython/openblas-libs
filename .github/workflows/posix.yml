@@ -17,39 +17,33 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         platform: [x64]
-        PLAT: [i686, x86_64]
+        PLAT: [x86_64]
         INTERFACE64: ['', '1']
-        MB_ML_VER: ['', 2010, 2014]
+        MB_ML_VER: ['2014']
         include:
           - os: macos-latest
             PLAT: arm64
             INTERFACE64: '1'
-            platform: [x64]
+            platform: x64
           - os: macos-latest
             PLAT: arm64
             INTERFACE64: ''
-            platform: [x64]
+            platform: x64
+          - os: ubuntu-latest
+            PLAT: i686
+            INTERFACE64: ''
           - os: ubuntu-latest
             PLAT: x86_64
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-            platform: [x64]
+            platform: x64
           - os: ubuntu-latest
             PLAT: x86_64
             INTERFACE64: ''
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-            platform: [x64]
-        exclude:
-          - os: macos-latest
-            PLAT: i686
-          - os: macos-latest
-            MB_ML_VER: 2010
-          - os: macos-latest
-            MB_ML_VER: 2014
-          - PLAT: i686
-            INTERFACE64: '1'
+            platform: x64
     env:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: "bfd9c1b58cd3"
@@ -87,7 +81,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install virtualenv
-    - name: Build and Install Wheels
+    - name: Build OpenBLAS
       run: |
         if [[ "$PLAT" == "arm64" ]]; then
           sudo xcode-select -switch /Applications/Xcode_12.5.1.app
@@ -101,11 +95,21 @@ jobs:
         echo "------ BUILD LIB --------"
         build_lib "$PLAT" "$INTERFACE64"
 
+    - name: Build wheel
+      run: |
+        mkdir -p local/openblas
+        tar -C local/openblas --strip-components=2 -xf libs/openblas*.tar.gz
+        python -m pip wheel -w dist -vv .
+
     - uses: actions/upload-artifact@v3
       with:
         path: libs/openblas*.tar.gz
 
-    - name: Upload tarballs
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/openblas*.tar.gz
+
+    - name: Upload
       run: |
         set -ex
         TOKEN=${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}

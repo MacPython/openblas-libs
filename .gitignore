@@ -4,3 +4,5 @@ builds/
 *.pyc
 *.swp
 test.exe
+local/
+dist/
