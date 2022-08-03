@@ -107,7 +107,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        path: dist/openblas*.tar.gz
+        path: dist/openblas*.whl
 
     - name: Upload
       run: |
