@@ -4,3 +4,6 @@ builds/
 *.pyc
 *.swp
 for_test/
+test.exe
+local/
+dist/

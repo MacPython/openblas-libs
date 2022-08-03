@@ -37,7 +37,7 @@ jobs:
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-            platform: [x64]
+            platform: x64
           - os: ubuntu-latest
             PLAT: x86_64
             INTERFACE64: '0'
@@ -95,7 +95,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install virtualenv
-    - name: Build and Install Wheels
+    - name: Build OpenBLAS
       run: |
         set -xeo pipefail
         if [[ "$PLAT" == "arm64" ]]; then
@@ -118,11 +118,21 @@ jobs:
           build_lib "$PLAT" "$INTERFACE64" "0"
         fi
 
+    - name: Build wheel
+      run: |
+        mkdir -p local/openblas
+        tar -C local/openblas --strip-components=2 -xf libs/openblas*.tar.gz
+        python -m pip wheel -w dist -vv .
+
     - uses: actions/upload-artifact@v3
       with:
         path: libs/openblas*.tar.gz
 
-    - name: Upload tarballs
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/openblas*.tar.gz
+
+    - name: Upload
       run: |
         set -ex
         TOKEN=${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
