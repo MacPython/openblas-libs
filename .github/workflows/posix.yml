@@ -99,6 +99,8 @@ jobs:
       run: |
         mkdir -p local/openblas
         tar -C local/openblas --strip-components=2 -xf libs/openblas*.tar.gz
+        # do not package the static libs, they are ~55MB
+        rm local/openblas/*.a
         python -m pip wheel -w dist -vv .
 
     - uses: actions/upload-artifact@v3
