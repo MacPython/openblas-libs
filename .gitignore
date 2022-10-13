@@ -5,5 +5,15 @@ builds/
 *.swp
 for_test/
 test.exe
-local/
 dist/
+build/
+libs/
+# These are artifacts when using editable builds
+local/lib
+local/include
+local/openblas.egg-info
+local/openblas/lib
+local/openblas/include
+local/openblas/*.so
+local/openblas/*.pyd
+local/openblas/*.dylib
