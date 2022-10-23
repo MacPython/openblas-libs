@@ -2,7 +2,7 @@ name: Linux,macOS build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, openblas-wheel ]
   pull_request:
     branches: [ master ]
 
@@ -15,35 +15,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         platform: [x64]
         PLAT: [x86_64]
-        INTERFACE64: ['', '1']
+        INTERFACE64: ['1']
         MB_ML_VER: ['2014']
-        include:
-          - os: macos-latest
-            PLAT: arm64
-            INTERFACE64: '1'
-            platform: x64
-          - os: macos-latest
-            PLAT: arm64
-            INTERFACE64: ''
-            platform: x64
-          - os: ubuntu-latest
-            PLAT: i686
-            INTERFACE64: ''
-          - os: ubuntu-latest
-            PLAT: x86_64
-            INTERFACE64: '1'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_1
-            platform: x64
-          - os: ubuntu-latest
-            PLAT: x86_64
-            INTERFACE64: ''
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_1
-            platform: x64
+
     env:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: "bfd9c1b58cd3"
@@ -114,6 +91,15 @@ jobs:
         EOF
 
         docker run --rm -v $(pwd):/openblas quay.io/pypa/manylinux2014_x86_64 /bin/bash -xe /openblas/run_in_docker.sh
+
+        # test numpy build
+        git clone https://github.com/mayeut/numpy.git numpy
+        cd numpy
+        git checkout openblas-wheel
+        git submodule update --init --recursive
+        cp -rf ../dist ./openblas-wheel
+        python3 -m pip install --user cibuildwheel
+        cibuildwheel --only cp310-manylinux_x86_64
 
     - uses: actions/upload-artifact@v3
       with:

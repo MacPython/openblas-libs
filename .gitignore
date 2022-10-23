@@ -16,3 +16,5 @@ local/openblas/include
 local/openblas/*.so
 local/openblas/*.pyd
 local/openblas/*.dylib
+# just for test
+numpy/
