@@ -17,11 +17,3 @@ except importlib_metadata.PackageNotFoundError:
     __version__ = "0.0.0"
 
 openblas_config = _init_openblas.get_config()
-
-path_to_so = os.path.join(os.path.dirname(__file__), 'lib', 'libopenblas64_.so')
-
-
-def open_so():
-    _init_openblas.open_so(path_to_so)
-
-

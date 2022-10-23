@@ -9,6 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "openblas"
 version = "0.3.20"
+requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
 readme = "README.md"
 classifiers = [
@@ -36,14 +37,3 @@ install_requires = "importlib-metadata ~= 1.0 ; python_version < '3.8'"
 
 [tool.setuptools.package-data]
 openblas = ["lib/*", "include/*", "lib/pkgconfig/*", "lib/cmake/openblas/*"]
-
-
-#[tool.setuptools.data_files]
-# Deprecated in setuptools, but may be revived as a new standard, see
-# https://discuss.python.org/t/pep-proposal-external-data-for-python-packages
-#"/local" = [
-#  "local/include/*.h",
-#  "local/lib/*",
-#  "local/lib/pkgconfig/*",
-#  "local/lib/cmake/OpenBLAS/*",
-#]
