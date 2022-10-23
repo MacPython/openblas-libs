@@ -122,9 +122,21 @@ jobs:
       run: |
         mkdir -p local/openblas
         tar -C local/openblas --strip-components=2 -xf libs/openblas*.tar.gz
-        # do not package the static libs, they are ~55MB
-        rm local/openblas/*.a
-        python -m pip wheel -w dist -vv .
+        cp local/openblas/lib/libopenblas64_.so local/openblas/libopenblas_python.so
+        # do not package the static libs and symlinks, they are ~55MB
+        rm -rf local/openblas/lib/*
+        mv local/openblas/libopenblas_python.so local/openblas/lib/
+
+        cat <<EOF > run_in_docker.sh
+        cd /openblas
+        patchelf --set-soname libopenblas_python.so local/openblas/lib/libopenblas_python.so
+        python3.7 -m pip wheel -w /tmp/wheelhouse -vv .
+        auditwheel repair -w dist/ /tmp/wheelhouse/openblas-*.whl
+        python3.10 -m pip install dist/openblas-*.whl
+        python3.10 -m openblas
+        EOF
+
+        docker run --rm -v $(pwd):/openblas quay.io/pypa/manylinux2014_x86_64 /bin/bash -xe /openblas/run_in_docker.sh
 
     - uses: actions/upload-artifact@v3
       with:
