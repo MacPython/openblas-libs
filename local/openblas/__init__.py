@@ -1,5 +1,10 @@
-import os
+from pathlib import Path
+
 from . import _init_openblas
+
+
+_HERE = Path(__file__).resolve().parent
+
 
 # Use importlib.metadata to single-source the version
 
@@ -17,3 +22,15 @@ except importlib_metadata.PackageNotFoundError:
     __version__ = "0.0.0"
 
 openblas_config = _init_openblas.get_config()
+
+
+def get_include_dir():
+    return str(_HERE / "include")
+
+
+def get_lib_dir():
+    return str(_HERE / "lib")
+
+
+def get_library():
+    return "openblas_python"
