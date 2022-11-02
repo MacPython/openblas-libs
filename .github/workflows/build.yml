@@ -1,10 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Windows build
-
-defaults:
-  run:
-    shell: bash
 
 on:
   push:
@@ -15,13 +9,16 @@ on:
 env:
   OPENBLAS_COMMIT: "bfd9c1b58cd3"
   OPENBLAS_ROOT: "c:\\opt"
+  # Preserve working directory for calls into bash
+  CHERE_INVOKING: "yes"
+  BASH_PATH: "c:\\rtools40\\usr\\bin\\bash"
 
 jobs:
   build:
     strategy:
       matrix:
         BUILD_BITS: [64, 32]
-        INTERFACE64: ['1', '']
+        INTERFACE64: ['1', '0']
         os: [windows-latest]
         exclude:
           - BUILD_BITS: 32
@@ -31,65 +28,46 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Setup
+      - name: install-rtools
         run: |
-          BITS=${{ matrix.BUILD_BITS }}
-          echo "BUILD_BITS=$BITS" >> $GITHUB_ENV;
-          if [ "$BITS" == "32" ]; then
-            echo "PLAT=i686" >> $GITHUB_ENV;
-          else
-            echo "PLAT=x86_64" >> $GITHUB_ENV;
-          fi
-          echo "START_DIR=$PWD" >> $GITHUB_ENV;
-          choco install -y zip
+          choco install rtools --no-progress
 
-      - run: |
-          choco install -y mingw --forcex86 --force --version=8.1.0
-          choco install -y make
-        name: Install 32-bit mingw
-        shell: powershell
-        if: ${{ matrix.BUILD_BITS == '32' }}
-
-      - run: |
-          # see https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg586184.html
-          if [ "${{ matrix.BUILD_BITS }}" == "64" ]; then
-            include=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/avx512fintrin.h
-          else
-            include=/c/ProgramData/Chocolatey/lib/mingw/tools/install/mingw32/lib/gcc/i686-w64-mingw32/8.1.0/include/avx512fintrin.h
-          fi
-          sed -i -e"s/_mm512_abs_pd (__m512 __A)/_mm512_abs_pd (__m512d __A)/" $include
-        name: Fix gcc bug
+      - name: Set env variables
+        run: |
+          echo "START_DIR=$PWD" >> $env:GITHUB_ENV
+          $BITS = ${{ matrix.BUILD_BITS }}
+          echo "BUILD_BITS=$BITS" >> $env:GITHUB_ENV
+          # For interpretation of MSYSTEM, see:
+          # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
+          if ($BITS -eq 32) {
+            echo "PLAT=i686" >> $env:GITHUB_ENV
+            echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
+            echo "LDFLAGS=-static -static-libgcc" >> $env:GITHUB_ENV
+          } else {
+            echo "PLAT=x86_64" >> $env:GITHUB_ENV
+            echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
+            echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
+          }
+          if ( ${{ matrix.INTERFACE64 }} -eq 1 ) {
+            echo "INTERFACE64=1" >> $env:GITHUB_ENV
+          }
 
       - name: Build
         run: |
-          BITS=${{ matrix.BUILD_BITS }}
-          if [ "${{ matrix.INTERFACE64 }}" == "1" ]; then
-            export INTERFACE64=1
-          fi
-          if [ "$BITS" == "32" ]; then
-            export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
-          fi
-          echo $PATH
           git submodule update --init --recursive
-          tools/build_openblas.sh
+          & $env:BASH_PATH -lc tools/build_openblas.sh
 
       - name: Test
         run: |
-          BITS=${{ matrix.BUILD_BITS }}
-          if [ "$BITS" == "32" ]; then
-            export PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw32/bin:$PATH
-          fi
-          if [ "${{ matrix.INTERFACE64 }}" == "1" ]; then
-            export INTERFACE64=1
-          fi
-          tools/build_gfortran.sh
-          cp test.exe builds
-          cp test_dyn.exe builds
-          ./test.exe
-          cp $(cygpath $OPENBLAS_ROOT)/$BITS/bin/*.dll .
-          ./test_dyn.exe
+          & $env:BASH_PATH -lc tools/build_gfortran.sh
+          echo "Static test"
+          .\for_test\test.exe
+          echo "Dynamic test"
+          .\for_test\test_dyn.exe
+
+      - name: Copy
+        run: |
+          cp for_test\test*.exe builds
 
       - uses: actions/upload-artifact@v3
         with:
@@ -100,4 +78,4 @@ jobs:
          OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
         run: |
           pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.8.0
-          tools/upload_to_anaconda_staging.sh
+          & $env:BASH_PATH -lc tools/upload_to_anaconda_staging.sh
