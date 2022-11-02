@@ -15,17 +15,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-11]
         platform: [x64]
         PLAT: [i686, x86_64]
         INTERFACE64: ['', '1']
         MB_ML_VER: ['', 2010, 2014]
         include:
-          - os: macos-latest
+          - os: macos-11
             PLAT: arm64
             INTERFACE64: '1'
             platform: [x64]
-          - os: macos-latest
+          - os: macos-11
             PLAT: arm64
             INTERFACE64: ''
             platform: [x64]
@@ -42,17 +42,17 @@ jobs:
             MB_ML_VER: _1_1
             platform: [x64]
         exclude:
-          - os: macos-latest
+          - os: macos-11
             PLAT: i686
-          - os: macos-latest
+          - os: macos-11
             MB_ML_VER: 2010
-          - os: macos-latest
+          - os: macos-11
             MB_ML_VER: 2014
           - PLAT: i686
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: "bfd9c1b58cd3"
+      OPENBLAS_COMMIT: "v0.3.21"
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
@@ -75,8 +75,10 @@ jobs:
         python-version: 3.8
     - name: Set extra env
       run: |
-        if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV; fi
-        if [ "macos-latest" == "${{ matrix.os }}" ]; then echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV; fi
+        if [ "macos-11" == "${{ matrix.os }}" ]; then
+          echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV;
+          echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
+        fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
     - name: Print some Environment variable
       run: |

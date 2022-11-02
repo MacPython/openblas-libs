@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  OPENBLAS_COMMIT: "bfd9c1b58cd3"
+  OPENBLAS_COMMIT: "v0.3.21"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   CHERE_INVOKING: "yes"
