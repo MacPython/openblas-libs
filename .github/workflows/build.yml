@@ -1,4 +1,4 @@
-name: Windows build
+name: Win
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  OPENBLAS_COMMIT: "bfd9c1b58cd3"
+  OPENBLAS_COMMIT: "v0.3.21"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   CHERE_INVOKING: "yes"
@@ -73,9 +73,13 @@ jobs:
         with:
           path: builds/openblas*.zip
 
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: upload
+
       - name: Upload
         env:
          OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
         run: |
-          pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.8.0
+          conda install anaconda-client
           & $env:BASH_PATH -lc tools/upload_to_anaconda_staging.sh
