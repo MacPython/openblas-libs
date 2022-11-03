@@ -76,9 +76,11 @@ jobs:
     - name: Set extra env
       run: |
         if [ "macos-11" == "${{ matrix.os }}" ]; then
-          echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV; else echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV;
+          echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV;
           echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
           echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
+        else
+          echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV;
         fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
     - name: Print some Environment variable
