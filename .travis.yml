@@ -88,7 +88,7 @@ install:
 
 script:
     # Build library and collect into libs subdirectory
-    - build_lib "$PLAT" "$INTERFACE64"
+    - travis_wait 55 build_lib "$PLAT" "$INTERFACE64"
 
 after_success:
     # Upload libraries to the shared staging area on anaconda.org
