@@ -94,6 +94,7 @@ jobs:
         pip install virtualenv
     - name: Build and Install Wheels
       run: |
+        set -xeo pipefail
         if [[ "$PLAT" == "arm64" ]]; then
           sudo xcode-select -switch /Applications/Xcode_12.5.1.app
           export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
