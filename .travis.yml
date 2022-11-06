@@ -12,9 +12,6 @@ env:
         # - "Allow write access to the API site"
         # - "Allow uploads to PyPI repositories"
         - secure: "vxMRXsnSBczv/u4HF0LT2U/f5wdTosSWmORwcNv8A/46uFK5CExbVj/LqW0e4fnrv2EZX2sDokrC/3nZAvlxRiZSkJ6dR34lU7ysPheD1sTdpVnKFrajcu22gmMmrORQf/v0ntkFYQj/+zRqVGb8QJLxW9bj8mEoWH4vkmnIHyRNuuIeLQrlbU3PeXusQ1/XoCrmlsU9kg8pyTwzfpG00T7BkACbZBYhRK84LCB4pIYgxxWgMKXH8DSqVxsK9egYXZM58YQwIOJGwpqw5XyYH+aKjZqSz1opNbzClWwT3hgAveVgQ7t2rZ8YZ0I6GyphLQ9JId/Vmuza0TjwzlCcexNSsAfolbqiCcwBElNBDpUzNB4bRzyGc3vckE/C+PlDoRL1be0UHoEnyzmIzwhwVrZKOyz7pGkbdtjOoqB5VgoMy04Tnd2l4mkJkx5ub3v7Z0Q74LWKKaZJcXBVIATIjZu43jI9Y9HYV8Ey0CcZY33EjwpOe7wSVgiSDcTv1KUS1tJwZpHX+duJSYMQyWRhkTxKtt8E1FosNQ1fRZMFmY74mAdVPIv9Vn1qgSnOCSkNGlLBIjVCozie0HVlzUk1FhvLtral3b/hp7+6JVjU1sp7HnaS/DtHTq57kceEbT56GxbQopye1zvecnhUp9tohLFeSzk/zJcvXGTIMrJlWnU="
-        # > 10.6 needed for OpenBLAS 0.3.1 to avoid thread-local storage error
-        # in memory.c
-        - MACOSX_DEPLOYMENT_TARGET=10.9
 
 language: python
 sudo: required
@@ -88,7 +85,7 @@ install:
 
 script:
     # Build library and collect into libs subdirectory
-    - travis_wait 55 build_lib "$PLAT" "$INTERFACE64"
+    - build_lib "$PLAT" "$INTERFACE64"
 
 after_success:
     # Upload libraries to the shared staging area on anaconda.org
