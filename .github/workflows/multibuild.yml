@@ -53,7 +53,7 @@ jobs:
     env:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: "v0.3.21"
-      MACOSX_DEPLOYMENT_TARGET: 10.11
+      MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
