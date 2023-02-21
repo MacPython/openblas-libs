@@ -123,7 +123,11 @@ dlltool --input-def ${DLL_BASENAME}.def \
     --dllname ${DLL_BASENAME}.dll \
     --output-lib ${DLL_BASENAME}.lib
 # Replace the DLL name with the generated name.
-sed -i "s/ -lopenblas$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas.pc
+sed -i "s/ -lopenblas.*$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas*.pc
+echo After sed -i, pkgconfig/openblas*.pc is
+echo ------------
+cat pkgconfig/openblas*.pc
+echo ------------
 cd ../..
 # Build template site.cfg for using this build
 cat > ${build_bits}/site.cfg.template << EOF
