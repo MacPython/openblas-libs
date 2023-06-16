@@ -85,6 +85,11 @@ fi
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags)
+# Patch OpenBLAS to exclude stray GFortran symbol.
+# Replacement snprintf symbol only present for UCRTC 64-bit build.
+if [ "$BUILD_BITS" == 64 ]; then
+    patch -p1 < ../patches/openblas-make-libs.patch
+fi
 # Build OpenBLAS
 # Variable used in creating output libraries
 export LIBNAMESUFFIX=${OPENBLAS_VERSION}-${GCC_TAG}
