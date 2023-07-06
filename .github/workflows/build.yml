@@ -82,5 +82,6 @@ jobs:
         env:
          OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
         run: |
-          conda install anaconda-client
+          # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
+          conda install "urllib3<2" anaconda-client
           & $env:BASH_PATH -lc tools/upload_to_anaconda_staging.sh
