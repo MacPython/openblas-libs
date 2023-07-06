@@ -2,9 +2,9 @@ name: Win
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   OPENBLAS_COMMIT: "v0.3.23"
