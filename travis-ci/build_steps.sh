@@ -59,6 +59,7 @@ function build_lib {
     # Input arg
     #     plat - one of i686, x86_64
     #     interface64 - 1 if build with INTERFACE64 and SYMBOLSUFFIX
+    #     nightly - 1 if building for nightlies
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
@@ -67,6 +68,7 @@ function build_lib {
     set -x
     local plat=${1:-$PLAT}
     local interface64=${2:-$INTERFACE64}
+    local nightly=${3:0}
     local manylinux=${MB_ML_VER:-1}
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
@@ -83,6 +85,7 @@ function build_lib {
         -e BUILD_PREFIX="$BUILD_PREFIX" \
         -e PLAT="${plat}" \
         -e INTERFACE64="${interface64}" \
+        -e NIGHTLY="${nightly}" \
         -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
         -e MB_ML_VER=${manylinux} \
         -e MB_ML_LIBC=${libc} \
@@ -107,12 +110,14 @@ function do_build_lib {
     #                         Suffix added with hyphen prefix
     #     interface64 (optional) - whether to build ILP64 openblas
     #                              with 64_ symbol suffix
+    #     nightly (optional) - whether to build for nightlies
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     local plat=$1
     local suffix=$2
     local interface64=$3
+    local nightly=$4
     echo "Building with settings: '$plat' '$suffix' '$interface64'"
     case $(get_os)-$plat in
         Linux-x86_64)
@@ -166,7 +171,11 @@ function do_build_lib {
     && CFLAGS="$CFLAGS -fvisibility=protected" make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null \
     && make PREFIX=$BUILD_PREFIX $interface64_flags install )
     stop_spinner
-    local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
+    if [ "$nightly" = "1" ]; then
+        local version="HEAD"
+    else
+        local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
+    fi
     local plat_tag=$(get_plat_tag $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"

@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: null
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   build:
@@ -53,6 +56,7 @@ jobs:
     env:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: "v0.3.23"
+      NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
@@ -105,7 +109,11 @@ jobs:
         echo "------ CLEAN CODE --------"
         clean_code $REPO_DIR $OPENBLAS_COMMIT
         echo "------ BUILD LIB --------"
-        build_lib "$PLAT" "$INTERFACE64"
+        if [[ "$NIGHTLY" = "true" ]]; then
+          build_lib "$PLAT" "$INTERFACE64" "1"
+        else
+          build_lib "$PLAT" "$INTERFACE64" "0"
+        fi
 
     - uses: actions/upload-artifact@v3
       with:
@@ -124,11 +132,18 @@ jobs:
             pip install git+https://github.com/Anaconda-Server/anaconda-client@1.8.0
             # The first -t option refers to the token, the second is the "type"
             # option to the "upload" command
-            anaconda -t  ${TOKEN} upload \
-            --no-progress --skip -u multibuild-wheels-staging \
-            -t file -p "openblas-libs" \
-            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
-            -d "OpenBLAS for multibuild wheels" \
-            -s "OpenBLAS for multibuild wheels" \
-            libs/openblas*.tar.gz;
+            args=(
+              -t ${TOKEN} upload
+              --no-progress -u multibuild-wheels-staging
+              -t file -p "openblas-libs"
+              -d "OpenBLAS for multibuild wheels"
+              -s "OpenBLAS for multibuild wheels"
+              -v "$(cd OpenBLAS && git describe --tags --abbrev=8)"
+            )
+            if [[ "$NIGHTLY" = "true" ]]; then
+              args+=(--force)
+            else
+              args+=(--skip)
+            fi
+            anaconda "${args[@]}" libs/openblas*.tar.gz
         fi
