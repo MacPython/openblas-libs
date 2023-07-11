@@ -73,7 +73,7 @@ function build_lib {
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
-        wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64"
+        wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
         return
     fi
     # Manylinux wrapper
