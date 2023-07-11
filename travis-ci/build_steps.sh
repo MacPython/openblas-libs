@@ -100,6 +100,7 @@ function patch_source {
     git merge-base --is-ancestor e5752ff HEAD || return 0
     git merge-base --is-ancestor a8002e2 HEAD && return 0
     patch -p1 < ../manylinux-compile.patch
+    patch -p1 < ../0001-Fix-gcc-version-checks-erroneously-excluding-clang.patch
 }
 
 function do_build_lib {
