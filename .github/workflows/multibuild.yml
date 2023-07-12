@@ -80,6 +80,7 @@ jobs:
     - name: Set extra env
       run: |
         if [ "macos-11" == "${{ matrix.os }}" ]; then
+          ls /Library/Developer/CommandLineTools/SDKs
           echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV;
           echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
           echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
