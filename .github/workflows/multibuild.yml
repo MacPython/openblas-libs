@@ -82,8 +82,8 @@ jobs:
         if [ "macos-11" == "${{ matrix.os }}" ]; then
           ls /Library/Developer/CommandLineTools/SDKs
           echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV;
-          echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
-          echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib" >> $GITHUB_ENV;
+          echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
+          echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
         else
           echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV;
         fi
@@ -103,6 +103,7 @@ jobs:
         if [[ "$PLAT" == "arm64" ]]; then
           sudo xcode-select -switch /Applications/Xcode_12.5.1.app
           export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
+          clang --version
         fi
         source travis-ci/build_steps.sh
         echo "------ BEFORE BUILD ---------"
