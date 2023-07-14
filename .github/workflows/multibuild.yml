@@ -55,7 +55,7 @@ jobs:
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: "2183dbcf"
+      OPENBLAS_COMMIT: "3d31191b"
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
