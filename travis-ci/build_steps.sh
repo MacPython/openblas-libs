@@ -95,7 +95,6 @@ function build_lib {
 
 function patch_source {
     # Runs inside OpenBLAS directory
-    patch -p1 < ../0001-Fix-gcc-version-checks-erroneously-excluding-clang.patch
 }
 
 function do_build_lib {
