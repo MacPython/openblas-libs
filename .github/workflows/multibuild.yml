@@ -138,12 +138,13 @@ jobs:
               -t file -p "openblas-libs"
               -d "OpenBLAS for multibuild wheels"
               -s "OpenBLAS for multibuild wheels"
-              -v "$(cd OpenBLAS && git describe --tags --abbrev=8)"
             )
             if [[ "$NIGHTLY" = "true" ]]; then
               args+=(--force)
+              args+=(-v "HEAD")
             else
               args+=(--skip)
+              args+=(-v "$(cd OpenBLAS && git describe --tags --abbrev=8)")
             fi
             anaconda "${args[@]}" libs/openblas*.tar.gz
         fi
