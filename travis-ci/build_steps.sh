@@ -95,6 +95,8 @@ function build_lib {
 
 function patch_source {
     # Runs inside OpenBLAS directory
+    # bash does not like an empty function, add a null statement
+    :
 }
 
 function do_build_lib {
