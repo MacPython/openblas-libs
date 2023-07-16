@@ -94,12 +94,9 @@ function build_lib {
 }
 
 function patch_source {
-    # Patches for compile error on Manylinux around v0.3.0
-    # https://github.com/xianyi/OpenBLAS/issues/1586
     # Runs inside OpenBLAS directory
-    git merge-base --is-ancestor e5752ff HEAD || return 0
-    git merge-base --is-ancestor a8002e2 HEAD && return 0
-    patch -p1 < ../manylinux-compile.patch
+    # bash does not like an empty function, add a null statement
+    :
 }
 
 function do_build_lib {
@@ -166,10 +163,11 @@ function do_build_lib {
     start_spinner
     set -x
     git config --global --add safe.directory '*'
-    (cd OpenBLAS \
-    && patch_source \
-    && CFLAGS="$CFLAGS -fvisibility=protected" make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null \
-    && make PREFIX=$BUILD_PREFIX $interface64_flags install )
+    pushd OpenBLAS
+    patch_source
+    CFLAGS="$CFLAGS -fvisibility=protected" make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null
+    make PREFIX=$BUILD_PREFIX $interface64_flags install
+    popd
     stop_spinner
     if [ "$nightly" = "1" ]; then
         local version="HEAD"
