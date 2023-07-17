@@ -84,7 +84,7 @@ fi
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
-OPENBLAS_VERSION=$(git describe --tags)
+OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 # Build OpenBLAS
 # Variable used in creating output libraries
 export LIBNAMESUFFIX=${OPENBLAS_VERSION}-${GCC_TAG}
