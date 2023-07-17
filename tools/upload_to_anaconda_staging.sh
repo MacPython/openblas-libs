@@ -6,7 +6,7 @@ our_wd=$(cygpath "$START_DIR")
 cd $our_wd
 
 pushd OpenBLAS
-VERSION=$(git describe --tags)
+VERSION=$(git describe --tags --abbrev=8)
 popd
 
 if [ "$OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN" == "" ]; then
