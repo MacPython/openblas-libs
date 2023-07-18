@@ -16,7 +16,7 @@ else
     ls -lh builds/openblas*.zip
 
     anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
-            --no-progress --force -u multibuild-wheels-staging \
+            --no-progress --force -u scientific-python-nightly-wheels \
             -t file -p "openblas-libs" -v "$VERSION" \
             -d "OpenBLAS for multibuild wheels" \
             -s "OpenBLAS for multibuild wheels" \

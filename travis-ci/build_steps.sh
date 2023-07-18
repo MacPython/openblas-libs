@@ -200,7 +200,7 @@ function upload_to_anaconda {
         echo "OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN is not defined: skipping."
     else
         anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
-            --no-progress --force -u multibuild-wheels-staging \
+            --no-progress --force -u scientific-python-nightly-wheels \
             -t file -p "openblas-libs" \
             -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
             -d "OpenBLAS for multibuild wheels" \

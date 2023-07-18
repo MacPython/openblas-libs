@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload
         env:
-         OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
+         OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
         run: |
           # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
           conda install "urllib3<2" anaconda-client
