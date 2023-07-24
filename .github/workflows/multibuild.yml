@@ -7,7 +7,7 @@ on:
     branches: [ main ]
   workflow_dispatch: null
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 0'
 
 jobs:
   build:
@@ -64,8 +64,6 @@ jobs:
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
       BUILD_DIR: ${{ github.workspace }}
-      SCIPY_WHEELS_NIGHTLY_ACCESS: ${{ secrets.SCIPY_WHEELS_NIGHTLY_ACCESS }}
-      MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_BUILD }}
       PLAT: ${{ matrix.PLAT }}
 
     steps:
@@ -127,10 +125,10 @@ jobs:
     - name: Upload tarballs
       run: |
         set -ex
-        TOKEN=${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
+        TOKEN=${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
         if [ "$TOKEN" == "" ]; then
             # The token is available when under the MacPython org, not on forks
-            echo "secrets.MULTIBUILD_WHEELS_STAGING_ACCESS is not defined: skipping";
+            echo "secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping";
         else
             # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
             pip install "urllib3<2.0.0"
@@ -139,7 +137,7 @@ jobs:
             # option to the "upload" command
             args=(
               -t ${TOKEN} upload
-              --no-progress -u multibuild-wheels-staging
+              --no-progress -u scientific-python-nightly-wheels
               -t file -p "openblas-libs"
               -d "OpenBLAS for multibuild wheels"
               -s "OpenBLAS for multibuild wheels"
