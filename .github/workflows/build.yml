@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload
         env:
-          ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+         ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
         run: |
           # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
           conda install "urllib3<2" anaconda-client
