@@ -196,10 +196,10 @@ function do_build_lib {
 }
 
 function upload_to_anaconda {
-    if [ "$OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN" == "" ]; then
-        echo "OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN is not defined: skipping."
+    if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
+        echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping."
     else
-        anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
+        anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
             --no-progress --force -u scientific-python-nightly-wheels \
             -t file -p "openblas-libs" \
             -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
