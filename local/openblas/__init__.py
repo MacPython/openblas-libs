@@ -41,12 +41,12 @@ def get_pkg_config():
     return f"""\
         libdir={_HERE}/lib
         includedir={_HERE}/include
-        openblas_config= USE_64BITINT= DYNAMIC_ARCH=1 DYNAMIC_OLDER= NO_CBLAS= NO_LAPACK= NO_LAPACKE= NO_AFFINITY=1 USE_OPENMP= PRESCOTT MAX_THREADS=24
-        version=0.3.23
+        openblas_config= {openblas_config}
+        version={openblas_config.split(" ")[1]}
         extralib=-lm -lpthread -lgfortran -lm -lpthread -lgfortran
         Name: openblas
         Description: OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version
-        Version: ${version}
+        Version: ${{version}}
         URL: https://github.com/xianyi/OpenBLAS
         Libs: -L${libdir} -lopenblas
         Libs.private: ${extralib}

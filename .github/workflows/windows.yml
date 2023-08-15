@@ -27,61 +27,66 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
-      - name: install-rtools
-        run: |
-          # rtools 42+ does not support 32 bits builds.
-          choco install -y rtools --noprogress --force --version=4.0.0.20220206
+    - uses: actions/checkout@v3
+    - name: install-rtools
+      run: |
+        # rtools 42+ does not support 32 bits builds.
+        choco install -y rtools --noprogress --force --version=4.0.0.20220206
 
-      - name: Set env variables
-        run: |
-          echo "START_DIR=$PWD" >> $env:GITHUB_ENV
-          $BITS = ${{ matrix.BUILD_BITS }}
-          echo "BUILD_BITS=$BITS" >> $env:GITHUB_ENV
-          # For interpretation of MSYSTEM, see:
-          # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
-          if ($BITS -eq 32) {
-            echo "PLAT=i686" >> $env:GITHUB_ENV
-            echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
-            echo "LDFLAGS=-static -static-libgcc" >> $env:GITHUB_ENV
-          } else {
-            echo "PLAT=x86_64" >> $env:GITHUB_ENV
-            echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
-            echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
-          }
-          if ( ${{ matrix.INTERFACE64 }} -eq 1 ) {
-            echo "INTERFACE64=1" >> $env:GITHUB_ENV
-          }
+    - name: Set env variables
+      run: |
+        echo "START_DIR=$PWD" >> $env:GITHUB_ENV
+        $BITS = ${{ matrix.BUILD_BITS }}
+        echo "BUILD_BITS=$BITS" >> $env:GITHUB_ENV
+        # For interpretation of MSYSTEM, see:
+        # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
+        if ($BITS -eq 32) {
+          echo "PLAT=i686" >> $env:GITHUB_ENV
+          echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
+          echo "LDFLAGS=-static -static-libgcc" >> $env:GITHUB_ENV
+        } else {
+          echo "PLAT=x86_64" >> $env:GITHUB_ENV
+          echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
+          echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
+        }
+        if ( ${{ matrix.INTERFACE64 }} -eq 1 ) {
+          echo "INTERFACE64=1" >> $env:GITHUB_ENV
+        }
 
-      - name: Build
-        run: |
-          git submodule update --init --recursive
-          & $env:BASH_PATH -lc tools/build_openblas.sh
+    - name: Build
+      run: |
+        git submodule update --init --recursive
+        & $env:BASH_PATH -lc tools/build_openblas.sh
 
-      - name: Test
-        run: |
-          & $env:BASH_PATH -lc tools/build_gfortran.sh
-          echo "Static test"
-          .\for_test\test.exe
-          echo "Dynamic test"
-          .\for_test\test_dyn.exe
+    - name: Test
+      run: |
+        & $env:BASH_PATH -lc tools/build_gfortran.sh
+        echo "Static test"
+        .\for_test\test.exe
+        echo "Dynamic test"
+        .\for_test\test_dyn.exe
 
-      - name: Copy
-        run: |
-          cp for_test\test*.exe builds
+    - name: Copy
+      run: |
+        cp for_test\test*.exe builds
 
-      - uses: actions/upload-artifact@v3
-        with:
-          path: builds/openblas*.zip
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
 
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: upload
+    - uses: actions/upload-artifact@v3
+      with:
+        path: builds/openblas*.zip
 
-      - name: Upload
-        env:
-         ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
-        run: |
-          # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
-          conda install "urllib3<2" anaconda-client
-          & $env:BASH_PATH -lc tools/upload_to_anaconda_staging.sh
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: upload
+
+    - name: Upload
+      env:
+       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+      run: |
+        # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
+        conda install "urllib3<2" anaconda-client
+        & $env:BASH_PATH -lc tools/upload_to_anaconda_staging.sh

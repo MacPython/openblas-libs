@@ -1,4 +1,4 @@
-name: multibuild
+name: posix
 
 on:
   push:
@@ -71,10 +71,10 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.7
     - name: Set extra env
       run: |
         if [ "macos-11" == "${{ matrix.os }}" ]; then
@@ -93,7 +93,7 @@ jobs:
         echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
     - name: Install VirtualEnv
       run: |
-        python -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip
         pip install virtualenv
     - name: Build OpenBLAS
       run: |
@@ -120,23 +120,22 @@ jobs:
 
     - name: Build wheel
       run: |
-        mkdir -p local/openblas
-        tar -C local/openblas --strip-components=2 -xf libs/openblas*.tar.gz
-        cp local/openblas/lib/libopenblas64_.so local/openblas/libopenblas_python.so
-        # do not package the static libs and symlinks, they are ~55MB
-        rm -rf local/openblas/lib/*
-        mv local/openblas/libopenblas_python.so local/openblas/lib/
 
-        cat <<EOF > run_in_docker.sh
-        cd /openblas
-        patchelf --set-soname libopenblas_python.so local/openblas/lib/libopenblas_python.so
-        python3.7 -m pip wheel -w /tmp/wheelhouse -vv .
-        auditwheel repair -w dist/ /tmp/wheelhouse/openblas-*.whl
-        python3.10 -m pip install dist/openblas-*.whl
-        python3.10 -m openblas
-        EOF
+        if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+          source travis-ci/build_wheel.sh 
+        else
+          docker run --rm -v $(pwd):/openblas quay.io/pypa/manylinux2014_${PLAT} /bin/bash -xe /openblas/travis-ci/build_wheel.sh
+        fi
 
-        docker run --rm -v $(pwd):/openblas quay.io/pypa/manylinux2014_x86_64 /bin/bash -xe /openblas/run_in_docker.sh
+    - name: Setup different python to test wheel
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Test wheel
+      run: |
+        python -m pip install --no-index --find-links dist openblas
+        python -m openblas
 
     - uses: actions/upload-artifact@v3
       with:
