@@ -21,7 +21,7 @@ jobs:
         os: [ubuntu-latest, macos-11]
         PLAT: [i686, x86_64]
         INTERFACE64: ['0', '1']
-        MB_ML_VER: [2014]
+        MB_ML_VER: ['2014']
         include:
           - os: macos-11
             PLAT: arm64
@@ -40,8 +40,8 @@ jobs:
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
         exclude:
-          - os: macos-11
-            MB_ML_VER: 2014
+          - PLAT: i686
+            os: macos-11
           - PLAT: i686
             INTERFACE64: '1'
     env:
@@ -111,7 +111,7 @@ jobs:
     - name: Build and test wheel
       run: |
         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-          source travis-ci/build_wheel.sh 
+          source travis-ci/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
           docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}

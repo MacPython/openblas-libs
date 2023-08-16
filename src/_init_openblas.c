@@ -1,10 +1,11 @@
 #include <Python.h>
+#include <openblas_config.h>
 
-#ifdef SUFFIX
+#ifdef OPENBLAS_USE64BITINT
   #define openblas_get_config openblas_get_config64_
 #endif
 
-extern const char * openblas_get_config();
+extern char* openblas_get_config(void);
 
 PyObject *
 get_config(PyObject *self, PyObject *args) {

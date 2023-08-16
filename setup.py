@@ -12,13 +12,19 @@ class bdist_wheel_abi3(bdist_wheel):
         python, abi, plat = bdist_wheel.get_tag(self)
         return python, "abi3", plat
 
+library_dir=os.path.join(mydir, 'local', 'openblas', 'lib')
+inc_dir=os.path.join(mydir, 'local', 'openblas', 'include')
 
-# TODO: determine if we are building 64- or 32- bit interfaces
-use_64=True
-if use_64:
-    macros = [("SUFFIX", "64_")]
+if sys.platform == "win32":
+    # Get libopenblas*.lib
+    libnames = [os.path.splitext(x)[0]
+                for x in os.listdir(library_dir) if x.endswith(".lib")]
 else:
-    macros = []
+    # Get openblas*
+    libnames = [os.path.splitext(x)[0][3:] 
+                for x in os.listdir(library_dir) if x.startswith("libopenblas")]
+
+macros = []
 
 if sys.implementation.name == "cpython":
     cmdclass = {"bdist_wheel": bdist_wheel_abi3}
@@ -28,16 +34,12 @@ else:
     cmdclass = {}
     py_limited_api = {}
 
-library_dir=os.path.join(mydir, 'local', 'openblas', 'lib')
-if sys.platform == "win32":
-    libnames = [x for x in os.listdir(library_dir) if x.endswith(".lib")]
-else:
-    libnames = [x for x in os.listdir(library_dir) if x.startswith("libopenblas")]
 setup(
     cmdclass=cmdclass,
     ext_modules=[Extension(
         "openblas._init_openblas", ["src/_init_openblas.c"],
-        libraries=["openblas_python"],
+        include_dirs=[inc_dir],
+        libraries=libnames,
         library_dirs=[library_dir],
         extra_link_args=["-Wl,-rpath,$ORIGIN/lib"],
         define_macros=macros,
