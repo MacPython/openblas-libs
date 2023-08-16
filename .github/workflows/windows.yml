@@ -17,11 +17,11 @@ jobs:
   build:
     strategy:
       matrix:
-        BUILD_BITS: [64, 32]
+        plat: ['x64', 'x86']
         INTERFACE64: ['1', '0']
         os: [windows-latest]
         exclude:
-          - BUILD_BITS: 32
+          - plat: x86
             INTERFACE64: 1
       fail-fast: false
     runs-on: ${{ matrix.os }}
@@ -36,18 +36,18 @@ jobs:
     - name: Set env variables
       run: |
         echo "START_DIR=$PWD" >> $env:GITHUB_ENV
-        $BITS = ${{ matrix.BUILD_BITS }}
-        echo "BUILD_BITS=$BITS" >> $env:GITHUB_ENV
         # For interpretation of MSYSTEM, see:
         # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
-        if ($BITS -eq 32) {
+        if ( ${{ matrix.plat }} -eq x86) {
           echo "PLAT=i686" >> $env:GITHUB_ENV
           echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
           echo "LDFLAGS=-static -static-libgcc" >> $env:GITHUB_ENV
+          echo "BUILD_BITS=32" >> $env:GITHUB_ENV
         } else {
           echo "PLAT=x86_64" >> $env:GITHUB_ENV
           echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
           echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
+          echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         }
         if ( ${{ matrix.INTERFACE64 }} -eq 1 ) {
           echo "INTERFACE64=1" >> $env:GITHUB_ENV
@@ -70,10 +70,16 @@ jobs:
       run: |
         cp for_test\test*.exe builds
 
-    - name: Set up Python 3.8
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.7
+        architecture: ${{ matrix.plat }}
+
+
+    - name: Build wheel
+      run: |
+        & $env:BASH_PATH -lc tools/build_wheel_winbash.sh
 
     - uses: actions/upload-artifact@v3
       with:

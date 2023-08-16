@@ -28,12 +28,17 @@ else:
     cmdclass = {}
     py_limited_api = {}
 
+library_dir=os.path.join(mydir, 'local', 'openblas', 'lib')
+if sys.platform == "win32":
+    libnames = [x for x in os.listdir(library_dir) if x.endswith(".lib")]
+else:
+    libnames = [x for x in os.listdir(library_dir) if x.startswith("libopenblas")]
 setup(
     cmdclass=cmdclass,
     ext_modules=[Extension(
         "openblas._init_openblas", ["src/_init_openblas.c"],
         libraries=["openblas_python"],
-        library_dirs=[os.path.join(mydir, 'local', 'openblas', 'lib'),],
+        library_dirs=[library_dir],
         extra_link_args=["-Wl,-rpath,$ORIGIN/lib"],
         define_macros=macros,
         **py_limited_api

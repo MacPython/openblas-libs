@@ -111,12 +111,11 @@ jobs:
     - name: Build and test wheel
       run: |
         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-          brew install patchelf
           source travis-ci/build_wheel.sh 
         else
           libc=${MB_ML_LIBC:-manylinux}
           docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
-          docker run --rm -v $(pwd):/openblas docker_image /bin/bash -xe /openblas/travis-ci/build_wheel.sh
+          docker run --rm -v $(pwd):/openblas $docker_image /bin/bash -xe /openblas/travis-ci/build_wheel.sh
         fi
 
     - uses: actions/upload-artifact@v3
