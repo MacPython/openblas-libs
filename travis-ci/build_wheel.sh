@@ -18,3 +18,7 @@ patchelf --set-soname libopenblas_python.so local/openblas/lib/libopenblas_pytho
 python3.7 -m pip install wheel auditwheel
 python3.7 -m pip wheel -w /tmp/wheelhouse -vv .
 auditwheel repair -w dist/ /tmp/wheelhouse/openblas-*.whl
+
+# Test that the wheel works with a different python
+python3.11 -m pip install --no-index --find-links dist openblas
+python3.11 -m openblas

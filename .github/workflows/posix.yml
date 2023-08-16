@@ -19,36 +19,27 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-11]
-        platform: [x64]
         PLAT: [i686, x86_64]
         INTERFACE64: ['0', '1']
-        MB_ML_VER: ['', 2010, 2014]
+        MB_ML_VER: [2014]
         include:
           - os: macos-11
             PLAT: arm64
             INTERFACE64: '1'
-            platform: [x64]
           - os: macos-11
             PLAT: arm64
             INTERFACE64: '0'
-            platform: [x64]
           - os: ubuntu-latest
             PLAT: x86_64
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-            platform: x64
           - os: ubuntu-latest
             PLAT: x86_64
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-            platform: [x64]
         exclude:
-          - os: macos-11
-            PLAT: i686
-          - os: macos-11
-            MB_ML_VER: 2010
           - os: macos-11
             MB_ML_VER: 2014
           - PLAT: i686
@@ -78,7 +69,6 @@ jobs:
     - name: Set extra env
       run: |
         if [ "macos-11" == "${{ matrix.os }}" ]; then
-          ls /Library/Developer/CommandLineTools/SDKs
           echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV;
           echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
           echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
@@ -118,24 +108,16 @@ jobs:
           build_lib "$PLAT" "$INTERFACE64" "0"
         fi
 
-    - name: Build wheel
+    - name: Build and test wheel
       run: |
-
         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+          brew install patchelf
           source travis-ci/build_wheel.sh 
         else
-          docker run --rm -v $(pwd):/openblas quay.io/pypa/manylinux2014_${PLAT} /bin/bash -xe /openblas/travis-ci/build_wheel.sh
+          libc=${MB_ML_LIBC:-manylinux}
+          docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
+          docker run --rm -v $(pwd):/openblas docker_image /bin/bash -xe /openblas/travis-ci/build_wheel.sh
         fi
-
-    - name: Setup different python to test wheel
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Test wheel
-      run: |
-        python -m pip install --no-index --find-links dist openblas
-        python -m openblas
 
     - uses: actions/upload-artifact@v3
       with:
