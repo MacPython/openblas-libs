@@ -30,7 +30,7 @@ if [ $(uname) == "Darwin" ]; then
     python3.7 -m pip install delocate
     delocate-wheel dist/*.whl
 else
-    auditwheel repair dist/*.whl
+    auditwheel repair -w dist dist/*.whl
 fi
 
 if [ "${PLAT}" == "arm64" ]; then
