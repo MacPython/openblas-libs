@@ -4,13 +4,6 @@ import sys
 from textwrap import dedent
 
 
-if sys.platform == "win32":
-    os.add_dll_directory(get_lib_dir())
-
-
-from . import _init_openblas
-
-
 _HERE = Path(__file__).resolve().parent
 
 __all__ = ["get_include_dir", "get_lib_dir", "get_library", "get_pkg_config"]
@@ -29,9 +22,6 @@ try:
     __version__ = importlib_metadata.version(__package__ or __name__)
 except importlib_metadata.PackageNotFoundError:
     __version__ = "0.0.0"
-
-
-openblas_config = _init_openblas.get_config()
 
 
 def get_include_dir():

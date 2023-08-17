@@ -23,7 +23,7 @@ jobs:
         os: [windows-latest]
         exclude:
           - plat: x86
-            INTERFACE64: 1
+            INTERFACE64: '1'
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -50,7 +50,7 @@ jobs:
           echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
           echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         }
-        if ( ${{ matrix.INTERFACE64 }} -eq 1 ) {
+        if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
           echo "INTERFACE64=1" >> $env:GITHUB_ENV
         }
 
@@ -79,6 +79,7 @@ jobs:
 
 
     - name: Build wheel
+      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       shell: bash
       run: |
         set -xeo pipefail
@@ -99,12 +100,14 @@ jobs:
         python -m pip wheel -w dist -vv .
 
     - name: Set up different Python
+      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
         architecture: ${{ matrix.plat }}
 
     - name: Test wheel
+      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       shell: bash
       run: |
         python -m pip install --no-index --find-links dist openblas
@@ -115,6 +118,7 @@ jobs:
         path: builds/openblas*.zip
 
     - uses: actions/upload-artifact@v3
+      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       with:
         path: dist/openblas*.whl
 

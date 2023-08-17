@@ -109,6 +109,7 @@ jobs:
         fi
 
     - name: Build and test wheel
+      if: matrix.plat == 'i686' || matrix.INTERFACE64 == '1'
       run: |
         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
           source travis-ci/build_wheel.sh
@@ -123,6 +124,7 @@ jobs:
         path: libs/openblas*.tar.gz
 
     - uses: actions/upload-artifact@v3
+      if: matrix.plat == 'i686' || matrix.INTERFACE64 == '1'
       with:
         path: dist/openblas*.whl
 
