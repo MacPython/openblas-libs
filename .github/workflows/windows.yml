@@ -108,8 +108,7 @@ jobs:
       shell: bash
       run: |
         python -m pip install --no-index --find-links dist openblas
-        # XXX FIX THIS
-        python -m openblas || echo ignoring error
+        python -m openblas
 
     - uses: actions/upload-artifact@v3
       with:

@@ -68,3 +68,13 @@ def get_pkg_config():
         Libs.private: ${extralib}
         Cflags: -I${includedir}
         """
+
+
+if sys.platform == "win32":
+    os.add_dll_directory(get_lib_dir())
+
+
+from . import _init_openblas
+
+
+openblas_config = _init_openblas.get_config()
