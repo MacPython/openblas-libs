@@ -109,14 +109,13 @@ jobs:
         fi
 
     - name: Build and test wheel
-      if: matrix.plat == 'i686' || matrix.INTERFACE64 == '1'
       run: |
         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
           source travis-ci/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
           docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
-          docker run --rm -v $(pwd):/openblas $docker_image /bin/bash -xe /openblas/travis-ci/build_wheel.sh
+          docker run --rm -e INTERFACE64="${INTERFACE64}" -v $(pwd):/openblas $docker_image /bin/bash -xe /openblas/travis-ci/build_wheel.sh
         fi
 
     - uses: actions/upload-artifact@v3
@@ -126,7 +125,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       if: matrix.plat == 'i686' || matrix.INTERFACE64 == '1'
       with:
-        path: dist/openblas*.whl
+        path: dist/scipy_openblas*.whl
 
     - name: Upload
       run: |

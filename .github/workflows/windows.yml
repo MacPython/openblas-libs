@@ -79,48 +79,65 @@ jobs:
 
 
     - name: Build wheel
-      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       shell: bash
       run: |
         set -xeo pipefail
         python -m pip install wheel
         # This will fail if there is more than one file in libs
-        unzip -d local/openblas builds/openblas*.zip
-        if [[ -d local/openblas/64 ]]; then
-            mv local/openblas/64/* local/openblas
-            rm -rf local/openblas/64
+        unzip -d local/scipy_openblas64 builds/openblas*.zip
+        if [[ -d local/scipy_openblas64/64 ]]; then
+            mv local/scipy_openblas64/64/* local/scipy_openblas64
         else
-            mv local/openblas/32/* local/openblas
-            rm -rf local/openblas/32
+            mv local/scipy_openblas64/32/* local/scipy_openblas64
         fi
-        mv local/openblas/bin/*.dll local/openblas/lib
-        rm local/openblas/lib/*.a
-        rm local/openblas/lib/*.exp
-        rm local/openblas/lib/*.def
+        mv local/scipy_openblas64/bin/*.dll local/scipy_openblas64/lib
+        rm local/scipy_openblas64/lib/*.a
+        rm local/scipy_openblas64/lib/*.exp
+        rm local/scipy_openblas64/lib/*.def
+        if [[ -d local/scipy_openblas64/64 ]]; then
+            rm -rf local/scipy_openblas64/64
+        else
+            rm -rf local/scipy_openblas64/32
+        fi
+        if [[ "${INTERFACE64}" != "1" ]]; then
+            mv local/scipy_openblas64 local/scipy_openblas32
+            # rewrite the name of the project to scipy_openblas32
+            # this is a hack, but apparently there is no other way to change the name
+            # of a pyproject.toml project
+            sed -e "s/openblas64/openblas32/" -i pyproject.toml
+            sed -e "s/openblas_get_config64_/openblas_get_config/" -i local/scipy_openblas32/__init__.py
+            sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
+        fi
+            
         python -m pip wheel -w dist -vv .
 
     - name: Set up different Python
-      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
         architecture: ${{ matrix.plat }}
-
-    - name: Test wheel
-      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
-      shell: bash
-      run: |
-        python -m pip install --no-index --find-links dist openblas
-        python -m openblas
 
     - uses: actions/upload-artifact@v3
       with:
         path: builds/openblas*.zip
 
     - uses: actions/upload-artifact@v3
-      if: matrix.plat == 'x86' || matrix.INTERFACE64 == '1'
       with:
-        path: dist/openblas*.whl
+        path: dist/scipy_openblas*.whl
+
+    - name: Test 64-bit interface wheel
+      if: matrix.INTERFACE64 == '1'
+      shell: bash
+      run: |
+        python -m pip install --no-index --find-links dist scipy_openblas64
+        python -m scipy_openblas64
+
+    - name: Test 32-bit interface wheel
+      if: matrix.INTERFACE64 != '1'
+      shell: bash
+      run: |
+        python -m pip install --no-index --find-links dist scipy_openblas32
+        python -m scipy_openblas32
 
     - uses: conda-incubator/setup-miniconda@v2
       with:

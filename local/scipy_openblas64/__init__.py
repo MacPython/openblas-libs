@@ -1,3 +1,4 @@
+import ctypes
 import os
 from pathlib import Path
 import sys
@@ -6,7 +7,7 @@ from textwrap import dedent
 
 _HERE = Path(__file__).resolve().parent
 
-__all__ = ["get_include_dir", "get_lib_dir", "get_library", "get_pkg_config"]
+__all__ = ["get_include_dir", "get_lib_dir", "get_library", "get_pkg_config", "openblas_config"]
 
 # Use importlib.metadata to single-source the version
 
@@ -64,7 +65,19 @@ if sys.platform == "win32":
     os.add_dll_directory(get_lib_dir())
 
 
-from . import _init_openblas
 
-
-openblas_config = _init_openblas.get_config()
+def _get_openblas_config():
+    lib_dir = get_lib_dir()
+    if sys.platform == "win32":
+        # Get libopenblas*.lib
+        libnames = [x for x in os.listdir(lib_dir) if x.endswith(".dll")]
+    else:
+        # Get openblas*
+        libnames = [x for x in os.listdir(lib_dir) if x.startswith("libopenblas")]
+        
+    dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]))
+    openblas_config = dll.openblas_get_config64_
+    openblas_config.restype = ctypes.c_char_p
+    return openblas_config
+    
+openblas_config = _get_openblas_config()

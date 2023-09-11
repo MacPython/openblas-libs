@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "openblas"
+name = "scipy_openblas64"
 version = "0.3.23"
 requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
@@ -36,4 +36,4 @@ where = ["local"]
 install_requires = "importlib-metadata ~= 1.0 ; python_version < '3.8'"
 
 [tool.setuptools.package-data]
-openblas = ["lib/*", "include/*", "lib/pkgconfig/*", "lib/cmake/openblas/*"]
+scipy_openblas64 = ["lib/*", "include/*", "lib/pkgconfig/*", "lib/cmake/openblas/*"]

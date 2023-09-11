@@ -11,9 +11,9 @@ libs/
 # These are artifacts when using editable builds
 local/lib
 local/include
-local/openblas.egg-info
-local/openblas/lib
-local/openblas/include
-local/openblas/*.so
-local/openblas/*.pyd
-local/openblas/*.dylib
+local/scipy_openblas64.egg-info
+local/scipy_openblas64/lib
+local/scipy_openblas64/include
+local/scipy_openblas64/*.so
+local/scipy_openblas64/*.pyd
+local/scipy_openblas64/*.dylib
