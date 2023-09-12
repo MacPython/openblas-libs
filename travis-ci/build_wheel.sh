@@ -36,10 +36,14 @@ if [ "${INTERFACE64}" != "1" ]; then
     # rewrite the name of the project to scipy_openblas32
     # this is a hack, but apparently there is no other way to change the name
     # of a pyproject.toml project
-    sed -e "s/openblas64/openblas32/" -i pyproject.toml
+    #
+    # use the BSD variant of sed -i and remove the backup
+    sed -e "s/openblas64/openblas32/" -i.bak pyproject.toml
+    rm *.bak
     mv local/scipy_openblas64 local/scipy_openblas32
-    sed -e "s/openblas_get_config64_/openblas_get_config/" -i local/scipy_openblas32/__init__.py
-    sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
+    sed -e "s/openblas_get_config64_/openblas_get_config/" -i.bak local/scipy_openblas32/__init__.py
+    sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
+    rm local/scipy_openblas32/*.bak
 fi
 
 python3.7 -m pip wheel -w dist -vv .
