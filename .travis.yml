@@ -86,6 +86,7 @@ install:
 script:
     # Build library and collect into libs subdirectory
     - build_lib "$PLAT" "$INTERFACE64"
+    - source travis-ci/build_wheel.sh
 
 after_success:
     # Upload libraries to the shared staging area on anaconda.org

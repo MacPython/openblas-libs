@@ -1,3 +1,7 @@
+"""
+
+"""
+
 import ctypes
 import os
 from pathlib import Path
@@ -26,14 +30,20 @@ except importlib_metadata.PackageNotFoundError:
 
 
 def get_include_dir():
+    """Return the include directory needed for compilation
+    """
     return os.path.join(_HERE, "include")
 
 
 def get_lib_dir():
+    """Return the lib directory needed for linking
+    """
     return os.path.join(_HERE, "lib")
 
 
 def get_library():
+    """Return the lib name needed for linking
+    """
     if sys.platform == "win32":
         libs = [x for x in os.listdir(get_lib_dir()) if x.endswith(".lib")]
         return os.path.splitext(libs[0])[0]
@@ -41,11 +51,14 @@ def get_library():
         return "openblas_python"
 
 def get_pkg_config():
+    """Return a multi-line string that, when saved to a file, can be used with
+    pkg-config for build systems like meson
+    """
     if sys.platform == "win32":
         extralib = "-defaultlib:advapi32 -lgfortran -defaultlib:advapi32 -lgfortran"
     else:
         extralib = "-lm -lpthread -lgfortran -lm -lpthread -lgfortran"
-    return f"""\
+    return dedent(f"""\
         libdir={get_lib_dir()}
         includedir={get_include_dir()}
         openblas_config= {openblas_config}
@@ -58,15 +71,31 @@ def get_pkg_config():
         Libs: -L${libdir} -l{get_library()}
         Libs.private: ${extralib}
         Cflags: -I${includedir}
-        """
+        """)
 
 
 if sys.platform == "win32":
     os.add_dll_directory(get_lib_dir())
 
-
+def write__distributor_init(target):
+    """Accepts a Pathlib or string of a directory.
+    Write a pre-import file that will import scipy_openblas64 before
+    continuing to import the library. This will load OpenBLAS into the
+    executable's namespace and make the functions available for use.
+    """
+    fname = os.path.join(target, "_distributor_init.py")
+    with open(fname, "wt", encoding="utf8") as fid:
+        fid.write(dedent(f"""\
+            '''
+            Helper to preload OpenBLAS from scipy_openblas64
+            '''
+            import scipy_openblas64
+            """))
 
 def _get_openblas_config():
+    """Use ctypes to pull out the config string from the OpenBLAS library.
+    It will be available as `openblas_config`
+    """
     lib_dir = get_lib_dir()
     if sys.platform == "win32":
         # Get libopenblas*.lib
@@ -78,6 +107,7 @@ def _get_openblas_config():
     dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]))
     openblas_config = dll.openblas_get_config64_
     openblas_config.restype = ctypes.c_char_p
-    return openblas_config
+    return openblas_config()
     
+# This global will keep the shared object in memory
 openblas_config = _get_openblas_config()
