@@ -10,10 +10,12 @@ A project using the tarball, for Manylinux or macOS, will need the
 ``gfortran-install`` submodule used here, from
 https://github.com/MacPython/gfortran-install
 
-We also build and upload a pip-installable wheel. The wheel is self-contianed,
-no additional fortran support installations are needed. The wheel supplies
-interfaces for building and using OpenBLAS in a python project like SciPy or
-NumPy:
+We also build and upload a pip-installable wheel. The wheel is self-contained,
+it includes all needed gfortran support libraries. On windows, this is a single
+DLL. On linux we use `auditwheel repair` to mangle the shared object names.
+
+The wheel supplies interfaces for building and using OpenBLAS in a python
+project like SciPy or NumPy:
 
 ## Buildtime
 
@@ -28,6 +30,5 @@ NumPy:
 
 ## Runtime
 
-- `open_so()` will load openblas into the executable and provide the openblas
-  symbols linked in from the `get_include_dir()` includes (on windows linking
-  with `get_lib_dir()`/`get_libarary()` is required).
+- importing will load openblas into the executable and provide the openblas
+  symbols.

@@ -47,7 +47,7 @@ jobs:
           echo "BUILD_BITS=32" >> $env:GITHUB_ENV
         } else {
           echo "PLAT=x86_64" >> $env:GITHUB_ENV
-          echo "WHEEL_PLAT=x86_64" >> $env:GITHUB_ENV
+          echo "WHEEL_PLAT=win_amd64" >> $env:GITHUB_ENV
           echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
           echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
           echo "BUILD_BITS=64" >> $env:GITHUB_ENV
