@@ -50,9 +50,12 @@ python3.7 -m pip wheel -w dist -vv .
 
 if [ $(uname) == "Darwin" ]; then
     python3.7 -m pip install delocate
-    delocate-wheel dist/*.whl
+    # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
+    for f in dist/*.whl; do mv $f "${f/%any.whl/macosx_10_9_$PLAT.whl}"; done
+    delocate-wheel -v dist/*.whl
 else
     auditwheel repair -w dist dist/*.whl
+    rm dist/scipy_openblas*-none-any.whl
 fi
 
 if [ "${PLAT}" == "arm64" ]; then

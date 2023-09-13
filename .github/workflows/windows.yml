@@ -41,11 +41,13 @@ jobs:
         # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
         if ( "${{ matrix.plat }}" -eq "x86") {
           echo "PLAT=i686" >> $env:GITHUB_ENV
+          echo "WHEEL_PLAT=win32" >> $env:GITHUB_ENV
           echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
           echo "LDFLAGS=-static -static-libgcc" >> $env:GITHUB_ENV
           echo "BUILD_BITS=32" >> $env:GITHUB_ENV
         } else {
           echo "PLAT=x86_64" >> $env:GITHUB_ENV
+          echo "WHEEL_PLAT=x86_64" >> $env:GITHUB_ENV
           echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
           echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
           echo "BUILD_BITS=64" >> $env:GITHUB_ENV
@@ -108,8 +110,10 @@ jobs:
             sed -e "s/openblas_get_config64_/openblas_get_config/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
         fi
-            
+
         python -m pip wheel -w dist -vv .
+        # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
+        for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
 
     - name: Set up different Python
       uses: actions/setup-python@v4
@@ -119,10 +123,12 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
+        name: openblas
         path: builds/openblas*.zip
 
     - uses: actions/upload-artifact@v3
       with:
+        name: wheels
         path: dist/scipy_openblas*.whl
 
     - name: Test 64-bit interface wheel

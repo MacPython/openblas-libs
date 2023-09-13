@@ -120,11 +120,12 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
+        name: openblas
         path: libs/openblas*.tar.gz
 
     - uses: actions/upload-artifact@v3
-      if: matrix.plat == 'i686' || matrix.INTERFACE64 == '1'
       with:
+        name: wheels
         path: dist/scipy_openblas*.whl
 
     - name: Upload
