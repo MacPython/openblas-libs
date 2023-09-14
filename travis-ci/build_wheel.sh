@@ -43,6 +43,7 @@ if [ "${INTERFACE64}" != "1" ]; then
     mv local/scipy_openblas64 local/scipy_openblas32
     sed -e "s/openblas_get_config64_/openblas_get_config/" -i.bak local/scipy_openblas32/__init__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
+    sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__init__.py
     rm local/scipy_openblas32/*.bak
 fi
 
@@ -52,7 +53,11 @@ python3.7 -m pip wheel -w dist -vv .
 if [ $(uname) == "Darwin" ]; then
     python3.7 -m pip install delocate
     # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
-    for f in dist/*.whl; do mv $f "${f/%any.whl/macosx_10_9_$PLAT.whl}"; done
+    if [ "{PLAT}" == "arm64" ]; then
+        for f in dist/*.whl; do mv $f "${f/%any.whl/macosx_11_0_$PLAT.whl}"; done
+    else
+        for f in dist/*.whl; do mv $f "${f/%any.whl/macosx_10_9_$PLAT.whl}"; done
+    fi
     delocate-wheel -v dist/*.whl
 else
     auditwheel repair -w dist --lib-sdir /lib dist/*.whl
