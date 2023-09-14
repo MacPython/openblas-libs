@@ -59,6 +59,11 @@ else
     rm dist/scipy_openblas*-none-any.whl
     # Add an RPATH to libgfortran:
     # https://github.com/pypa/auditwheel/issues/451
+    if [ "$MB_ML_LIBC" == "musllinux" ]; then
+      apk add zip
+    else
+      yum install -y zip
+    fi
     unzip dist/*.whl "*libgfortran*"
     patchelf --force-rpath --set-rpath '$ORIGIN' */lib/libgfortran*
     zip dist/*.whl */lib/libgfortran*
