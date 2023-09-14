@@ -86,7 +86,9 @@ install:
 script:
     # Build library and collect into libs subdirectory
     - build_lib "$PLAT" "$INTERFACE64"
-    - source travis-ci/build_wheel.sh
+    - libc=${MB_ML_LIBC:-manylinux}
+    - docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
+    - docker run --rm -e INTERFACE64="${INTERFACE64}" -v $(pwd):/openblas $docker_image /bin/bash -xe /openblas/travis-ci/build_wheel.sh
 
 after_success:
     # Upload libraries to the shared staging area on anaconda.org

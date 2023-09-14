@@ -46,6 +46,7 @@ if [ "${INTERFACE64}" != "1" ]; then
     rm local/scipy_openblas32/*.bak
 fi
 
+rm -rf dist/*
 python3.7 -m pip wheel -w dist -vv .
 
 if [ $(uname) == "Darwin" ]; then
@@ -56,6 +57,11 @@ if [ $(uname) == "Darwin" ]; then
 else
     auditwheel repair -w dist --lib-sdir /lib dist/*.whl
     rm dist/scipy_openblas*-none-any.whl
+    # Add an RPATH to libgfortran:
+    # https://github.com/pypa/auditwheel/issues/451
+    unzip dist/*.whl "*libgfortran*"
+    patchelf --force-rpath --set-rpath '$ORIGIN' */lib/libgfortran*
+    zip dist/*.whl */lib/libgfortran*
 fi
 
 if [ "${PLAT}" == "arm64" ]; then
