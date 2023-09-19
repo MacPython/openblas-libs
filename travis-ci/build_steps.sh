@@ -165,7 +165,10 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    CFLAGS="$CFLAGS -fvisibility=protected" make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null
+    CFLAGS="$CFLAGS -fvisibility=protected" \
+    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+        USE_OPENMP=0 NUM_THREADS=64 \
+        BINARY=$bitness $interface64_flags $target_flags > /dev/null
     make PREFIX=$BUILD_PREFIX $interface64_flags install
     popd
     stop_spinner
