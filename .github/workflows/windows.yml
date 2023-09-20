@@ -96,6 +96,7 @@ jobs:
         rm local/scipy_openblas64/lib/*.a
         rm local/scipy_openblas64/lib/*.exp
         rm local/scipy_openblas64/lib/*.def
+        rm -rf local/scipy_openblas64/lib/pkgconfig
         if [[ -d local/scipy_openblas64/64 ]]; then
             rm -rf local/scipy_openblas64/64
         else
@@ -110,7 +111,7 @@ jobs:
             sed -e "s/openblas_get_config64_/openblas_get_config/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
         fi
-
+        cat tools/LICENSE_win32.txt >> LICENSE.txt
         python -m pip wheel -w dist -vv .
         # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
         for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
