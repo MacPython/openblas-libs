@@ -10,10 +10,11 @@ if [ "$?" != "0" ]; then
     # inside docker
     cd /openblas
 fi
+PYTHON=python3.7
 
 mkdir -p local/openblas
 mkdir -p dist
-python3.7 -m pip install wheel auditwheel
+$PYTHON -m pip install wheel auditwheel
 
 # This will fail if there is more than one file in libs
 tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas*.tar.gz
@@ -21,15 +22,17 @@ tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas*.tar.gz
 # do not package the static libs and symlinks, only take the shared object
 find local/scipy_openblas64/lib -maxdepth 1 -type l -delete
 rm local/scipy_openblas64/lib/*.a
+# Do not package the pkgconfig stuff, use the wheel functionality instead
+rm -rf local/scipy_openblas64/lib/pkgconfig
 # cleanup from a possible earlier run of the script
 rm -f local/scipy_openblas64/lib/libopenblas_python.so
 mv local/scipy_openblas64/lib/libopenblas* local/scipy_openblas64/lib/libopenblas_python.so
 
-if [ $(uname) != "Darwin" ]; then
+if [ $(uname) == "Darwin" ]; then
+    cat tools/LICENSE_osx.txt >> LICENSE.txt
+else
     patchelf --set-soname libopenblas_python.so local/scipy_openblas64/lib/libopenblas_python.so
-elif [ "{PLAT}" == "arm64" ]; then
-    source multibuild/osx_utils.sh
-    macos_arm64_cross_build_setup
+    cat tools/LICENSE_linux.txt >> LICENSE.txt
 fi
 
 if [ "${INTERFACE64}" != "1" ]; then
@@ -48,12 +51,12 @@ if [ "${INTERFACE64}" != "1" ]; then
 fi
 
 rm -rf dist/*
-python3.7 -m pip wheel -w dist -vv .
+$PYTHON -m pip wheel -w dist -vv .
 
 if [ $(uname) == "Darwin" ]; then
-    python3.7 -m pip install delocate
+    $PYTHON -m pip install delocate
     # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
-    if [ "{PLAT}" == "arm64" ]; then
+    if [ "${PLAT}" == "arm64" ]; then
         for f in dist/*.whl; do mv $f "${f/%any.whl/macosx_11_0_$PLAT.whl}"; done
     else
         for f in dist/*.whl; do mv $f "${f/%any.whl/macosx_10_9_$PLAT.whl}"; done
