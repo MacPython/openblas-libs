@@ -93,7 +93,7 @@ jobs:
           export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
           clang --version
         fi
-        source travis-ci/build_steps.sh
+        source tools/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
         if [[ "$NIGHTLY" = "true" ]]; then
@@ -110,15 +110,20 @@ jobs:
 
     - name: Build and test wheel
       run: |
+        if [[ "$NIGHTLY" = "true" ]]; then
+          # Set the pyproject.toml version
+          version = $(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/")
+          sed -e "s/^version = .*/version = ${version}/" -i.bak pyproject.toml
+        fi
         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-          source travis-ci/build_wheel.sh
+          source tools/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
           docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
           docker run --rm -e INTERFACE64="${INTERFACE64}" \
             -e MB_ML_LIBC="${MB_ML_LIBC}" \
             -v $(pwd):/openblas $docker_image \
-            /bin/bash -xe /openblas/travis-ci/build_wheel.sh
+            /bin/bash -xe /openblas/tools/build_wheel.sh
         fi
 
     - uses: actions/upload-artifact@v3
@@ -131,32 +136,14 @@ jobs:
         name: wheels
         path: dist/scipy_openblas*.whl
 
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: upload
+
     - name: Upload
+      env:
+       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        set -ex
-        TOKEN=${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
-        if [ "$TOKEN" == "" ]; then
-            # The token is available when under the MacPython org, not on forks
-            echo "secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping";
-        else
-            # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
-            pip install "urllib3<2.0.0"
-            pip install git+https://github.com/Anaconda-Server/anaconda-client@1.8.0
-            # The first -t option refers to the token, the second is the "type"
-            # option to the "upload" command
-            args=(
-              -t ${TOKEN} upload
-              --no-progress -u scientific-python-nightly-wheels
-              -t file -p "openblas-libs"
-              -d "OpenBLAS for multibuild wheels"
-              -s "OpenBLAS for multibuild wheels"
-            )
-            if [[ "$NIGHTLY" = "true" ]]; then
-              args+=(--force)
-              args+=(-v "HEAD")
-            else
-              args+=(--skip)
-              args+=(-v "$(cd OpenBLAS && git describe --tags --abbrev=8)")
-            fi
-            anaconda "${args[@]}" libs/openblas*.tar.gz
-        fi
+        # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
+        conda install -y anaconda-client 'urllib3<2.0.0'
+        source tools/upload_to_anaconda_staging.sh

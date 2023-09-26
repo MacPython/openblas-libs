@@ -21,7 +21,7 @@ function before_build {
 
         if [ "$INTERFACE64" = "1" ]; then
             # Build the objconv tool
-            (cd ${ROOT_DIR}/objconv && bash ../travis-ci/build_objconv.sh)
+            (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
         fi
     fi
 }
@@ -90,7 +90,7 @@ function build_lib {
         -e MB_ML_VER=${manylinux} \
         -e MB_ML_LIBC=${libc} \
         -v $PWD:/io \
-        $docker_image /io/travis-ci/docker_build_wrap.sh
+        $docker_image /io/tools/docker_build_wrap.sh
 }
 
 function patch_source {

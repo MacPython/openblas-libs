@@ -76,7 +76,7 @@ matrix:
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
 
 before_install:
-    - source travis-ci/build_steps.sh
+    - source tools/build_steps.sh
     - before_build
 
 install:
@@ -91,8 +91,8 @@ script:
     - docker run --rm -e INTERFACE64="${INTERFACE64}" \
         -e MB_ML_LIBC="${MB_ML_LIBC}" \
         -v $(pwd):/openblas $docker_image \
-        /bin/bash -xe /openblas/travis-ci/build_wheel.sh
+        /bin/bash -xe /openblas/tools/build_wheel.sh
 
 after_success:
     # Upload libraries to the shared staging area on anaconda.org
-    - source tools/upload_to_anaconda_posix.sh
+    - source tools/upload_to_anaconda_staging.sh
