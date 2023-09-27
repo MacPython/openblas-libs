@@ -39,7 +39,7 @@ function build_openblas {
       export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
       clang --version
     fi
-    source travis-ci/build_steps.sh
+    source tools/build_steps.sh
     echo "------ BEFORE BUILD ---------"
     before_build
     if [[ "$NIGHTLY" = "true" ]]; then
