@@ -2,6 +2,7 @@
 # Upload tar.gz and wheels to ananconda.org
 
 upload_wheels() {
+    set +e -x
     if [[ "$(uname -s)" == CYGWIN* ]]; then
         our_wd=$(cygpath "$START_DIR")
         cd $our_wd
@@ -23,7 +24,6 @@ upload_wheels() {
                 -d "OpenBLAS for multibuild wheels" \
                 -s "OpenBLAS for multibuild wheels" \
                 ${tarballs}
-                
 
         anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
                 --no-progress --force -u scientific-python-nightly-wheels \
