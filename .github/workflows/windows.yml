@@ -152,9 +152,11 @@ jobs:
         activate-environment: upload
 
     - name: Upload
+      shell: bash
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
         # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
-        conda install "urllib3<2" anaconda-client
-        & $env:BASH_PATH -lc tools/upload_to_anaconda_staging.sh
+        conda install -y anaconda-client 'urllib3<2.0.0'
+        source tools/upload_to_anaconda_staging.sh
+        upload_wheels
