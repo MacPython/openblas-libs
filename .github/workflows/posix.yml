@@ -147,3 +147,4 @@ jobs:
         # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
         conda install -y anaconda-client 'urllib3<2.0.0'
         source tools/upload_to_anaconda_staging.sh
+        upload_wheels
