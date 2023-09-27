@@ -152,7 +152,9 @@ jobs:
         activate-environment: upload
 
     - name: Upload
-      shell: bash
+      # see https://github.com/marketplace/actions/setup-miniconda for why
+      # `-el {0}` is required.
+      shell: bash -el {0}
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
