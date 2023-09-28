@@ -45,6 +45,7 @@ if [ "${INTERFACE64}" != "1" ]; then
     rm *.bak
     mv local/scipy_openblas64 local/scipy_openblas32
     sed -e "s/openblas_get_config64_/openblas_get_config/" -i.bak local/scipy_openblas32/__init__.py
+    sed -e "s/cflags_suffix64 =.*/cflags_suffix64 = ''/" -i.bak local/scipy_openblas32/__init__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__init__.py
     rm local/scipy_openblas32/*.bak

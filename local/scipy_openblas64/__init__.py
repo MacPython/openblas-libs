@@ -56,9 +56,12 @@ def get_pkg_config():
     pkg-config for build systems like meson
     """
     if sys.platform == "win32":
-        extralib = "-defaultlib:advapi32 -lgfortran -defaultlib:advapi32 -lgfortran"
+        extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
+        libs_flags = f"-L${{libdir}} -l{get_library()}"
     else:
-        extralib = "-lm -lpthread -lgfortran -lm -lpthread -lgfortran"
+        extralib = "-lm -lpthread -lgfortran -lquadmath -L${libdir} -lopenblas_python"
+        libs_flags = ""
+    cflags_suffix64 = "-DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64"
     return dedent(f"""\
         libdir={get_lib_dir()}
         includedir={get_include_dir()}
@@ -69,9 +72,9 @@ def get_pkg_config():
         Description: OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version
         Version: ${{version}}
         URL: https://github.com/xianyi/OpenBLAS
-        Libs: -L${{libdir}} -l{get_library()}
+        Libs: {libs_flags}
         Libs.private: ${{extralib}}
-        Cflags: -I${{includedir}}
+        Cflags: -I${{includedir}} {cflags_suffix64}
         """)
 
 
@@ -108,7 +111,7 @@ def get_openblas_config():
             # Get openblas*
             libnames = [x for x in os.listdir(lib_dir) if x.startswith("libopenblas")]
         
-        dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]))
+        dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]), ctypes.RTLD_GLOBAL)
     openblas_config = dll.openblas_get_config64_
     openblas_config.restype = ctypes.c_char_p
     bytes = openblas_config()
