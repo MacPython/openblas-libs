@@ -2,7 +2,8 @@
 # Upload tar.gz and wheels to ananconda.org
 
 upload_wheels() {
-    set -x
+    # use +e since the ls command will error: either zip files or tar.gz files exist
+    set +e -x
     if [[ "$(uname -s)" == CYGWIN* ]]; then
         our_wd=$(cygpath "$START_DIR")
         cd $our_wd
@@ -17,7 +18,7 @@ upload_wheels() {
     else
         echo "Uploading OpenBLAS $VERSION to anaconda.org staging:"
 
-        tarballs=$(ls -d builds/openblas*.zip libs/openblas*.tar.gz 2>/dev/null && true)
+        tarballs=$(ls -d builds/openblas*.zip libs/openblas*.tar.gz 2>/dev/null)
         anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
                 --no-progress --force -u scientific-python-nightly-wheels \
                 -t file -p "openblas-libs" -v "$VERSION" \
