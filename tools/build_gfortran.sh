@@ -1,6 +1,6 @@
 # Build gfortran binary against OpenBLAS
 
-set -e
+set -ex
 
 rm -rf for_test
 mkdir for_test
