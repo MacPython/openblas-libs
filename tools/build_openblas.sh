@@ -105,7 +105,7 @@ if [ "$if_bits" == "64" ]; then
     # do it ourselves
     set -x  # echo commands
     static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
-    make -C exports $interface64_flags objcopy.def
+    make -C exports SYMBOLPREFIX=scipy_ $interface64_flags objcopy.def
     objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
     cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
     cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"

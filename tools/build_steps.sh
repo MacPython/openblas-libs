@@ -193,7 +193,7 @@ function do_build_lib {
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
-        $BUILD_PREFIX/lib/lib* \
+        $BUILD_PREFIX/lib/libscipyopenblas* \
         $BUILD_PREFIX/lib/pkgconfig/openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }

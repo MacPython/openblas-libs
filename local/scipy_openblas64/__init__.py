@@ -109,7 +109,7 @@ def get_openblas_config():
             libnames = [x for x in os.listdir(lib_dir) if x.endswith(".dll")]
         else:
             # Get openblas*
-            libnames = [x for x in os.listdir(lib_dir) if x.startswith("lib")]
+            libnames = [x for x in os.listdir(lib_dir) if x.startswith("libscipy")]
         
         dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]), ctypes.RTLD_GLOBAL)
     openblas_config = dll.openblas_get_config64_
