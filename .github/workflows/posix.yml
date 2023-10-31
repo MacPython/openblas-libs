@@ -68,17 +68,14 @@ jobs:
         python-version: 3.7
     - name: Set extra env
       run: |
-        if [ "macos-11" == "${{ matrix.os }}" ]; then
-          echo "TRAVIS_OS_NAME=osx" >> $GITHUB_ENV;
-          echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
-          echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
-        else
-          echo "TRAVIS_OS_NAME=${{ matrix.os }}" >> $GITHUB_ENV;
-        fi
+        # if [ "macos-11" == "${{ matrix.os }}" ]; then
+        #   echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
+        #   echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
+        # else
+        # fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
     - name: Print some Environment variable
       run: |
-        echo "TRAVIS_OS_NAME: ${TRAVIS_OS_NAME}"
         echo "PLAT: ${PLAT}"
         echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
     - name: Install VirtualEnv
@@ -115,7 +112,7 @@ jobs:
           version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
           sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
         fi
-        if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        if [ "macos-11" == "${{ matrix.os }}" ]; then
           source tools/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
