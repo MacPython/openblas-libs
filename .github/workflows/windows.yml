@@ -32,7 +32,7 @@ jobs:
     - name: install-rtools
       run: |
         # rtools 42+ does not support 32 bits builds.
-        choco install -y rtools --noprogress --force --version=4.0.0.20220206
+        choco install -y rtools --no-progress --force --version=4.0.0.20220206
 
     - name: Set env variables
       run: |

@@ -98,7 +98,7 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      SYMBOLPREFIX="scipy_" \
      $interface64_flags
 make PREFIX=$openblas_root/$build_bits $interface64_flags \
- .   SYMBOLPREFIX="scipy_" install
+     SYMBOLPREFIX="scipy_" install
 DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 if [ "$if_bits" == "64" ]; then
     # OpenBLAS does not build a symbol-suffixed static library on Windows:
