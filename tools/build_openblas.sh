@@ -104,13 +104,15 @@ DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 
 # OpenBLAS does not build a symbol-suffixed static library on Windows:
 # do it ourselves
-set -x  # echo commands
 static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
 make -C exports $interface_flags objcopy.def
+echo exports/objcopy.def
+echo ------------------------
+cat exports/objcopy.def
+echo ------------------------
 objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
-set +x
 
 cd $openblas_root
 # Copy library link file for custom name
