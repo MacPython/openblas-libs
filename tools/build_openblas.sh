@@ -106,10 +106,6 @@ DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 # do it ourselves
 static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
 make -C exports $interface_flags objcopy.def
-echo exports/objcopy.def
-echo ------------------------
-cat exports/objcopy.def
-echo ------------------------
 objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
@@ -129,10 +125,6 @@ dlltool --input-def ${DLL_BASENAME}.def \
     --output-lib ${DLL_BASENAME}.lib
 # Replace the DLL name with the generated name.
 sed -i "s/ -lopenblas.*$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas*.pc
-echo After sed -i, pkgconfig/openblas*.pc is
-echo ------------
-cat pkgconfig/openblas*.pc
-echo ------------
 cd ../..
 # Build template site.cfg for using this build
 cat > ${build_bits}/site.cfg.template << EOF
@@ -141,6 +133,9 @@ libraries = $DLL_BASENAME
 library_dirs = {openblas_root}\\${build_bits}\\lib
 include_dirs = {openblas_root}\\${build_bits}\\include
 EOF
+
+ls $openblas_root/$build_bits/lib
+
 zip_name="openblas${SYMBOLSUFFIX}-${OPENBLAS_VERSION}-${plat_tag}-${GCC_TAG}.zip"
 zip -r $zip_name $build_bits
 cp $zip_name ${builds_dir}
