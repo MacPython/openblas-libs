@@ -75,12 +75,14 @@ fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
     SYMBOLSUFFIX="64_"
-    interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=${SYMBOLSUFFIX}"
+    interface_flags="INTERFACE64=1 SYMBOLSUFFIX=${SYMBOLSUFFIX}"
     # We override FCOMMON_OPT, so we need to set default integer manually
     fflags="$fflags -fdefault-integer-8"
 else
-    interface64_flags=""
+    interface_flags=""
 fi
+# XXX uncomment this
+# interface_flags="$interface_flags SYMBOLPREFIX=scipy_"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
@@ -95,17 +97,15 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      COMMON_OPT="$cflags" \
      FCOMMON_OPT="$fflags" \
      MAX_STACK_ALLOC=2048 \
-     SYMBOLPREFIX="scipy_" \
-     $interface64_flags
-make PREFIX=$openblas_root/$build_bits $interface64_flags \
-     SYMBOLPREFIX="scipy_" install
+     $interface_flags
+make PREFIX=$openblas_root/$build_bits $interface_flags install
 DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 
 # OpenBLAS does not build a symbol-suffixed static library on Windows:
 # do it ourselves
 set -x  # echo commands
 static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
-make -C exports SYMBOLPREFIX="scipy_" $interface64_flags objcopy.def
+make -C exports $interface_flags objcopy.def
 objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
