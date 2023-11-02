@@ -94,7 +94,7 @@ jobs:
         fi
         mv local/scipy_openblas64/bin/*.dll local/scipy_openblas64/lib
         rm local/scipy_openblas64/lib/*.a
-        rm local/scipy_openblas64/lib/*.exp
+        rm -f local/scipy_openblas64/lib/*.exp  # may not exist?
         rm local/scipy_openblas64/lib/*.def
         rm -rf local/scipy_openblas64/lib/pkgconfig
         if [[ -d local/scipy_openblas64/64 ]]; then
