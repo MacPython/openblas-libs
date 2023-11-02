@@ -81,8 +81,7 @@ if [ "$if_bits" == "64" ]; then
 else
     interface_flags=""
 fi
-# XXX uncomment this
-# interface_flags="$interface_flags SYMBOLPREFIX=scipy_"
+interface_flags="$interface_flags SYMBOLPREFIX=scipy_"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
