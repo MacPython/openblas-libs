@@ -20,6 +20,8 @@
 # realpath, cygpath, zip, gcc, make, ar, dlltool
 # usually as part of an msys installation.
 
+set -xe
+
 # Convert to Unix-style path
 openblas_root="$(cygpath ${1:-${OPENBLAS_ROOT:-c:\\opt}})"
 build_bits="${2:-${BUILD_BITS:-64}}"
