@@ -103,9 +103,16 @@ make PREFIX=$openblas_root/$build_bits $interface_flags install
 DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 
 # OpenBLAS does not build a symbol-suffixed static library on Windows:
-# do it ourselves
+# do it ourselves. On 32-bit builds, the objcopy.def names need a '_' prefix
 static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
 make -C exports $interface_flags objcopy.def
+
+if [ "$build_bits" == 32 ]; then
+  sed -i "s/^/_/" exports/objcopy.def
+  sed -i "s/scipy_/_scipy_/" exports/objcopy.def
+  echo "make sure both columns have leading underscores"
+  head -10 exports/objcopy.def
+fi
 objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
