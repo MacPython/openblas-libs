@@ -107,12 +107,15 @@ DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
 static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
 make -C exports $interface_flags objcopy.def
 
-if [ "$build_bits" == 32 ]; then
+if [ "$build_bits" == "32" ]; then
   sed -i "s/^/_/" exports/objcopy.def
   sed -i "s/scipy_/_scipy_/" exports/objcopy.def
-  echo "make sure both columns have leading underscores"
-  head -10 exports/objcopy.def
+else
+  echo not updating objcopy,def, buildbits=$build_bits
 fi
+echo "\nshow some of objcopy.def"
+head -10 exports/objcopy.def
+echo
 objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
 cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
