@@ -69,6 +69,7 @@ jobs:
     - name: Set extra env
       run: |
         # if [ "macos-11" == "${{ matrix.os }}" ]; then
+        #   Use xcrun --sdk macosx --show-sdk-path instead of hardcoding the path
         #   echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
         #   echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
         # else

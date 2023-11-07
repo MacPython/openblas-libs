@@ -63,7 +63,7 @@ def get_pkg_config():
     else:
         extralib = "-lm -lpthread -lgfortran -lquadmath -L${libdir} -l{get_library()}"
         libs_flags = ""
-    cflags_suffix64 = "-DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64"
+    cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64"
     return dedent(f"""\
         libdir={get_lib_dir()}
         includedir={get_include_dir()}
@@ -76,7 +76,7 @@ def get_pkg_config():
         URL: https://github.com/xianyi/OpenBLAS
         Libs: {libs_flags}
         Libs.private: ${{extralib}}
-        Cflags: -I${{includedir}} {cflags_suffix64}
+        Cflags: -I${{includedir}} {cflags}
         """)
 
 

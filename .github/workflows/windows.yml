@@ -109,7 +109,7 @@ jobs:
             # of a pyproject.toml project
             sed -e "s/openblas64/openblas32/" -i pyproject.toml
             sed -e "s/openblas_get_config64_/openblas_get_config/" -i local/scipy_openblas32/__init__.py
-            sed -e "s/cflags_suffix64 =.*/cflags_suffix64 = ''/" -i local/scipy_openblas32/__init__.py
+            sed -e "s/cflags =.*/cflags = '-DBLAS_SYMBOL_PREFIX=scipy_'/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
         fi
