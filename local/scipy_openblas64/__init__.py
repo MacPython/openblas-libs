@@ -63,7 +63,7 @@ def get_pkg_config():
     else:
         extralib = "-lm -lpthread -lgfortran -lquadmath -L${libdir} -l{get_library()}"
         libs_flags = ""
-    cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64"
+    cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64 -DOPENBLAS_ILP64_NAMING_SCHEME"
     return dedent(f"""\
         libdir={get_lib_dir()}
         includedir={get_include_dir()}
