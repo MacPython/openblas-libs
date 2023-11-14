@@ -20,6 +20,8 @@
 # realpath, cygpath, zip, gcc, make, ar, dlltool
 # usually as part of an msys installation.
 
+set -xe
+
 # Convert to Unix-style path
 openblas_root="$(cygpath ${1:-${OPENBLAS_ROOT:-c:\\opt}})"
 build_bits="${2:-${BUILD_BITS:-64}}"
@@ -75,12 +77,13 @@ fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
     SYMBOLSUFFIX="64_"
-    interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=${SYMBOLSUFFIX}"
+    interface_flags="INTERFACE64=1 SYMBOLSUFFIX=${SYMBOLSUFFIX}"
     # We override FCOMMON_OPT, so we need to set default integer manually
     fflags="$fflags -fdefault-integer-8"
 else
-    interface64_flags=""
+    interface_flags=""
 fi
+interface_flags="$interface_flags SYMBOLPREFIX=scipy_"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
@@ -95,20 +98,28 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      COMMON_OPT="$cflags" \
      FCOMMON_OPT="$fflags" \
      MAX_STACK_ALLOC=2048 \
-     $interface64_flags
-make PREFIX=$openblas_root/$build_bits $interface64_flags install
-DLL_BASENAME=libopenblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
-if [ "$if_bits" == "64" ]; then
-    # OpenBLAS does not build a symbol-suffixed static library on Windows:
-    # do it ourselves
-    set -x  # echo commands
-    static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
-    make -C exports $interface64_flags objcopy.def
-    objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
-    cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
-    cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
-    set +x
+     $interface_flags
+make PREFIX=$openblas_root/$build_bits $interface_flags install
+DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
+
+# OpenBLAS does not build a symbol-suffixed static library on Windows:
+# do it ourselves. On 32-bit builds, the objcopy.def names need a '_' prefix
+static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
+make -C exports $interface_flags objcopy.def
+
+if [ "$build_bits" == "32" ]; then
+  sed -i "s/^/_/" exports/objcopy.def
+  sed -i "s/scipy_/_scipy_/" exports/objcopy.def
+else
+  echo not updating objcopy,def, buildbits=$build_bits
 fi
+echo "\nshow some of objcopy.def"
+head -10 exports/objcopy.def
+echo
+objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
+cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
+cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
+
 cd $openblas_root
 # Copy library link file for custom name
 cd $build_bits/lib
@@ -124,10 +135,6 @@ dlltool --input-def ${DLL_BASENAME}.def \
     --output-lib ${DLL_BASENAME}.lib
 # Replace the DLL name with the generated name.
 sed -i "s/ -lopenblas.*$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas*.pc
-echo After sed -i, pkgconfig/openblas*.pc is
-echo ------------
-cat pkgconfig/openblas*.pc
-echo ------------
 cd ../..
 # Build template site.cfg for using this build
 cat > ${build_bits}/site.cfg.template << EOF
@@ -136,6 +143,9 @@ libraries = $DLL_BASENAME
 library_dirs = {openblas_root}\\${build_bits}\\lib
 include_dirs = {openblas_root}\\${build_bits}\\include
 EOF
+
+ls $openblas_root/$build_bits/lib
+
 zip_name="openblas${SYMBOLSUFFIX}-${OPENBLAS_VERSION}-${plat_tag}-${GCC_TAG}.zip"
 zip -r $zip_name $build_bits
 cp $zip_name ${builds_dir}

@@ -1,4 +1,4 @@
-!testdpotr_test_gh_2691.f90
+!testdpotr_test_gh_2691.f90 with scipy_ prefix
 subroutine garbage(okflag)
      implicit none
      integer, intent(out) :: okflag
@@ -23,7 +23,7 @@ subroutine garbage(okflag)
 
      a2 = a
 
-     call dpotrf('L', 3, a, 3, info)
+     call scipy_dpotrf('L', 3, a, 3, info)
      if (info.ne.0) then
          okflag = 0
          write(*,*) 'DPOTRF failed'
@@ -39,20 +39,20 @@ subroutine garbage(okflag)
              a(i,j) = 0
          end do
      end do
-     call dpotri('L', 3, a, 3, info)
+     call scipy_dpotri('L', 3, a, 3, info)
      if (info.ne.0) then
          okflag = 0
          write(*,*) 'DPOTRI failed'
          return
      end if
 
-     call dgetrf(3, 3, a2, 3, ipiv, info)
+     call scipy_dgetrf(3, 3, a2, 3, ipiv, info)
      if (info.ne.0) then
          okflag = 0
          write(*,*) 'DGETRF failed'
          return
      end if
-     call dgetri(3, a2, 3, ipiv, work, lwork, info)
+     call scipy_dgetri(3, a2, 3, ipiv, work, lwork, info)
      if (info.ne.0) then
          okflag = 0
          write(*,*) 'DGETRI failed'

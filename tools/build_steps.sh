@@ -19,10 +19,8 @@ function before_build {
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
-        if [ "$INTERFACE64" = "1" ]; then
-            # Build the objconv tool
-            (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
-        fi
+        # Build the objconv tool
+        (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
     fi
 }
 
@@ -148,14 +146,14 @@ function do_build_lib {
     esac
     case $interface64 in
         1)
-            local interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
+            local interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ SYMBOLPREFIX=scipy_ OBJCONV=$PWD/objconv/objconv";
             local symbolsuffix="64_";
             if [ -n "$IS_OSX" ]; then
                 $PWD/objconv/objconv --help
             fi
             ;;
         *)
-            local interface64_flags=""
+            local interface_flags="SYMBOLPREFIX=scipy_ OBJCONV=$PWD/objconv/objconv"
             local symbolsuffix="";
             ;;
     esac
@@ -165,11 +163,11 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    CFLAGS="$CFLAGS -fvisibility=protected" \
+    CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface64_flags $target_flags > /dev/null
-    make PREFIX=$BUILD_PREFIX $interface64_flags install
+        BINARY=$bitness $interface_flags $target_flags > /dev/null
+    make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     stop_spinner
     if [ "$nightly" = "1" ]; then
@@ -193,7 +191,7 @@ function do_build_lib {
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
-        $BUILD_PREFIX/lib/libopenblas* \
+        $BUILD_PREFIX/lib/libscipy_openblas* \
         $BUILD_PREFIX/lib/pkgconfig/openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }

@@ -49,7 +49,9 @@ def get_library():
         libs = [x for x in os.listdir(get_lib_dir()) if x.endswith(".lib")]
         return os.path.splitext(libs[0])[0]
     else:
-        return "openblas_python"
+        libs = [x for x in os.listdir(get_lib_dir()) if x.startswith("libscipy_openblas")]
+        # remove the leading lib from libscipy_openblas*
+        return os.path.splitext(libs[0])[0][3:]
 
 def get_pkg_config():
     """Return a multi-line string that, when saved to a file, can be used with
@@ -59,9 +61,9 @@ def get_pkg_config():
         extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
         libs_flags = f"-L${{libdir}} -l{get_library()}"
     else:
-        extralib = "-lm -lpthread -lgfortran -lquadmath -L${libdir} -lopenblas_python"
+        extralib = "-lm -lpthread -lgfortran -lquadmath -L${libdir} -l{get_library()}"
         libs_flags = ""
-    cflags_suffix64 = "-DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64"
+    cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64 -DOPENBLAS_ILP64_NAMING_SCHEME"
     return dedent(f"""\
         libdir={get_lib_dir()}
         includedir={get_include_dir()}
@@ -74,7 +76,7 @@ def get_pkg_config():
         URL: https://github.com/xianyi/OpenBLAS
         Libs: {libs_flags}
         Libs.private: ${{extralib}}
-        Cflags: -I${{includedir}} {cflags_suffix64}
+        Cflags: -I${{includedir}} {cflags}
         """)
 
 
@@ -109,10 +111,10 @@ def get_openblas_config():
             libnames = [x for x in os.listdir(lib_dir) if x.endswith(".dll")]
         else:
             # Get openblas*
-            libnames = [x for x in os.listdir(lib_dir) if x.startswith("libopenblas")]
+            libnames = [x for x in os.listdir(lib_dir) if x.startswith("libscipy")]
         
         dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]), ctypes.RTLD_GLOBAL)
-    openblas_config = dll.openblas_get_config64_
+    openblas_config = dll.scipy_openblas_get_config64_
     openblas_config.restype = ctypes.c_char_p
     bytes = openblas_config()
     return bytes.decode("utf8")

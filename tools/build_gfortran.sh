@@ -1,6 +1,6 @@
 # Build gfortran binary against OpenBLAS
 
-set -e
+set -ex
 
 rm -rf for_test
 mkdir for_test
@@ -12,6 +12,9 @@ OBP=$(cygpath $OPENBLAS_ROOT\\$BUILD_BITS)
 static_libname=$(find $OBP/lib -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
 dynamic_libname=$(find $OBP/lib -maxdepth 1 -type f -name '*.dll.a' | tail -1)
 dll_name=$(echo $dynamic_libname | sed 's#/lib/#/bin/#' | sed 's/.a$//')
+
+grep dpotrf $OBP/include/*
+nm $static_libname | grep dpotrf
 
 cp $dll_name .
 

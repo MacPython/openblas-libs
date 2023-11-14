@@ -24,14 +24,10 @@ find local/scipy_openblas64/lib -maxdepth 1 -type l -delete
 rm local/scipy_openblas64/lib/*.a
 # Do not package the pkgconfig stuff, use the wheel functionality instead
 rm -rf local/scipy_openblas64/lib/pkgconfig
-# cleanup from a possible earlier run of the script
-rm -f local/scipy_openblas64/lib/libopenblas_python.so
-mv local/scipy_openblas64/lib/libopenblas* local/scipy_openblas64/lib/libopenblas_python.so
 
 if [ $(uname) == "Darwin" ]; then
     cat tools/LICENSE_osx.txt >> LICENSE.txt
 else
-    patchelf --set-soname libopenblas_python.so local/scipy_openblas64/lib/libopenblas_python.so
     cat tools/LICENSE_linux.txt >> LICENSE.txt
 fi
 
@@ -45,7 +41,7 @@ if [ "${INTERFACE64}" != "1" ]; then
     rm *.bak
     mv local/scipy_openblas64 local/scipy_openblas32
     sed -e "s/openblas_get_config64_/openblas_get_config/" -i.bak local/scipy_openblas32/__init__.py
-    sed -e "s/cflags_suffix64 =.*/cflags_suffix64 = ''/" -i.bak local/scipy_openblas32/__init__.py
+    sed -e "s/cflags =.*/cflags = '-DBLAS_SYMBOL_PREFIX=scipy_'/" -i.bak local/scipy_openblas32/__init__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__init__.py
     rm local/scipy_openblas32/*.bak
