@@ -95,6 +95,7 @@ function patch_source {
     # Runs inside OpenBLAS directory
     # Make the patches by git format-patch <old commit>
     for f in $(ls ../patches); do
+        echo applying patch $f
         git apply ../patches/$f
     done 
 }
