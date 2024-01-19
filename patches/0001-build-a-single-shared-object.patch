@@ -1,0 +1,72 @@
+From f3f6eeba8e569e66a0f92b9e58f8465924f636f4 Mon Sep 17 00:00:00 2001
+From: mattip <matti.picus@gmail.com>
+Date: Fri, 19 Jan 2024 15:13:13 +0200
+Subject: [PATCH] build a single shared object
+
+---
+ Makefile         | 5 -----
+ Makefile.system  | 3 +++
+ exports/Makefile | 4 ++--
+ 3 files changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 8621a8b3f..0febfd0a6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -134,17 +134,12 @@ shared : libs netlib $(RELA)
+ ifneq ($(NO_SHARED), 1)
+ ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku FreeBSD DragonFly))
+ 	@$(MAKE) -C exports so
+-	@ln -fs $(LIBSONAME) $(LIBPREFIX).so
+-	@ln -fs $(LIBSONAME) $(LIBPREFIX).so.$(MAJOR_VERSION)
+ endif
+ ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD NetBSD))
+ 	@$(MAKE) -C exports so
+-	@ln -fs $(LIBSONAME) $(LIBPREFIX).so
+ endif
+ ifeq ($(OSNAME), Darwin)
+ 	@$(MAKE) -C exports dyn
+-	@ln -fs $(LIBDYNNAME) $(LIBPREFIX).dylib
+-	@ln -fs $(LIBDYNNAME) $(LIBPREFIX).$(MAJOR_VERSION).dylib
+ endif
+ ifeq ($(OSNAME), WINNT)
+ 	@$(MAKE) -C exports dll
+diff --git a/Makefile.system b/Makefile.system
+index 30b0ddec2..b2c92b99a 100644
+--- a/Makefile.system
++++ b/Makefile.system
+@@ -1695,6 +1695,9 @@ LIBNAME_P	= $(LIBPREFIX)p$(REVISION)_p.$(LIBSUFFIX)
+ endif
+ endif
+ 
++# Override for scipy-openblas: don't put the revision into the so name
++LIBNAME		= $(LIBPREFIX).$(LIBSUFFIX)
++LIBNAME_P	= $(LIBPREFIX)_p.$(LIBSUFFIX)
+ 
+ LIBDLLNAME   = $(LIBPREFIX).dll
+ IMPLIBNAME   = lib$(LIBNAMEBASE).dll.a
+diff --git a/exports/Makefile b/exports/Makefile
+index 7682f851d..632fa324b 100644
+--- a/exports/Makefile
++++ b/exports/Makefile
+@@ -132,7 +132,7 @@ libgoto_hpl.def : $(GENSYM)
+ 	./$(GENSYM) win2khpl $(ARCH) dummy $(EXPRECISION) $(NO_CBLAS) $(NO_LAPACK) $(NO_LAPACKE) $(NEED2UNDERSCORES) $(ONLY_CBLAS) "$(SYMBOLPREFIX)" "$(SYMBOLSUFFIX)" $(BUILD_LAPACK_DEPRECATED) $(BUILD_BFLOAT16) $(BUILD_SINGLE) $(BUILD_DOUBLE) $(BUILD_COMPLEX) $(BUILD_COMPLEX16) > $(@F)
+ 
+ ifeq ($(OSNAME), Darwin)
+-INTERNALNAME = $(LIBPREFIX).$(MAJOR_VERSION).dylib
++INTERNALNAME = $(LIBPREFIX).dylib
+ endif
+ 
+ ifeq (, $(SYMBOLPREFIX)$(SYMBOLSUFFIX))
+@@ -169,7 +169,7 @@ INTERNALNAME = $(LIBPREFIX).so
+ FEXTRALIB += -lm
+ EXTRALIB += -lm
+ else
+-INTERNALNAME = $(LIBPREFIX).so.$(MAJOR_VERSION)
++INTERNALNAME = $(LIBPREFIX).so
+ endif
+ 
+ ifeq (, $(SYMBOLPREFIX)$(SYMBOLSUFFIX))
+-- 
+2.34.1
+

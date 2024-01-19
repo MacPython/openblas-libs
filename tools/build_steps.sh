@@ -93,8 +93,10 @@ function build_lib {
 
 function patch_source {
     # Runs inside OpenBLAS directory
-    # bash does not like an empty function, add a null statement
-    :
+    # Make the patches by git format-patch <old commit>
+    for f in $(ls ../patches); do
+        git apply ../patches/$f
+    done 
 }
 
 function do_build_lib {
