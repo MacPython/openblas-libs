@@ -1,14 +1,14 @@
-From 7203d885e0b88128d2b2252956d21c0000888de4 Mon Sep 17 00:00:00 2001
+From ebca632fd6a3b41643d2cd51da37c6c199e915be Mon Sep 17 00:00:00 2001
 From: mattip <matti.picus@gmail.com>
-Date: Fri, 19 Jan 2024 17:15:06 +0200
+Date: Sat, 20 Jan 2024 23:34:21 +0200
 Subject: [PATCH] create a single shared object
 
 ---
  Makefile         |  5 -----
- Makefile.install | 11 -----------
+ Makefile.install | 15 ---------------
  Makefile.system  |  3 +++
  exports/Makefile |  4 ++--
- 4 files changed, 5 insertions(+), 18 deletions(-)
+ 4 files changed, 5 insertions(+), 22 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 8621a8b3f..0febfd0a6 100644
@@ -33,10 +33,10 @@ index 8621a8b3f..0febfd0a6 100644
  ifeq ($(OSNAME), WINNT)
  	@$(MAKE) -C exports dll
 diff --git a/Makefile.install b/Makefile.install
-index 01899b970..7dee121c1 100644
+index 01899b970..105bc4271 100644
 --- a/Makefile.install
 +++ b/Makefile.install
-@@ -90,30 +90,22 @@ endif
+@@ -90,30 +90,20 @@ endif
  ifneq ($(NO_STATIC),1)
  	@echo Copying the static library to $(DESTDIR)$(OPENBLAS_LIBRARY_DIR)
  	@install -m644 $(LIBNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
@@ -55,29 +55,30 @@ index 01899b970..7dee121c1 100644
  
  ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD NetBSD))
  	@cp $(LIBSONAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
- 	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
+-	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
 -	ln -fs $(LIBSONAME) $(LIBPREFIX).so
  endif
  ifeq ($(OSNAME), Darwin)
  	@-cp $(LIBDYNNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
  	@-install_name_tool -id "$(OPENBLAS_LIBRARY_DIR)/$(LIBPREFIX).$(MAJOR_VERSION).dylib" "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)/$(LIBDYNNAME)"
- 	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
+-	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
 -	ln -fs $(LIBDYNNAME) $(LIBPREFIX).dylib ; \
 -	ln -fs $(LIBDYNNAME) $(LIBPREFIX).$(MAJOR_VERSION).dylib
  endif
  ifeq ($(OSNAME), WINNT)
  	@-cp $(LIBDLLNAME) "$(DESTDIR)$(OPENBLAS_BINARY_DIR)"
-@@ -141,15 +133,12 @@ ifneq ($(NO_STATIC),1)
+@@ -140,16 +130,11 @@ endif
+ ifneq ($(NO_STATIC),1)
  	@echo Copying the static library to $(DESTDIR)$(OPENBLAS_LIBRARY_DIR)
  	@installbsd -c -m 644 $(LIBNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
- 	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
+-	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
 -	ln -fs $(LIBNAME) $(LIBPREFIX).$(LIBSUFFIX)
  endif
  #for install shared library
  ifneq ($(NO_SHARED),1)
  	@echo Copying the shared library to $(DESTDIR)$(OPENBLAS_LIBRARY_DIR)
  	@installbsd -c -m 755 $(LIBSONAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
- 	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
+-	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
 -	ln -fs $(LIBSONAME) $(LIBPREFIX).so ; \
 -	ln -fs $(LIBSONAME) $(LIBPREFIX).so.$(MAJOR_VERSION)
  endif
