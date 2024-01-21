@@ -1,17 +1,17 @@
-From ebca632fd6a3b41643d2cd51da37c6c199e915be Mon Sep 17 00:00:00 2001
+From 80863b52c024ed2d5fda80546e7b6a0160531b9a Mon Sep 17 00:00:00 2001
 From: mattip <matti.picus@gmail.com>
-Date: Sat, 20 Jan 2024 23:34:21 +0200
+Date: Sun, 21 Jan 2024 08:35:54 +0200
 Subject: [PATCH] create a single shared object
 
 ---
- Makefile         |  5 -----
+ Makefile         | 10 ----------
  Makefile.install | 15 ---------------
  Makefile.system  |  3 +++
  exports/Makefile |  4 ++--
- 4 files changed, 5 insertions(+), 22 deletions(-)
+ 4 files changed, 5 insertions(+), 27 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 8621a8b3f..0febfd0a6 100644
+index 8621a8b3f..56a449306 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -134,17 +134,12 @@ shared : libs netlib $(RELA)
@@ -32,6 +32,44 @@ index 8621a8b3f..0febfd0a6 100644
  endif
  ifeq ($(OSNAME), WINNT)
  	@$(MAKE) -C exports dll
+@@ -213,13 +208,11 @@ endif
+ ifdef USE_THREAD
+ 	@echo USE_THREAD=$(USE_THREAD) >>  Makefile.conf_last
+ endif
+-	@-ln -fs $(LIBNAME) $(LIBPREFIX).$(LIBSUFFIX)
+ 	@touch lib.grd
+ 
+ prof : prof_blas prof_lapack
+ 
+ prof_blas :
+-	ln -fs $(LIBNAME_P) $(LIBPREFIX)_p.$(LIBSUFFIX)
+ 	for d in $(SUBDIRS) ; \
+ 	do if test -d $$d; then \
+ 	  $(MAKE) -C $$d prof || exit 1 ; \
+@@ -230,7 +223,6 @@ ifeq ($(DYNAMIC_ARCH), 1)
+ endif
+ 
+ blas :
+-	ln -fs $(LIBNAME) $(LIBPREFIX).$(LIBSUFFIX)
+ 	for d in $(BLASDIRS) ; \
+ 	do if test -d $$d; then \
+ 	  $(MAKE) -C $$d libs || exit 1 ; \
+@@ -238,7 +230,6 @@ blas :
+ 	done
+ 
+ hpl :
+-	ln -fs $(LIBNAME) $(LIBPREFIX).$(LIBSUFFIX)
+ 	for d in $(BLASDIRS) ../laswp exports ; \
+ 	do if test -d $$d; then \
+ 	  $(MAKE) -C $$d $(@F) || exit 1 ; \
+@@ -252,7 +243,6 @@ ifeq ($(DYNAMIC_ARCH), 1)
+ endif
+ 
+ hpl_p :
+-	ln -fs $(LIBNAME_P) $(LIBPREFIX)_p.$(LIBSUFFIX)
+ 	for d in $(SUBDIRS) ../laswp exports ; \
+ 	do if test -d $$d; then \
+ 	  $(MAKE) -C $$d $(@F) || exit 1 ; \
 diff --git a/Makefile.install b/Makefile.install
 index 01899b970..105bc4271 100644
 --- a/Makefile.install
