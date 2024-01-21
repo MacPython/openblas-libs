@@ -190,12 +190,14 @@ function do_build_lib {
         cp -f "OpenBLAS/${renamed_libname}" "$BUILD_PREFIX/lib/${static_libname}"
         # set +x
     fi
+    mv $BUILD_PREFIX/lib/pkgconfig/openblas*.pc $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
+
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
         $BUILD_PREFIX/lib/libscipy_openblas* \
-        $BUILD_PREFIX/lib/pkgconfig/openblas* \
+        $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
 
