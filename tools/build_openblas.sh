@@ -136,6 +136,11 @@ dlltool --input-def ${DLL_BASENAME}.def \
 # Replace the DLL name with the generated name.
 sed -i "s/ -lopenblas.*$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas*.pc
 mv pkgconfig/*.pc pkgconfig/scipy-openblas.pc
+if [ "$if_bits" == "64" ]; then
+    sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i pkgconfig/scipy-openblas.pc
+else
+    sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_/" -i pkgconfig/scipy-openblas.pc
+fi
 popd
 # Build template site.cfg for using this build
 cat > ${build_bits}/site.cfg.template << EOF
