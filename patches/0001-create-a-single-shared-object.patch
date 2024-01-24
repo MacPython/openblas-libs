@@ -1,4 +1,4 @@
-From e5f32d54b742caf4e59ef6e7ec0caa16b7f670d3 Mon Sep 17 00:00:00 2001
+From 258ad2ccebe93fa9c5ad74a17c603b3fb8925190 Mon Sep 17 00:00:00 2001
 From: mattip <matti.picus@gmail.com>
 Date: Sun, 21 Jan 2024 22:34:48 +0200
 Subject: [PATCH] create a single shared object
@@ -72,7 +72,7 @@ index 8621a8b3f..56a449306 100644
  	do if test -d $$d; then \
  	  $(MAKE) -C $$d $(@F) || exit 1 ; \
 diff --git a/Makefile.install b/Makefile.install
-index 01899b970..958fb9957 100644
+index 01899b970..cf3c8acce 100644
 --- a/Makefile.install
 +++ b/Makefile.install
 @@ -90,30 +90,20 @@ endif
@@ -127,7 +127,7 @@ index 01899b970..958fb9957 100644
  
  	@echo Generating $(LIBSONAMEBASE)$(SUFFIX64).pc in "$(DESTDIR)$(OPENBLAS_PKGCONFIG_DIR)"
  	@echo 'libdir='$(OPENBLAS_LIBRARY_DIR) > "$(PKGFILE)"
-+	@echo 'libprefix='$(SYBOLPREFIX) > "$(PKGFILE)"
++	@echo 'libprefix='$(SYMBOLPREFIX) >> "$(PKGFILE)"
  	@echo 'libsuffix='$(SYMBOLSUFFIX) >> "$(PKGFILE)"
  	@echo 'includedir='$(OPENBLAS_INCLUDE_DIR) >> "$(PKGFILE)"
  	@echo 'openblas_config= USE_64BITINT='$(INTERFACE64) 'DYNAMIC_ARCH='$(DYNAMIC_ARCH) 'DYNAMIC_OLDER='$(DYNAMIC_OLDER) 'NO_CBLAS='$(NO_CBLAS) 'NO_LAPACK='$(NO_LAPACK) 'NO_LAPACKE='$(NO_LAPACKE) 'NO_AFFINITY='$(NO_AFFINITY) 'USE_OPENMP='$(USE_OPENMP) $(CORE) 'MAX_THREADS='$(NUM_THREADS)>> "$(PKGFILE)"
