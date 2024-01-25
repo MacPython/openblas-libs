@@ -122,7 +122,7 @@ cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME
 
 cd $openblas_root
 # Copy library link file for custom name
-cd $build_bits/lib
+pushd $build_bits/lib
 cp ${our_wd}/OpenBLAS/exports/${DLL_BASENAME}.def ${DLL_BASENAME}.def
 # At least for the mingwpy wheel, we have to use the VC tools to build the
 # export library. Maybe fixed in later binutils by patch referred to in
@@ -135,7 +135,13 @@ dlltool --input-def ${DLL_BASENAME}.def \
     --output-lib ${DLL_BASENAME}.lib
 # Replace the DLL name with the generated name.
 sed -i "s/ -lopenblas.*$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas*.pc
-cd ../..
+mv pkgconfig/*.pc pkgconfig/scipy-openblas.pc
+if [ "$if_bits" == "64" ]; then
+    sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i pkgconfig/scipy-openblas.pc
+else
+    sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_/" -i pkgconfig/scipy-openblas.pc
+fi
+popd
 # Build template site.cfg for using this build
 cat > ${build_bits}/site.cfg.template << EOF
 [openblas${SYMBOLSUFFIX}]

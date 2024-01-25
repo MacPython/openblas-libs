@@ -93,8 +93,11 @@ function build_lib {
 
 function patch_source {
     # Runs inside OpenBLAS directory
-    # bash does not like an empty function, add a null statement
-    :
+    # Make the patches by git format-patch <old commit>
+    for f in $(ls ../patches); do
+        echo applying patch $f
+        git apply ../patches/$f
+    done 
 }
 
 function do_build_lib {
@@ -175,6 +178,7 @@ function do_build_lib {
     else
         local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
     fi
+    mv $BUILD_PREFIX/lib/pkgconfig/openblas*.pc $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     local plat_tag=$(get_plat_tag $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
@@ -183,16 +187,18 @@ function do_build_lib {
         # do it ourselves
         static_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a'`)
         renamed_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.renamed'`)
-        # set -x  # echo commands
         cp -f "OpenBLAS/${renamed_libname}" "$BUILD_PREFIX/lib/${static_libname}"
-        # set +x
+        sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
+    else
+        sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     fi
+
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
         $BUILD_PREFIX/lib/libscipy_openblas* \
-        $BUILD_PREFIX/lib/pkgconfig/openblas* \
+        $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
 

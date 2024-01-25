@@ -18,7 +18,7 @@ else
     
 fi
 export REPO_DIR=OpenBLAS
-export OPENBLAS_COMMIT="c2f4bdb"
+export OPENBLAS_COMMIT="v0.3.26"
 
 # export MB_ML_LIBC=musllinux
 # export MB_ML_VER=_1_1
