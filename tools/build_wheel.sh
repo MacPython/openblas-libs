@@ -22,6 +22,17 @@ tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas*.tar.gz
 # do not package the static libs and symlinks, only take the shared object
 find local/scipy_openblas64/lib -maxdepth 1 -type l -delete
 rm local/scipy_openblas64/lib/*.a
+# Check that the pyproject.toml and the pkgconfig versions agree.
+py_version=$(grep "^version" pyproject.toml | sed -e "s/version = \"//")
+pkg_version=$(grep "version=" ./local/scipy_openblas64/lib/pkgconfig/scipy-openblas*.pc | sed -e "s/version=//")
+if [[ -z "$pkg_version" ]]; then
+  echo Could not read version from pkgconfig file
+  exit 1
+fi
+if [[ $py_version != $pkg_version* ]]; then
+  echo Version from pyproject.toml "$py_version" does not match version from build "pkg_version"
+  exit 1
+fi
 # Do not package the pkgconfig stuff, use the wheel functionality instead
 rm -rf local/scipy_openblas64/lib/pkgconfig
 
