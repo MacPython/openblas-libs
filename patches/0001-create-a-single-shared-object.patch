@@ -33,10 +33,10 @@ index 8621a8b3f..56a449306 100644
  endif
  ifeq ($(OSNAME), WINNT)
  	@$(MAKE) -C exports dll
-@@ -213,13 +208,11 @@ endif
- ifdef USE_THREAD
- 	@echo USE_THREAD=$(USE_THREAD) >>  Makefile.conf_last
+@@ -229,13 +225,11 @@ endif
  endif
+ 	@echo THELIBNAME=$(LIBNAME) >>  Makefile.conf_last
+ 	@echo THELIBSONAME=$(LIBSONAME) >>  Makefile.conf_last
 -	@-ln -fs $(LIBNAME) $(LIBPREFIX).$(LIBSUFFIX)
  	@touch lib.grd
  
