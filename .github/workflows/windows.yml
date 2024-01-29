@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
     - name: install-rtools
       run: |
         # rtools 42+ does not support 32 bits builds.
@@ -74,9 +74,9 @@ jobs:
         cp for_test\test*.exe builds
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.9
         architecture: ${{ matrix.plat }}
 
 
@@ -119,17 +119,17 @@ jobs:
         for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
 
     - name: Set up different Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.11
         architecture: ${{ matrix.plat }}
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4.3.0
       with:
         name: openblas
         path: builds/openblas*.zip
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4.3.0
       with:
         name: wheels
         path: dist/scipy_openblas*.whl
@@ -148,7 +148,7 @@ jobs:
         python -m pip install --no-index --find-links dist scipy_openblas32
         python -m scipy_openblas32
 
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3.0.1
       with:
         activate-environment: upload
 
