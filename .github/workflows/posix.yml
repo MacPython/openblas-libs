@@ -22,6 +22,7 @@ jobs:
         PLAT: [i686, x86_64]
         INTERFACE64: ['0', '1']
         MB_ML_VER: ['2014']
+        MB_ML_LIBC: ['manylinux']
         include:
           - os: macos-11
             PLAT: arm64
@@ -58,14 +59,14 @@ jobs:
       PLAT: ${{ matrix.PLAT }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.1
       with:
         submodules: recursive
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.9
     - name: Set extra env
       run: |
         # if [ "macos-11" == "${{ matrix.os }}" ]; then
@@ -124,17 +125,17 @@ jobs:
             /bin/bash -xe /openblas/tools/build_wheel.sh
         fi
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4.3.0
       with:
-        name: openblas
+        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
         path: libs/openblas*.tar.gz
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4.3.0
       with:
-        name: wheels
+        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
         path: dist/scipy_openblas*.whl
 
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3.0.1
       with:
         activate-environment: upload
 

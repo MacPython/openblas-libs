@@ -1,18 +1,18 @@
-From 258ad2ccebe93fa9c5ad74a17c603b3fb8925190 Mon Sep 17 00:00:00 2001
+From 04b50aef6bca52238afeb627e51a855f9172eea4 Mon Sep 17 00:00:00 2001
 From: mattip <matti.picus@gmail.com>
 Date: Sun, 21 Jan 2024 22:34:48 +0200
 Subject: [PATCH] create a single shared object
 
 ---
  Makefile         | 10 ----------
- Makefile.install | 16 +---------------
+ Makefile.install | 18 ++----------------
  Makefile.system  |  3 +++
  exports/Makefile |  4 ++--
  openblas.pc.in   |  2 +-
- 5 files changed, 7 insertions(+), 28 deletions(-)
+ 5 files changed, 8 insertions(+), 29 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 8621a8b3f..56a449306 100644
+index b344abcd2..ae989ac26 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -134,17 +134,12 @@ shared : libs netlib $(RELA)
@@ -33,7 +33,7 @@ index 8621a8b3f..56a449306 100644
  endif
  ifeq ($(OSNAME), WINNT)
  	@$(MAKE) -C exports dll
-@@ -229,13 +225,11 @@ endif
+@@ -229,13 +224,11 @@ ifeq ($(INTERFACE64),1)
  endif
  	@echo THELIBNAME=$(LIBNAME) >>  Makefile.conf_last
  	@echo THELIBSONAME=$(LIBSONAME) >>  Makefile.conf_last
@@ -47,7 +47,7 @@ index 8621a8b3f..56a449306 100644
  	for d in $(SUBDIRS) ; \
  	do if test -d $$d; then \
  	  $(MAKE) -C $$d prof || exit 1 ; \
-@@ -230,7 +223,6 @@ ifeq ($(DYNAMIC_ARCH), 1)
+@@ -246,7 +239,6 @@ ifeq ($(DYNAMIC_ARCH), 1)
  endif
  
  blas :
@@ -55,7 +55,7 @@ index 8621a8b3f..56a449306 100644
  	for d in $(BLASDIRS) ; \
  	do if test -d $$d; then \
  	  $(MAKE) -C $$d libs || exit 1 ; \
-@@ -238,7 +230,6 @@ blas :
+@@ -254,7 +246,6 @@ blas :
  	done
  
  hpl :
@@ -63,7 +63,7 @@ index 8621a8b3f..56a449306 100644
  	for d in $(BLASDIRS) ../laswp exports ; \
  	do if test -d $$d; then \
  	  $(MAKE) -C $$d $(@F) || exit 1 ; \
-@@ -252,7 +243,6 @@ ifeq ($(DYNAMIC_ARCH), 1)
+@@ -268,7 +259,6 @@ ifeq ($(DYNAMIC_ARCH), 1)
  endif
  
  hpl_p :
@@ -72,10 +72,10 @@ index 8621a8b3f..56a449306 100644
  	do if test -d $$d; then \
  	  $(MAKE) -C $$d $(@F) || exit 1 ; \
 diff --git a/Makefile.install b/Makefile.install
-index 01899b970..cf3c8acce 100644
+index 81f959177..e5c7ef5be 100644
 --- a/Makefile.install
 +++ b/Makefile.install
-@@ -90,30 +90,20 @@ endif
+@@ -98,30 +98,20 @@ endif
  ifneq ($(NO_STATIC),1)
  	@echo Copying the static library to $(DESTDIR)$(OPENBLAS_LIBRARY_DIR)
  	@install -m644 $(LIBNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
@@ -99,14 +99,15 @@ index 01899b970..cf3c8acce 100644
  endif
  ifeq ($(OSNAME), Darwin)
  	@-cp $(LIBDYNNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
- 	@-install_name_tool -id "$(OPENBLAS_LIBRARY_DIR)/$(LIBPREFIX).$(MAJOR_VERSION).dylib" "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)/$(LIBDYNNAME)"
+-	@-install_name_tool -id "$(OPENBLAS_LIBRARY_DIR)/$(LIBPREFIX).$(MAJOR_VERSION).dylib" "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)/$(LIBDYNNAME)"
 -	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
 -	ln -fs $(LIBDYNNAME) $(LIBPREFIX).dylib ; \
 -	ln -fs $(LIBDYNNAME) $(LIBPREFIX).$(MAJOR_VERSION).dylib
++	@-install_name_tool -id "$(OPENBLAS_LIBRARY_DIR)/$(LIBPREFIX).dylib" "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)/$(LIBDYNNAME)"
  endif
  ifeq ($(OSNAME), WINNT)
  	@-cp $(LIBDLLNAME) "$(DESTDIR)$(OPENBLAS_BINARY_DIR)"
-@@ -140,16 +130,11 @@ endif
+@@ -148,16 +138,11 @@ endif
  ifneq ($(NO_STATIC),1)
  	@echo Copying the static library to $(DESTDIR)$(OPENBLAS_LIBRARY_DIR)
  	@installbsd -c -m 644 $(LIBNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
@@ -123,7 +124,7 @@ index 01899b970..cf3c8acce 100644
  endif
  
  endif
-@@ -162,6 +147,7 @@ endif
+@@ -170,6 +155,7 @@ endif
  
  	@echo Generating $(LIBSONAMEBASE)$(SUFFIX64).pc in "$(DESTDIR)$(OPENBLAS_PKGCONFIG_DIR)"
  	@echo 'libdir='$(OPENBLAS_LIBRARY_DIR) > "$(PKGFILE)"
@@ -132,10 +133,10 @@ index 01899b970..cf3c8acce 100644
  	@echo 'includedir='$(OPENBLAS_INCLUDE_DIR) >> "$(PKGFILE)"
  	@echo 'openblas_config= USE_64BITINT='$(INTERFACE64) 'DYNAMIC_ARCH='$(DYNAMIC_ARCH) 'DYNAMIC_OLDER='$(DYNAMIC_OLDER) 'NO_CBLAS='$(NO_CBLAS) 'NO_LAPACK='$(NO_LAPACK) 'NO_LAPACKE='$(NO_LAPACKE) 'NO_AFFINITY='$(NO_AFFINITY) 'USE_OPENMP='$(USE_OPENMP) $(CORE) 'MAX_THREADS='$(NUM_THREADS)>> "$(PKGFILE)"
 diff --git a/Makefile.system b/Makefile.system
-index 30b0ddec2..b2c92b99a 100644
+index e602eaf05..b4f7c70b6 100644
 --- a/Makefile.system
 +++ b/Makefile.system
-@@ -1695,6 +1695,9 @@ LIBNAME_P	= $(LIBPREFIX)p$(REVISION)_p.$(LIBSUFFIX)
+@@ -1699,6 +1699,9 @@ LIBNAME_P	= $(LIBPREFIX)p$(REVISION)_p.$(LIBSUFFIX)
  endif
  endif
  
