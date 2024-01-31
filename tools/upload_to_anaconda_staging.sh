@@ -13,6 +13,14 @@ upload_wheels() {
     VERSION=$(git describe --tags --abbrev=8)
     popd
 
+    if [ "$OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN" != ""]; then
+        echo "Uploading OpenBLAS $VERSION to anaconda.org/multibuild-wheels-staging"
+
+        anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
+                --no-progress --force -u multibuild-wheels-staging \
+                dist/scipy_openblas*.whl
+
+    fi
     if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
         echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping."
     else
