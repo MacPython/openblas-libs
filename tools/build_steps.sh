@@ -191,6 +191,7 @@ function do_build_lib {
         sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     else
         sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
+    rm $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc.bak
     fi
 
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"

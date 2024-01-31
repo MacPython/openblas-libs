@@ -127,13 +127,13 @@ jobs:
 
     - uses: actions/upload-artifact@v4.3.0
       with:
-        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
-        path: libs/openblas*.tar.gz
+        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
+        path: dist/scipy_openblas*.whl
 
     - uses: actions/upload-artifact@v4.3.0
       with:
-        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
-        path: dist/scipy_openblas*.whl
+        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
+        path: libs/openblas*.tar.gz
 
     - uses: conda-incubator/setup-miniconda@v3.0.1
       with:
