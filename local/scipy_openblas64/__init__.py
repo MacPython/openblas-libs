@@ -53,15 +53,23 @@ def get_library():
         # remove the leading lib from libscipy_openblas*
         return os.path.splitext(libs[0])[0][3:]
 
-def get_pkg_config():
+def get_pkg_config(use_preloading=False):
     """Return a multi-line string that, when saved to a file, can be used with
     pkg-config for build systems like meson
+
+    If use_preloading is True then on posix the ``Libs:`` directive will not add
+    ``f"-L{get_library()}" so that at runtime this module must be imported before
+    the target module
     """
     if sys.platform == "win32":
         extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
+        libs_flags = f"-L${{libdir}} -l{get_library()}"
     else:
         extralib = f"-lm -lpthread -lgfortran -lquadmath -L${{libdir}} -l{get_library()}"
-    libs_flags = f"-L${{libdir}} -l{get_library()}"
+        if use_preloading:
+            libs_flags = ""
+        else:
+            libs_flags = f"-L${{libdir}} -l{get_library()}"
     cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64 -DOPENBLAS_ILP64_NAMING_SCHEME"
     return dedent(f"""\
         libdir={get_lib_dir()}
@@ -111,7 +119,7 @@ def get_openblas_config():
         else:
             # Get openblas*
             libnames = [x for x in os.listdir(lib_dir) if x.startswith("libscipy")]
-        
+
         dll = ctypes.CDLL(os.path.join(lib_dir, libnames[0]), ctypes.RTLD_GLOBAL)
     openblas_config = dll.scipy_openblas_get_config64_
     openblas_config.restype = ctypes.c_char_p
