@@ -7,8 +7,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "scipy_openblas64"
-version = "0.3.26.0.2"
+name = "scipy-openblas64"
+version = "0.3.26.0.3"
 requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
 readme = "README.md"
@@ -21,6 +21,7 @@ classifiers = [
 # ]
 # maintainers = [
 # ]
+license = {file = "LICENSE.txt"}
 
 [project.urls]
 homepage = "https://github.com/MacPython/openblas-libs"

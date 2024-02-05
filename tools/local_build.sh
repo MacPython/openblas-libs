@@ -1,21 +1,27 @@
 # Replicate the workflow from posix.yml locally on posix
 # This may bitrot, compare it to the original file before using
 
+set -e
 
 # Set extra env
-if [ "uname -m" == "x86_64" ]; then
+if [[ $(uname -m) == "x86_64" ]]; then
+    echo got x86_64
     export TRAVIS_OS_NAME=ubuntu-latest
     export PLAT=x86_64
     # export PLAT=i86
     DOCKER_TEST_IMAGE=multibuild/xenial_${PLAT}
+elif [[ $(uname -m) == arm64 ]]; then
+    echo got arm64
+    exit -1
 else
+    echo got nothing
+    exit -1
     export TRAVIS_OS_NAME=osx
     export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib"
     export LIBRARY_PATH="-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib"
     export PLAT=x86_64
     # export PLAT=arm64
     export SUFFIX=gf_c469a42
-    
 fi
 export REPO_DIR=OpenBLAS
 export OPENBLAS_COMMIT="v0.3.26"
@@ -32,6 +38,9 @@ function install_virtualenv {
 }
 
 function build_openblas {
+    if [[ -z VIRTUAL_ENV ]]; then
+        echo "must be run in a virtualenv"
+    fi
     # Build OpenBLAS
     set -xeo pipefail
     if [ "$PLAT" == "arm64" ]; then
@@ -56,4 +65,4 @@ function build_openblas {
 }
 
 # install_virtualenv
-# build_openblas
+build_openblas
