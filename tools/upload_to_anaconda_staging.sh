@@ -13,12 +13,14 @@ upload_wheels() {
     VERSION=$(git describe --tags --abbrev=8)
     popd
 
+    # if only rename was built-in to bash...
+    for f in dist/*.whl; do cp $f "${f/scipy_openblas/scipy-openblas}"; done
     if [ "$OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN" != "" ]; then
         echo "Uploading OpenBLAS $VERSION to anaconda.org/multibuild-wheels-staging"
 
         anaconda -t $OPENBLAS_LIBS_STAGING_UPLOAD_TOKEN upload \
                 --no-progress --force -u multibuild-wheels-staging \
-                dist/scipy_openblas*.whl
+                dist/scipy-openblas*.whl
 
     fi
     if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
@@ -28,7 +30,7 @@ upload_wheels() {
 
         anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
                 --no-progress --force -u scientific-python-nightly-wheels \
-                dist/scipy_openblas*.whl
+                dist/scipy-openblas*.whl
 
         tarballs=$(ls -d builds/openblas*.zip libs/openblas*.tar.gz 2>/dev/null)
         anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \

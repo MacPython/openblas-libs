@@ -10,7 +10,7 @@ if [ "$?" != "0" ]; then
     # inside docker
     cd /openblas
 fi
-PYTHON=python3.9
+PYTHON=${PYTHON:-python3.9}
 
 mkdir -p local/openblas
 mkdir -p dist

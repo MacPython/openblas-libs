@@ -104,7 +104,7 @@ jobs:
         fi
         if [[ "${INTERFACE64}" != "1" ]]; then
             mv local/scipy_openblas64 local/scipy_openblas32
-            # rewrite the name of the project to scipy_openblas32
+            # rewrite the name of the project to scipy-openblas32
             # this is a hack, but apparently there is no other way to change the name
             # of a pyproject.toml project
             sed -e "s/openblas64/openblas32/" -i pyproject.toml
