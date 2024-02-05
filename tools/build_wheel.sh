@@ -14,7 +14,7 @@ PYTHON=${PYTHON:-python3.9}
 
 mkdir -p local/openblas
 mkdir -p dist
-$PYTHON -m pip install wheel auditwheel
+$PYTHON -m pip install wheel
 
 # This will fail if there is more than one file in libs
 tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas*.tar.gz
@@ -71,22 +71,15 @@ if [ $(uname) == "Darwin" ]; then
     fi
     delocate-wheel -v dist/*.whl
 else
+    $PYTHON -m pip install "auditwheel>=6"
     auditwheel repair -w dist --lib-sdir /lib dist/*.whl
     rm dist/scipy_openblas*-none-any.whl
-    # Add an RPATH to libgfortran:
-    # https://github.com/pypa/auditwheel/issues/451
-    if [ "$MB_ML_LIBC" == "musllinux" ]; then
-      apk add zip
-    else
-      yum install -y zip
-    fi
-    unzip dist/*.whl "*libgfortran*"
-    patchelf --force-rpath --set-rpath '$ORIGIN' */lib/libgfortran*
-    zip dist/*.whl */lib/libgfortran*
+    # prepare for changing the wheel name before the upload to anaconda
+    chmod a+w dist
 fi
 
 if [ "${PLAT}" == "arm64" ]; then
-    # Cannot test
+    # Cannot test cross-platform
     exit 0
 fi
 # Test that the wheel works with a different python
