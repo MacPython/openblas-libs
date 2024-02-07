@@ -123,6 +123,7 @@ jobs:
             -e MB_ML_LIBC="${MB_ML_LIBC}" \
             -v $(pwd):/openblas $docker_image \
             /bin/bash -xe /openblas/tools/build_wheel.sh
+          sudo chmod -R a+w dist
         fi
 
     - uses: actions/upload-artifact@v4.3.0

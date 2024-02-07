@@ -90,5 +90,6 @@ after_success:
     - sudo chmod -R a+w /home/travis/.cache
     - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.8.0
     # Upload libraries to the shared staging area on anaconda.org
+    - sudo chmod -R a+w dist
     - source tools/upload_to_anaconda_staging.sh
     - upload_wheels
