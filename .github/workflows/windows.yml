@@ -55,6 +55,13 @@ jobs:
         if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
           echo "INTERFACE64=1" >> $env:GITHUB_ENV
         }
+        $CIBW = "${{ github.workspace }}/.openblas"
+        $CIBW = $CIBW.replace("\","/")
+        echo "CIBW_ENVIRONMENT_WINDOWS=PKG_CONFIG_PATH=$CIBW" >> $env:GITHUB_ENV
+
+    - name: Debug
+      run: |
+        echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
       run: |
@@ -113,6 +120,9 @@ jobs:
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
         fi
+        echo "" >> LICENSE.txt
+        echo "----" >> LICENSE.txt
+        echo "" >> LICENSE.txt
         cat tools/LICENSE_win32.txt >> LICENSE.txt
         python -m pip wheel -w dist -vv .
         # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
@@ -136,17 +146,17 @@ jobs:
 
     - name: Test 64-bit interface wheel
       if: matrix.INTERFACE64 == '1'
-      shell: bash
       run: |
         python -m pip install --no-index --find-links dist scipy_openblas64
         python -m scipy_openblas64
+        python -c "import scipy_openblas64; print(scipy_openblas64.get_pkg_config())"
 
     - name: Test 32-bit interface wheel
       if: matrix.INTERFACE64 != '1'
-      shell: bash
       run: |
         python -m pip install --no-index --find-links dist scipy_openblas32
         python -m scipy_openblas32
+        python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
 
     - uses: conda-incubator/setup-miniconda@v3.0.1
       with:

@@ -84,7 +84,7 @@ def get_pkg_config(use_preloading=False):
         Libs: {libs_flags}
         Libs.private: ${{extralib}}
         Cflags: -I${{includedir}} {cflags}
-        """)
+        """).replace("\\", "/")
 
 
 if sys.platform == "win32":
