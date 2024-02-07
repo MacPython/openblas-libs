@@ -33,9 +33,11 @@ if [[ $py_version != $pkg_version* ]]; then
   echo Version from pyproject.toml "$py_version" does not match version from build "pkg_version"
   exit 1
 fi
-# Do not package the pkgconfig stuff, use the wheel functionality instead
-rm -rf local/scipy_openblas64/lib/pkgconfig
 
+rm -rf local/scipy_openblas64/lib/pkgconfig
+echo "" >> LICENSE.txt
+echo "----" >> LICENSE.txt
+echo "" >> LICENSE.txt
 if [ $(uname) == "Darwin" ]; then
     cat tools/LICENSE_osx.txt >> LICENSE.txt
 else
@@ -43,7 +45,7 @@ else
 fi
 
 if [ "${INTERFACE64}" != "1" ]; then
-    # rewrite the name of the project to scipy_openblas32
+    # rewrite the name of the project to scipy-openblas32
     # this is a hack, but apparently there is no other way to change the name
     # of a pyproject.toml project
     #
