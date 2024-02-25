@@ -149,17 +149,18 @@ function do_build_lib {
     esac
     case $interface64 in
         1)
-            local interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ SYMBOLPREFIX=scipy_ OBJCONV=$PWD/objconv/objconv";
+            local interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
             local symbolsuffix="64_";
             if [ -n "$IS_OSX" ]; then
                 $PWD/objconv/objconv --help
             fi
             ;;
         *)
-            local interface_flags="SYMBOLPREFIX=scipy_ OBJCONV=$PWD/objconv/objconv"
+            local interface_flags="OBJCONV=$PWD/objconv/objconv"
             local symbolsuffix="";
             ;;
     esac
+    interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
     mkdir -p libs
     start_spinner
     set -x
