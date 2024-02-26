@@ -83,14 +83,15 @@ if [ "$if_bits" == "64" ]; then
 else
     interface_flags=""
 fi
-interface_flags="$interface_flags SYMBOLPREFIX=scipy_"
+# On windows, the LIBNAMEPREFIX is not needed, SYMBOLPREFIX is added to the lib
+# name LIBPREFIX in Makefile.system.
+interface_flags="$interface_flags SYMBOLPREFIX=scipy_ FIXED_LIBNAME=1"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 # Build OpenBLAS
 # Variable used in creating output libraries
-export LIBNAMESUFFIX=${OPENBLAS_VERSION}-${GCC_TAG}
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
      BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20\
@@ -100,7 +101,7 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      MAX_STACK_ALLOC=2048 \
      $interface_flags
 make PREFIX=$openblas_root/$build_bits $interface_flags install
-DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
+DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}${LIBNAMESUFFIX}
 
 # OpenBLAS does not build a symbol-suffixed static library on Windows:
 # do it ourselves. On 32-bit builds, the objcopy.def names need a '_' prefix
