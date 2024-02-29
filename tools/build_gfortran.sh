@@ -11,7 +11,7 @@ OBP=$(cygpath $OPENBLAS_ROOT\\$BUILD_BITS)
 
 static_libname=$(find $OBP/lib -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
 dynamic_libname=$(find $OBP/lib -maxdepth 1 -type f -name '*.dll.a' | tail -1)
-dll_name=$OBP/bin/libscipy_openblas.dll
+dll_name=$(find $OBP/bin -maxdepth 1 -type f -name '*.dll' | tail -1)
 
 grep dpotrf $OBP/include/*
 nm $static_libname | grep dpotrf
