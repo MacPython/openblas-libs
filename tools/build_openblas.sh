@@ -77,7 +77,7 @@ fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
     SYMBOLSUFFIX="64_"
-    interface_flags="INTERFACE64=1 SYMBOLSUFFIX=${SYMBOLSUFFIX}"
+    interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_"
     # We override FCOMMON_OPT, so we need to set default integer manually
     fflags="$fflags -fdefault-integer-8"
 else
@@ -85,7 +85,7 @@ else
 fi
 # On windows, the LIBNAMEPREFIX is not needed, SYMBOLPREFIX is added to the lib
 # name LIBPREFIX in Makefile.system.
-interface_flags="$interface_flags SYMBOLPREFIX=scipy_ FIXED_LIBNAME=1"
+interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
