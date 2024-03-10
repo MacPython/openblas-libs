@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch: null
-  schedule:
-    - cron: '0 0 * * 0'
 
 jobs:
   build:
@@ -47,8 +45,7 @@ jobs:
             INTERFACE64: '1'
     env:
       REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: "5fbe25954b"
-      NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+      OPENBLAS_COMMIT: "v0.3.26"
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
@@ -95,41 +92,11 @@ jobs:
         source tools/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
-        if [[ "$NIGHTLY" = "true" ]]; then
-          echo "------ CLEAN CODE --------"
-          clean_code $REPO_DIR develop
-          echo "------ BUILD LIB --------"
-          build_lib "$PLAT" "$INTERFACE64" "1"
-        else
-          echo "------ CLEAN CODE --------"
-          clean_code $REPO_DIR $OPENBLAS_COMMIT
-          echo "------ BUILD LIB --------"
-          build_lib "$PLAT" "$INTERFACE64" "0"
+        echo "------ CLEAN CODE --------"
+        clean_code $REPO_DIR $OPENBLAS_COMMIT
+        echo "------ BUILD LIB --------"
+        build_lib "$PLAT" "$INTERFACE64" "0"
         fi
-
-    - name: Build and test wheel
-      run: |
-        if [[ "$NIGHTLY" = "true" ]]; then
-          # Set the pyproject.toml version: convert v0.3.24-30-g138ed79f to 0.3.34.30
-          version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
-          sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
-        fi
-        if [ "macos-11" == "${{ matrix.os }}" ]; then
-          source tools/build_wheel.sh
-        else
-          libc=${MB_ML_LIBC:-manylinux}
-          docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
-          docker run --rm -e INTERFACE64="${INTERFACE64}" \
-            -e MB_ML_LIBC="${MB_ML_LIBC}" \
-            -v $(pwd):/openblas $docker_image \
-            /bin/bash -xe /openblas/tools/build_wheel.sh
-          sudo chmod -R a+w dist
-        fi
-
-    - uses: actions/upload-artifact@v4.3.0
-      with:
-        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
-        path: dist/scipy_openblas*.whl
 
     - uses: actions/upload-artifact@v4.3.0
       with:
@@ -145,7 +112,7 @@ jobs:
       # `-el {0}` is required.
       shell: bash -el {0}
       env:
-       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+       MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
       run: |
         # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
         conda install -y anaconda-client 'urllib3<2.0.0'

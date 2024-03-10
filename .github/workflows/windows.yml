@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  OPENBLAS_COMMIT: "5fbe25954b"
+  OPENBLAS_COMMIT: "v0.3.26"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
@@ -81,83 +81,10 @@ jobs:
       run: |
         cp for_test\test*.exe builds
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
-        architecture: ${{ matrix.plat }}
-
-
-    - name: Build wheel
-      shell: bash
-      run: |
-        set -xeo pipefail
-        python -m pip install wheel
-        # This will fail if there is more than one file in libs
-        unzip -d local/scipy_openblas64 builds/openblas*.zip
-        if [[ -d local/scipy_openblas64/64 ]]; then
-            mv local/scipy_openblas64/64/* local/scipy_openblas64
-        else
-            mv local/scipy_openblas64/32/* local/scipy_openblas64
-        fi
-        mv local/scipy_openblas64/bin/*.dll local/scipy_openblas64/lib
-        rm local/scipy_openblas64/lib/*.a
-        rm -f local/scipy_openblas64/lib/*.exp  # may not exist?
-        rm local/scipy_openblas64/lib/*.def
-        rm -rf local/scipy_openblas64/lib/pkgconfig
-        if [[ -d local/scipy_openblas64/64 ]]; then
-            rm -rf local/scipy_openblas64/64
-        else
-            rm -rf local/scipy_openblas64/32
-        fi
-        if [[ "${INTERFACE64}" != "1" ]]; then
-            mv local/scipy_openblas64 local/scipy_openblas32
-            # rewrite the name of the project to scipy-openblas32
-            # this is a hack, but apparently there is no other way to change the name
-            # of a pyproject.toml project
-            sed -e "s/openblas64/openblas32/" -i pyproject.toml
-            sed -e "s/openblas_get_config64_/openblas_get_config/" -i local/scipy_openblas32/__init__.py
-            sed -e "s/cflags =.*/cflags = '-DBLAS_SYMBOL_PREFIX=scipy_'/" -i local/scipy_openblas32/__init__.py
-            sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__init__.py
-            sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
-        fi
-        echo "" >> LICENSE.txt
-        echo "----" >> LICENSE.txt
-        echo "" >> LICENSE.txt
-        cat tools/LICENSE_win32.txt >> LICENSE.txt
-        python -m pip wheel -w dist -vv .
-        # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
-        for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
-
-    - name: Set up different Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-        architecture: ${{ matrix.plat }}
-
-    - uses: actions/upload-artifact@v4.3.0
-      with:
-        name: wheels-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
-        path: dist/scipy_openblas*.whl
-
     - uses: actions/upload-artifact@v4.3.0
       with:
         name: openblas-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
         path: builds/openblas*.zip
-
-    - name: Test 64-bit interface wheel
-      if: matrix.INTERFACE64 == '1'
-      run: |
-        python -m pip install --no-index --find-links dist scipy_openblas64
-        python -m scipy_openblas64
-        python -c "import scipy_openblas64; print(scipy_openblas64.get_pkg_config())"
-
-    - name: Test 32-bit interface wheel
-      if: matrix.INTERFACE64 != '1'
-      run: |
-        python -m pip install --no-index --find-links dist scipy_openblas32
-        python -m scipy_openblas32
-        python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
 
     - uses: conda-incubator/setup-miniconda@v3.0.1
       with:
@@ -168,7 +95,7 @@ jobs:
       # `-el {0}` is required.
       shell: bash -el {0}
       env:
-       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+       MULTIBUILD_WHEELS_STAGING_ACCESS: ${{ secrets.MULTIBUILD_WHEELS_STAGING_ACCESS }}
       run: |
         # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
         conda install -y anaconda-client 'urllib3<2.0.0'

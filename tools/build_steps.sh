@@ -149,29 +149,25 @@ function do_build_lib {
     esac
     case $interface64 in
         1)
-            local interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
+            local interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
             local symbolsuffix="64_";
             if [ -n "$IS_OSX" ]; then
                 $PWD/objconv/objconv --help
             fi
             ;;
         *)
-            local interface_flags="OBJCONV=$PWD/objconv/objconv"
+            local interface64_flags=""
             local symbolsuffix="";
             ;;
     esac
-    interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
     mkdir -p libs
     start_spinner
     set -x
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-        USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags > /dev/null
-    make PREFIX=$BUILD_PREFIX $interface_flags install
+    CFLAGS="$CFLAGS -fvisibility=protected" make BUFFERSIZE=20 DYNAMIC_ARCH=1 USE_OPENMP=0 NUM_THREADS=64 BINARY=$bitness $interface64_flags $target_flags > /dev/null
+    make PREFIX=$BUILD_PREFIX $interface64_flags install
     popd
     stop_spinner
     if [ "$nightly" = "1" ]; then
@@ -179,7 +175,6 @@ function do_build_lib {
     else
         local version=$(cd OpenBLAS && git describe --tags --abbrev=8)
     fi
-    mv $BUILD_PREFIX/lib/pkgconfig/openblas*.pc $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     local plat_tag=$(get_plat_tag $plat)
     local suff=""
     [ -n "$suffix" ] && suff="-$suffix"
@@ -189,18 +184,13 @@ function do_build_lib {
         static_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a'`)
         renamed_libname=$(basename `find OpenBLAS -maxdepth 1 -type f -name '*.renamed'`)
         cp -f "OpenBLAS/${renamed_libname}" "$BUILD_PREFIX/lib/${static_libname}"
-        sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
-    else
-        sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
-    rm $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc.bak
     fi
-
     local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
-        $BUILD_PREFIX/lib/libscipy_openblas* \
-        $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
+        $BUILD_PREFIX/lib/libopenblas* \
+        $BUILD_PREFIX/lib/pkgconfig/openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
 
