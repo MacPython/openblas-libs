@@ -21,7 +21,7 @@ upload_wheels() {
             -t file -p "openblas-libs" -v "$VERSION" \
             -d "OpenBLAS for multibuild wheels" \
             -s "OpenBLAS for multibuild wheels" \
-            builds/openblas*
+            libs/openblas*
 
     fi
 }

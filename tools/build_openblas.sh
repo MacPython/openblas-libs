@@ -40,7 +40,7 @@ echo "Using gcc at $(which gcc), --version:"
 gcc --version
 
 # Make output directory for build artifacts
-builds_dir="$our_wd/builds"
+builds_dir="$our_wd/libs"
 rm -rf $builds_dir
 mkdir $builds_dir
 
