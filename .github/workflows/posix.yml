@@ -96,7 +96,6 @@ jobs:
         clean_code $REPO_DIR $OPENBLAS_COMMIT
         echo "------ BUILD LIB --------"
         build_lib "$PLAT" "$INTERFACE64" "0"
-        fi
 
     - uses: actions/upload-artifact@v4.3.0
       with:
