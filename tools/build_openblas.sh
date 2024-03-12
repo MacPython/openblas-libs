@@ -75,21 +75,22 @@ cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
 
 # Set suffixed-ILP64 flags
+OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 if [ "$if_bits" == "64" ]; then
     SYMBOLSUFFIX="64_"
     interface64_flags="INTERFACE64=1 SYMBOLSUFFIX=${SYMBOLSUFFIX}"
     # We override FCOMMON_OPT, so we need to set default integer manually
     fflags="$fflags -fdefault-integer-8"
+    # Variable used in creating output libraries
+    export LIBNAMESUFFIX=${OPENBLAS_VERSION}-${GCC_TAG}
 else
     interface64_flags=""
+    export LIBNAMESUFFIX=_${OPENBLAS_VERSION}-${GCC_TAG}
 fi
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
-OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 # Build OpenBLAS
-# Variable used in creating output libraries
-export LIBNAMESUFFIX=${OPENBLAS_VERSION}-${GCC_TAG}
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
      BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20\
@@ -99,7 +100,7 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      MAX_STACK_ALLOC=2048 \
      $interface64_flags
 make PREFIX=$openblas_root/$build_bits $interface64_flags install
-DLL_BASENAME=libopenblas${SYMBOLSUFFIX}_${LIBNAMESUFFIX}
+DLL_BASENAME=libopenblas${SYMBOLSUFFIX}${LIBNAMESUFFIX}
 if [ "$if_bits" == "64" ]; then
     # OpenBLAS does not build a symbol-suffixed static library on Windows:
     # do it ourselves
