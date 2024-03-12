@@ -114,6 +114,8 @@ fi
 cd $openblas_root
 # Copy library link file for custom name
 cd $build_bits/lib
+echo ${DLL_BASENAME}
+ls ${our_wd}/OpenBLAS/exports/*.def
 cp ${our_wd}/OpenBLAS/exports/${DLL_BASENAME}.def ${DLL_BASENAME}.def
 # At least for the mingwpy wheel, we have to use the VC tools to build the
 # export library. Maybe fixed in later binutils by patch referred to in
