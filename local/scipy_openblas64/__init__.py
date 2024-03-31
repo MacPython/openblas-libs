@@ -71,6 +71,10 @@ def get_pkg_config(use_preloading=False):
         else:
             libs_flags = f"-L${{libdir}} -l{get_library()}"
     cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64 -DOPENBLAS_ILP64_NAMING_SCHEME"
+    # attempt to deal with:
+    # https://github.com/scipy/scipy/pull/20362#issuecomment-2028517797
+    libs_flags = libs_flags.replace("$(libprefix}", "")
+    libs_flags = libs_flags.replace("libnamesuffix", "libsuffix")
     return dedent(f"""\
         libdir={get_lib_dir()}
         includedir={get_include_dir()}
