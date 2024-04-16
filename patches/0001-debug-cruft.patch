@@ -15,7 +15,7 @@ index 27a291f34..8bdcc7494 100644
  	$(OBJCONV) @objconv.def ../$(LIBNAME) ../$(LIBNAME).osx.renamed
  $(LIBDYNNAME) : ../$(LIBNAME).osx.renamed osx.def
  endif
-+	echo INTERNALNAME=$(INTERNAMNAME)
++	echo INTERNALNAME=$(INTERNALNAME)
 +	echo LIBPREFIX=$(LIBPREFIX)
 +	echo LIBNAMESUFFIX=$(LIBNAMESUFFIX)
 +	echo FIXED_LIBNAME=$(FIXED_LIBNAME)
