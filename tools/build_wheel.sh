@@ -36,6 +36,9 @@ fi
 
 if [ $(uname) == "Darwin" ]; then
   soname=$(cd local/scipy_openblas64/lib; ls libscipy_openblas*.dylib)
+  echo otool -D local/scipy_openblas64/lib/$soname
+  otool -D local/scipy_openblas64/lib/$soname
+  # issue 153: there is a ".0" in the install_name. Remove it
   install_name_tool -id $soname local/scipy_openblas64/lib/$soname
 fi
 
