@@ -170,7 +170,7 @@ function do_build_lib {
     CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags > /dev/null
+        BINARY=$bitness $interface_flags $target_flags
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     stop_spinner
