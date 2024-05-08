@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT="de465ffd"
+        - OPENBLAS_COMMIT: "35d84ad012"
         - REPO_DIR=OpenBLAS
 
 language: python

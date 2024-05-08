@@ -42,16 +42,23 @@ def get_lib_dir():
     return os.path.join(_HERE, "lib")
 
 
-def get_library():
-    """Return the lib name needed for linking
+def get_library(fullname=False):
+    """Return the lib name needed for linking. If `fullname` then return the
+    filename of the library, otherwise return the link name.
     """
     if sys.platform == "win32":
         libs = [x for x in os.listdir(get_lib_dir()) if x.endswith(".lib")]
-        return os.path.splitext(libs[0])[0]
+        if fullname:
+            return libs[0]
+        else:
+            return os.path.splitext(libs[0])[0]
     else:
         libs = [x for x in os.listdir(get_lib_dir()) if x.startswith("libscipy_openblas")]
-        # remove the leading lib from libscipy_openblas*
-        return os.path.splitext(libs[0])[0][3:]
+        if fullname:
+            return libs[0]
+        else:
+            # remove the leading lib from libscipy_openblas*
+            return os.path.splitext(libs[0])[0][3:]
 
 def get_pkg_config(use_preloading=False):
     """Return a multi-line string that, when saved to a file, can be used with
@@ -69,7 +76,7 @@ def get_pkg_config(use_preloading=False):
         if use_preloading:
             libs_flags = ""
         else:
-            libs_flags = f"-L${{libdir}} -l{get_library()}"
+            libs_flags = f"${{libdir}}/{get_library(fullname=True)} -Wl,-rpath,${{libdir}}"
     cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64 -DOPENBLAS_ILP64_NAMING_SCHEME"
     return dedent(f"""\
         libdir={get_lib_dir()}
