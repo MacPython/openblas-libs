@@ -1,0 +1,43 @@
+From 243640c3546b48af07bdb62265efa8c8b13f3208 Mon Sep 17 00:00:00 2001
+From: Matti Picus <matti.picus@gmail.com>
+Date: Sun, 12 May 2024 10:24:16 +0300
+Subject: [PATCH] use blasint instead of int to quiet warnings
+
+---
+ utest/test_extensions/test_cgemm.c | 4 ++--
+ utest/test_extensions/test_zgemm.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/utest/test_extensions/test_cgemm.c b/utest/test_extensions/test_cgemm.c
+index 08a26554a..15d64e372 100644
+--- a/utest/test_extensions/test_cgemm.c
++++ b/utest/test_extensions/test_cgemm.c
+@@ -75,8 +75,8 @@ static float check_cgemm(char transa, char transb, blasint m, blasint n, blasint
+     char transb_verify = transb;
+     char cc[2]="C", cr[2]="R";
+ 
+-    int arows = k, acols = m;
+-    int brows = n, bcols = k;
++    blasint arows = k, acols = m;
++    blasint brows = n, bcols = k;
+ 
+     if (transa == 'T' || transa == 'C'){
+         arows = m; acols = k;
+diff --git a/utest/test_extensions/test_zgemm.c b/utest/test_extensions/test_zgemm.c
+index 6dcc12724..bd23ebca4 100644
+--- a/utest/test_extensions/test_zgemm.c
++++ b/utest/test_extensions/test_zgemm.c
+@@ -75,8 +75,8 @@ static double check_zgemm(char transa, char transb, blasint m, blasint n, blasin
+     char transb_verify = transb;
+     char cc[2]="C", cr[2]="R";
+ 
+-    int arows = k, acols = m;
+-    int brows = n, bcols = k;
++    blasint arows = k, acols = m;
++    blasint brows = n, bcols = k;
+ 
+     if (transa == 'T' || transa == 'C'){
+         arows = m; acols = k;
+-- 
+2.39.3 (Apple Git-146)
+
