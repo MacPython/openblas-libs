@@ -33,13 +33,13 @@ except importlib_metadata.PackageNotFoundError:
 def get_include_dir():
     """Return the include directory needed for compilation
     """
-    return os.path.join(_HERE, "include")
+    return os.path.join(_HERE, "include").replace("\\", "/")
 
 
 def get_lib_dir():
     """Return the lib directory needed for linking
     """
-    return os.path.join(_HERE, "lib")
+    return os.path.join(_HERE, "lib").replace("\\", "/")
 
 
 def get_library(fullname=False):
