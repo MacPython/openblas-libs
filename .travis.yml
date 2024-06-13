@@ -73,11 +73,23 @@ before_install:
 
 install:
     # Maybe get and clean and patch source
-    - clean_code $REPO_DIR $OPENBLAS_COMMIT
+    - |
+      if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
+        clean_code $REPO_DIR develop
+      else
+        clean_code $REPO_DIR $OPENBLAS_COMMIT
+      fi
 
 script:
     # Build library and collect into libs subdirectory
-    - build_lib "$PLAT" "$INTERFACE64"
+    - |
+      if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
+        build_lib "$PLAT" "$INTERFACE64" 1
+        version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
+        sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
+      else
+        build_lib "$PLAT" "$INTERFACE64" 0
+      fi
     - libc=${MB_ML_LIBC:-manylinux}
     - docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
     - docker run --rm -e INTERFACE64="${INTERFACE64}" \
