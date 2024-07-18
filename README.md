@@ -3,16 +3,19 @@
 We build OpenBLAS on Travis-CI (for linux aarch64, ppc64, s390x) and github actions
 for linux, windows, macOS x86_64 and macOS arm64.
 
-Tarballs are at
-https://anaconda.org/scientific-python-nightly-wheels/openblas-libs/files
+First, tarballs are built using `do_build_lib` in `tools/build_steps.sh` (on
+posix in a docker and drectly on macos) or `build_openblas.sh` on windows.
 
-A project using the tarball, for Manylinux or macOS, will need the
-``gfortran-install`` submodule used here, from
-https://github.com/MacPython/gfortran-install
+Then the shared object and header files from the tarball are used to build the
+wheel via `tools/build_wheel.sh`, and the wheels uploaded to
+https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas32 and
+https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas64 via
+`tools/upload_to_anaconda_staging.sh`. For a release, the wheels are uploaded
+to PyPI by downloading them via tools/dowlnload-wheels.py and uploading via
+[twine](https://twine.readthedocs.io/en/stable/).
 
-We also build and upload a pip-installable wheel. The wheel is self-contained,
-it includes all needed gfortran support libraries. On windows, this is a single
-DLL. On linux we use `auditwheel repair` to mangle the shared object names.
+The wheel is self-contained, it includes all needed gfortran support libraries.
+On windows, this is a single DLL. 
 
 The wheel supplies interfaces for building and using OpenBLAS in a python
 project like SciPy or NumPy:

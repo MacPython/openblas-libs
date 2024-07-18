@@ -203,17 +203,3 @@ function do_build_lib {
         $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
-
-function upload_to_anaconda {
-    if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
-        echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping."
-    else
-        anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
-            --no-progress --force -u scientific-python-nightly-wheels \
-            -t file -p "openblas-libs" \
-            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
-            -d "OpenBLAS for multibuild wheels" \
-            -s "OpenBLAS for multibuild wheels" \
-            libs/openblas*.tar.gz
-    fi
-}
