@@ -69,13 +69,13 @@ jobs:
         python-version: 3.9
     - name: Set extra env
       run: |
-        # if [ "macos-11" == "${{ matrix.os }}" ]; then
-        #   Use xcrun --sdk macosx --show-sdk-path instead of hardcoding the path
-        #   echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
-        #   echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
-        # else
-        # fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+
+    - uses: maxim-lobanov/setup-xcode@v1.6.0
+      if: ${{ matrix.os == 'macos-13' }}
+      with:
+        xcode-version: '14.3'
+
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
@@ -87,11 +87,6 @@ jobs:
     - name: Build OpenBLAS
       run: |
         set -xeo pipefail
-        if [[ "$PLAT" == "arm64" ]]; then
-          sudo xcode-select -switch /Applications/Xcode_12.5.1.app
-          export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
-          clang --version
-        fi
         source tools/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
@@ -114,7 +109,7 @@ jobs:
           version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
           sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
         fi
-        if [ "macos-11" == "${{ matrix.os }}" ]; then
+        if [ "macos-13" == "${{ matrix.os }}" ]; then
           source tools/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
