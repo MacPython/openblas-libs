@@ -70,7 +70,7 @@ if [ "${INTERFACE64}" != "1" ]; then
 fi
 
 rm -rf dist/*
-$PYTHON -m pip wheel -w dist -vv .
+$PYTHON -m pip wheel -w dist -v .
 
 if [ $(uname) == "Darwin" ]; then
     $PYTHON -m pip install delocate
