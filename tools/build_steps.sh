@@ -125,6 +125,8 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target_flags="TARGET=CORE2"
+            # Pick up the gfortran runtime libraries
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-i686)
             local bitness=32

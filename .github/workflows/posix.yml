@@ -102,11 +102,11 @@ jobs:
           build_lib "$PLAT" "$INTERFACE64" "0"
         fi
 
-    - name: Setup tmate session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
-      with:
-        limit-access-to-actor: true
+    # - name: Setup tmate session
+    #   if: ${{ failure() }}
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     limit-access-to-actor: true
 
     - name: Build and test wheel
       run: |
