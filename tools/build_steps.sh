@@ -55,7 +55,7 @@ function build_lib {
     # OSX or manylinux build
     #
     # Input arg
-    #     plat - one of i686, x86_64
+    #     plat - one of i686, x86_64, arm64
     #     interface64 - 1 if build with INTERFACE64 and SYMBOLSUFFIX
     #     nightly - 1 if building for nightlies
     #
@@ -103,7 +103,7 @@ function patch_source {
 function do_build_lib {
     # Build openblas lib
     # Input arg
-    #     plat - one of i686, x86_64
+    #     plat - one of i686, x86_64, arm64
     #     suffix (optional) - suffix for output archive name
     #                         Suffix added with hyphen prefix
     #     interface64 (optional) - whether to build ILP64 openblas
@@ -125,6 +125,8 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target_flags="TARGET=CORE2"
+            # Pick up the gfortran runtime libraries
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-i686)
             local bitness=32

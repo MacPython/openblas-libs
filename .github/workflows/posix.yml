@@ -18,16 +18,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-11]
+        os: [ubuntu-latest, macos-13]
         PLAT: [i686, x86_64]
         INTERFACE64: ['0', '1']
         MB_ML_VER: ['2014']
         MB_ML_LIBC: ['manylinux']
         include:
-          - os: macos-11
+          - os: macos-13
             PLAT: arm64
             INTERFACE64: '1'
-          - os: macos-11
+          - os: macos-13
             PLAT: arm64
             INTERFACE64: '0'
           - os: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
             MB_ML_VER: _1_1
         exclude:
           - PLAT: i686
-            os: macos-11
+            os: macos-13
           - PLAT: i686
             INTERFACE64: '1'
     env:
@@ -69,13 +69,13 @@ jobs:
         python-version: 3.9
     - name: Set extra env
       run: |
-        # if [ "macos-11" == "${{ matrix.os }}" ]; then
-        #   Use xcrun --sdk macosx --show-sdk-path instead of hardcoding the path
-        #   echo "LDFLAGS=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
-        #   echo "LIBRARY_PATH=-L/Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/lib" >> $GITHUB_ENV;
-        # else
-        # fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+
+    - uses: maxim-lobanov/setup-xcode@v1.6.0
+      if: ${{ matrix.os == 'macos-13' }}
+      with:
+        xcode-version: '14.3'
+
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
@@ -87,11 +87,6 @@ jobs:
     - name: Build OpenBLAS
       run: |
         set -xeo pipefail
-        if [[ "$PLAT" == "arm64" ]]; then
-          sudo xcode-select -switch /Applications/Xcode_12.5.1.app
-          export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
-          clang --version
-        fi
         source tools/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
@@ -107,6 +102,12 @@ jobs:
           build_lib "$PLAT" "$INTERFACE64" "0"
         fi
 
+    # - name: Setup tmate session
+    #   if: ${{ failure() }}
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     limit-access-to-actor: true
+
     - name: Build and test wheel
       run: |
         if [[ "$NIGHTLY" = "true" ]]; then
@@ -114,7 +115,7 @@ jobs:
           version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
           sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
         fi
-        if [ "macos-11" == "${{ matrix.os }}" ]; then
+        if [ "macos-13" == "${{ matrix.os }}" ]; then
           source tools/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
@@ -136,9 +137,12 @@ jobs:
         name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
         path: libs/openblas*.tar.gz
 
-    - uses: conda-incubator/setup-miniconda@v3.0.1
+    - uses: conda-incubator/setup-miniconda@v3.0.4
       with:
+        channels: conda-forge
+        channel-priority: true
         activate-environment: upload
+        miniforge-version: latest
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
