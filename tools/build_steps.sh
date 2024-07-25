@@ -124,32 +124,35 @@ function do_build_lib {
     case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
-            local target_flags="TARGET=PRESCOTT"
+            local target=PRESCOTT
+            local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
         Darwin-x86_64)
             local bitness=64
-            local target_flags="TARGET=CORE2"
+            local target_flags=CORE2
+            local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-i686)
             local bitness=32
-            local target_flags="TARGET=PRESCOTT"
+            local target_flags=PRESCOTT
+            local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
             ;;
         Linux-aarch64)
             local bitness=64
-            local target_flags="TARGET=ARMV8"
+            local target=ARMV8
             ;;
         Darwin-arm64)
             local bitness=64
-            local target_flags="TARGET=VORTEX"
+            local target=VORTEX
             ;;
         *-s390x)
             local bitness=64
             ;;
         *-ppc64le)
             local bitness=64
-            local target_flags="TARGET=POWER8"
+            local target=POWER8
             ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
