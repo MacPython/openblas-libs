@@ -8,7 +8,7 @@ on:
   workflow_dispatch: null
 
 env:
-  OPENBLAS_COMMIT: "35d84ad012"
+  OPENBLAS_COMMIT: "fb7c53c5e"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory

@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT: "35d84ad012"
+        - OPENBLAS_COMMIT: "fb7c53c5e"
         - REPO_DIR=OpenBLAS
 
 language: python
@@ -92,10 +92,7 @@ script:
       fi
     - libc=${MB_ML_LIBC:-manylinux}
     - docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
-    - docker run --rm -e INTERFACE64="${INTERFACE64}" \
-        -e MB_ML_LIBC="${MB_ML_LIBC}" \
-        -v $(pwd):/openblas $docker_image \
-        /bin/bash -xe /openblas/tools/build_wheel.sh
+    - docker run --rm -e INTERFACE64="${INTERFACE64}" -e MB_ML_LIBC="${MB_ML_LIBC}" -v $(pwd):/openblas "${docker_image}" /bin/bash -xe /openblas/tools/build_wheel.sh
 
 after_success:
     - set +ex
