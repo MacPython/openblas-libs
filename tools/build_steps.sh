@@ -213,3 +213,13 @@ function do_build_lib {
         $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
+
+function build_on_travis {
+    if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
+        build_lib "$PLAT" "$INTERFACE64" 1
+        version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
+        sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
+    else
+        build_lib "$PLAT" "$INTERFACE64" 0
+    fi
+}
