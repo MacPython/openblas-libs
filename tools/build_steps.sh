@@ -63,6 +63,7 @@ function build_lib {
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     #     GFORTRAN_DMG
     #     MB_ML_VER
+    echo running build_lib
     set -x
     local plat=${1:-$PLAT}
     local interface64=${2:-$INTERFACE64}
@@ -71,12 +72,14 @@ function build_lib {
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
+        echo building on macox since IS_OSX is defined
         wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
         return
     fi
     # Manylinux wrapper
     local libc=${MB_ML_LIBC:-manylinux}
     local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
+    echo pulling image ${docker_image}
     docker pull $docker_image
     echo done pulling image, starting docker run
     # Docker sources this script, and runs `do_build_lib`
