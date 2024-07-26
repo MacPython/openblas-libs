@@ -5,7 +5,6 @@ env:
         - OPENBLAS_COMMIT: "fb7c53c5e"
         - REPO_DIR=OpenBLAS
 
-language: python
 sudo: required
 dist: jammy
 services: docker
