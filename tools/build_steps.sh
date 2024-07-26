@@ -63,6 +63,7 @@ function build_lib {
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     #     GFORTRAN_DMG
     #     MB_ML_VER
+    echo running build_lib
     set -x
     local plat=${1:-$PLAT}
     local interface64=${2:-$INTERFACE64}
@@ -71,13 +72,16 @@ function build_lib {
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
+        echo building on macox since IS_OSX is defined
         wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
         return
     fi
     # Manylinux wrapper
     local libc=${MB_ML_LIBC:-manylinux}
     local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
+    echo pulling image ${docker_image}
     docker pull $docker_image
+    echo done pulling image, starting docker run
     # Docker sources this script, and runs `do_build_lib`
     docker run --rm \
         -e BUILD_PREFIX="$BUILD_PREFIX" \
@@ -89,6 +93,7 @@ function build_lib {
         -e MB_ML_LIBC=${libc} \
         -v $PWD:/io \
         $docker_image /io/tools/docker_build_wrap.sh
+    echo done docker run of docker_build_wrap.sh
 }
 
 function patch_source {
@@ -172,7 +177,10 @@ function do_build_lib {
     CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags > /dev/null
+        BINARY=$bitness $interface_flags $target_flags shared > /dev/null
+    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+        USE_OPENMP=0 NUM_THREADS=64 \
+        BINARY=$bitness $interface_flags $target_flags tests
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     stop_spinner
