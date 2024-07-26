@@ -7,7 +7,7 @@ env:
 
 language: python
 sudo: required
-dist: bionic
+dist: jammy
 services: docker
 
 matrix:

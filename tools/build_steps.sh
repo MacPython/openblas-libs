@@ -78,6 +78,7 @@ function build_lib {
     local libc=${MB_ML_LIBC:-manylinux}
     local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
     docker pull $docker_image
+    echo done pulling image, starting docker run
     # Docker sources this script, and runs `do_build_lib`
     docker run --rm \
         -e BUILD_PREFIX="$BUILD_PREFIX" \
@@ -89,6 +90,7 @@ function build_lib {
         -e MB_ML_LIBC=${libc} \
         -v $PWD:/io \
         $docker_image /io/tools/docker_build_wrap.sh
+    echo done docker run of docker_build_wrap.sh
 }
 
 function patch_source {
