@@ -8,8 +8,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scipy-openblas64"
-# v0.3.27-333-gfb7c53c5
-version = "0.3.27.333.0"
+# v0.3.27-341-g09298658
+version = "0.3.27.341.0"
 requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
 readme = "README.md"
