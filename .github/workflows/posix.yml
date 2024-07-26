@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: '0 0 * * 0'
 
+env:
+  REPO_DIR: OpenBLAS
+  OPENBLAS_COMMIT: "0929865"
+  MACOSX_DEPLOYMENT_TARGET: 10.9
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -46,10 +51,7 @@ jobs:
           - PLAT: i686
             INTERFACE64: '1'
     env:
-      REPO_DIR: OpenBLAS
-      OPENBLAS_COMMIT: "fb7c53c5e"
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-      MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
