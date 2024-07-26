@@ -16,6 +16,7 @@ matrix:
       env:
         - PLAT=aarch64
         - MB_ML_VER=_1_1
+        - INTERFACE64=0
         - MB_ML_LIBC=musllinux
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
@@ -31,6 +32,7 @@ matrix:
       env:
         - PLAT=aarch64
         - MB_ML_VER=2014
+        - INTERFACE64=0
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: arm64
@@ -44,6 +46,7 @@ matrix:
       env:
         - PLAT=s390x
         - MB_ML_VER=2014
+        - INTERFACE64=0
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: s390x
@@ -57,6 +60,7 @@ matrix:
       env:
         - PLAT=ppc64le
         - MB_ML_VER=2014
+        - INTERFACE64=0
         - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: ppc64le
@@ -83,11 +87,11 @@ script:
     # Build library and collect into libs subdirectory
     - |
       if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
-        build_lib "$PLAT" "$INTERFACE64" 1
+        travis wait build_lib "$PLAT" "$INTERFACE64" 1
         version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
         sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
       else
-        build_lib "$PLAT" "$INTERFACE64" 0
+        travis wait build_lib "$PLAT" "$INTERFACE64" 0
       fi
     - libc=${MB_ML_LIBC:-manylinux}
     - docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
