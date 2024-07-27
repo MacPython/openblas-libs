@@ -174,11 +174,12 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    exit -1
+    echo start building
     CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
         BINARY=$bitness $interface_flags $target_flags shared > /dev/null
+    echo done building, now testing
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
         BINARY=$bitness $interface_flags $target_flags tests
