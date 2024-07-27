@@ -82,6 +82,7 @@ function build_lib {
     echo pulling image ${docker_image}
     docker pull $docker_image
     echo done pulling image, starting docker run
+    exit -1
     # Docker sources this script, and runs `do_build_lib`
     docker run --rm \
         -e BUILD_PREFIX="$BUILD_PREFIX" \
@@ -174,7 +175,6 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    exit -1
     CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
