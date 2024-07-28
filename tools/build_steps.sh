@@ -139,6 +139,7 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target_flags="TARGET=ARMV8"
+            local dynamic_list="ARMV8 NEOVERSEN1 ARMV8SVE THUNDERX THUNDERX3T110"
             ;;
         Darwin-arm64)
             local bitness=64
@@ -167,27 +168,30 @@ function do_build_lib {
             ;;
     esac
     interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
-    echo "Building with settings: plat:'$plat' suffix:'$suffix' interface64:'$interface64'"
-    echo "                        interface_flags:'$interface_flags'"
-    echo "                        target_flags:'$target_flags'"
     mkdir -p libs
-    start_spinner
     set -x
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
     echo start building
-    CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-        USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    if [[ -v dynamic_list ]]; then
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            DYNAMIC_LIST="$dynamic_list" \
+            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    else
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    fi
     echo done building, now testing
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
         BINARY=$bitness $interface_flags $target_flags tests
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
-    stop_spinner
     if [ "$nightly" = "1" ]; then
         local version="HEAD"
     else
