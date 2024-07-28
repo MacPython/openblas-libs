@@ -173,7 +173,6 @@ function do_build_lib {
     mkdir -p libs
     start_spinner
     set -x
-    echo git config
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
@@ -181,7 +180,7 @@ function do_build_lib {
     CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags shared
+        BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
     echo done building, now testing
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
