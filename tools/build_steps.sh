@@ -130,6 +130,7 @@ function do_build_lib {
     local nightly=$4
     echo "Building with settings: '$plat' '$suffix' '$interface64'"
     echo get_os3 is $(get_os3)
+    exit -1
     case $(get_os3)-$plat in
         Linux-x86_64)
             local bitness=64
