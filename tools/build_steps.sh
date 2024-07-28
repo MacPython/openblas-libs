@@ -139,6 +139,7 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target_flags="TARGET=ARMV8"
+            export CFLAGS="$CFLAGS -march=armv8.6-a+sve"
             ;;
         Darwin-arm64)
             local bitness=64
