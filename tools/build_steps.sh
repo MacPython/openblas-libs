@@ -139,7 +139,6 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target_flags="TARGET=ARMV8"
-            local dynamic_list="ARMV8 NEOVERSEN1 ARMV8SVE THUNDERX THUNDERX3T110"
             ;;
         Darwin-arm64)
             local bitness=64

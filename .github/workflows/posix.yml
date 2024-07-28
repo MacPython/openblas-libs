@@ -45,6 +45,24 @@ jobs:
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
+
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+
         exclude:
           - PLAT: i686
             os: macos-13
