@@ -121,9 +121,6 @@ function do_build_lib {
     local suffix=$2
     local interface64=$3
     local nightly=$4
-    echo "Building with settings: '$plat' '$suffix' '$interface64'"
-    echo get_os is $(get_os)
-    exit -1
     case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
@@ -170,6 +167,10 @@ function do_build_lib {
             ;;
     esac
     interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
+    echo "Building with settings: plat:'$plat' suffix:'$suffix' interface64:'$interface64'"
+    echo "                        interface_flags:'$interface_flags'"
+    echo "                        target_flags:'$target_flags'"
+    exit -1
     mkdir -p libs
     start_spinner
     set -x
