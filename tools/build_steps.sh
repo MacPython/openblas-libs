@@ -173,7 +173,7 @@ function do_build_lib {
     pushd OpenBLAS
     patch_source
     echo start building
-    if [[ -v dynamic_list ]]; then
+    if [ -v dynamic_list ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \

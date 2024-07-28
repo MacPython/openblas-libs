@@ -96,6 +96,13 @@ jobs:
       with:
         xcode-version: '14.3'
 
+    - name: Allow docker with qemu
+      if: ${{ matrix.PLAT == 'aarch64' }}
+      run: |
+        sudo apt-get update -q -y
+        sudo apt-get -qq install -y qemu qemu-user-static
+        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
+
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
