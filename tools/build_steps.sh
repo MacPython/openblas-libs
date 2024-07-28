@@ -170,14 +170,15 @@ function do_build_lib {
     echo "Building with settings: plat:'$plat' suffix:'$suffix' interface64:'$interface64'"
     echo "                        interface_flags:'$interface_flags'"
     echo "                        target_flags:'$target_flags'"
-    exit -1
     mkdir -p libs
     start_spinner
     set -x
+    echo git config
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
     echo start building
+    exit -1
     CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
