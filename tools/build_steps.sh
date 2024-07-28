@@ -9,13 +9,6 @@ source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
 MB_PYTHON_VERSION=3.9
 
-function get_os3 {
-    # Report OS as given by uname
-    # Use any Python that comes to hand.
-    python3 -c 'import platform; print(platform.uname()[0])'
-}
-
-
 function before_build {
     # Manylinux Python version set in build_lib
     if [ -n "$IS_OSX" ]; then
@@ -129,9 +122,9 @@ function do_build_lib {
     local interface64=$3
     local nightly=$4
     echo "Building with settings: '$plat' '$suffix' '$interface64'"
-    echo get_os3 is $(get_os3)
+    echo get_os is $(get_os)
     exit -1
-    case $(get_os3)-$plat in
+    case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
             local target_flags="TARGET=PRESCOTT"
