@@ -142,6 +142,9 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target=ARMV8
+            # temporarily limit the kernels for travis until there is data
+            # see https://github.com/MacPython/openblas-libs/issues/170
+            local dynamic_list="ARMV8 CORTEXA57 NEOVERSEV1 THUNDERX"
             ;;
         Darwin-arm64)
             local bitness=64
@@ -175,23 +178,25 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    echo start building
     if [ -v dynamic_list ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            DYNAMIC_LIST="$dynamic_list" \
+            BINARY=$bitness $interface_flags $target_flags tests
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            BINARY=$bitness $interface_flags $target_flags tests
     fi
-    echo done building, now testing
-    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-        USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags tests
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     if [ "$nightly" = "1" ]; then
