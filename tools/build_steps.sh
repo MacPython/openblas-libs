@@ -139,11 +139,6 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target_flags="TARGET=ARMV8"
-            if [ "$MB_ML_LIBC" == "musllinux" ]; then
-                export CFLAGS="$CFLAGS -march=armv8.5-a+sve"
-            else
-                export CFLAGS="$CFLAGS -march=armv8.6-a+sve"
-            fi
             ;;
         Darwin-arm64)
             local bitness=64

@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT: "0929865"
+        - OPENBLAS_COMMIT: "d11e7340"
         - REPO_DIR=OpenBLAS
 
 sudo: required
