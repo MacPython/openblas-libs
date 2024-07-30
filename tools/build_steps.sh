@@ -121,7 +121,6 @@ function do_build_lib {
     local suffix=$2
     local interface64=$3
     local nightly=$4
-    echo "Building with settings: '$plat' '$suffix' '$interface64'"
     case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
@@ -169,21 +168,29 @@ function do_build_lib {
     esac
     interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
     mkdir -p libs
-    start_spinner
     set -x
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-        USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags shared > /dev/null
+    echo start building
+    if [ -v dynamic_list ]; then
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            DYNAMIC_LIST="$dynamic_list" \
+            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    else
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    fi
+    echo done building, now testing
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
         BINARY=$bitness $interface_flags $target_flags tests
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
-    stop_spinner
     if [ "$nightly" = "1" ]; then
         local version="HEAD"
     else
@@ -212,4 +219,14 @@ function do_build_lib {
         $BUILD_PREFIX/lib/libscipy_openblas* \
         $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
+}
+
+function build_on_travis {
+    if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
+        build_lib "$PLAT" "$INTERFACE64" 1
+        version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
+        sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
+    else
+        build_lib "$PLAT" "$INTERFACE64" 0
+    fi
 }

@@ -11,7 +11,7 @@ on:
 
 env:
   REPO_DIR: OpenBLAS
-  OPENBLAS_COMMIT: "0929865"
+  OPENBLAS_COMMIT: "d11e7340"
   MACOSX_DEPLOYMENT_TARGET: 10.9
 
 jobs:
@@ -45,6 +45,26 @@ jobs:
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
+
+          # - os: ubuntu-latest
+          #   PLAT: aarch64
+          #   INTERFACE64: '0'
+          #   MB_ML_VER: '2014'
+          # - os: ubuntu-latest
+          #   PLAT: aarch64
+          #   INTERFACE64: '1'
+          #   MB_ML_VER: '2014'
+          # - os: ubuntu-latest
+          #   PLAT: aarch64
+          #   INTERFACE64: '0'
+          #   MB_ML_LIBC: musllinux
+          #   MB_ML_VER: _1_1
+          # - os: ubuntu-latest
+          #   PLAT: aarch64
+          #   INTERFACE64: '1'
+          #   MB_ML_LIBC: musllinux
+          #   MB_ML_VER: _1_1
+
         exclude:
           - PLAT: i686
             os: macos-13
@@ -77,6 +97,13 @@ jobs:
       if: ${{ matrix.os == 'macos-13' }}
       with:
         xcode-version: '14.3'
+
+    - name: Allow docker with qemu
+      if: ${{ matrix.PLAT == 'aarch64' }}
+      run: |
+        sudo apt-get update -q -y
+        sudo apt-get -qq install -y qemu qemu-user-static
+        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
 
     - name: Print some Environment variable
       run: |

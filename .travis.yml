@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT: "0929865"
+        - OPENBLAS_COMMIT: "d11e7340"
         - REPO_DIR=OpenBLAS
 
 sudo: required
@@ -85,14 +85,7 @@ install:
 
 script:
     # Build library and collect into libs subdirectory
-    - |
-      if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
-        travis wait build_lib "$PLAT" "$INTERFACE64" 1
-        version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
-        sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
-      else
-        travis wait build_lib "$PLAT" "$INTERFACE64" 0
-      fi
+    - travis_wait 30 build_on_travis
     - libc=${MB_ML_LIBC:-manylinux}
     - docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
     - docker run --rm -e INTERFACE64="${INTERFACE64}" -e MB_ML_LIBC="${MB_ML_LIBC}" -v $(pwd):/openblas "${docker_image}" /bin/bash -xe /openblas/tools/build_wheel.sh
