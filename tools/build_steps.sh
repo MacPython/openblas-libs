@@ -129,14 +129,14 @@ function do_build_lib {
             ;;
         Darwin-x86_64)
             local bitness=64
-            local target_flags=CORE2
+            local target=CORE2
             local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-i686)
             local bitness=32
-            local target_flags=PRESCOTT
+            local target=PRESCOTT
             local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
             ;;
         Linux-aarch64)
@@ -183,19 +183,19 @@ function do_build_lib {
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
-            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+            BINARY=$bitness $interface_flags TARGET="$target" shared 2>&1 1>/dev/null
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
-            BINARY=$bitness $interface_flags $target_flags tests
+            BINARY=$bitness $interface_flags TARGET="$target" tests
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
-            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+            BINARY=$bitness $interface_flags TARGET="$target" shared 2>&1 1>/dev/null
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
-            BINARY=$bitness $interface_flags $target_flags tests
+            BINARY=$bitness $interface_flags TARGET="$target" tests
     fi
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
