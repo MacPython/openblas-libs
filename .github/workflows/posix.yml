@@ -45,25 +45,46 @@ jobs:
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
+          - os: ubuntu-latest
+            PLAT: x86_64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_2
+          - os: ubuntu-latest
+            PLAT: x86_64
+            INTERFACE64: '0'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_2
 
-          # - os: ubuntu-latest
-          #   PLAT: aarch64
-          #   INTERFACE64: '0'
-          #   MB_ML_VER: '2014'
-          # - os: ubuntu-latest
-          #   PLAT: aarch64
-          #   INTERFACE64: '1'
-          #   MB_ML_VER: '2014'
-          # - os: ubuntu-latest
-          #   PLAT: aarch64
-          #   INTERFACE64: '0'
-          #   MB_ML_LIBC: musllinux
-          #   MB_ML_VER: _1_1
-          # - os: ubuntu-latest
-          #   PLAT: aarch64
-          #   INTERFACE64: '1'
-          #   MB_ML_LIBC: musllinux
-          #   MB_ML_VER: _1_1
+
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_VER: '2014'
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_VER: '2014'
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_2
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_2
 
         exclude:
           - PLAT: i686
@@ -158,12 +179,12 @@ jobs:
 
     - uses: actions/upload-artifact@v4.3.0
       with:
-        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
+        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: dist/scipy_openblas*.whl
 
     - uses: actions/upload-artifact@v4.3.0
       with:
-        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
+        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: libs/openblas*.tar.gz
 
     - uses: conda-incubator/setup-miniconda@v3.0.4
