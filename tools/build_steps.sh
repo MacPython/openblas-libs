@@ -142,9 +142,9 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target=ARMV8
-            # temporarily limit the kernels for travis until there is data
+            # temporarily limit the kernels for aarch64 until there is data
             # see https://github.com/MacPython/openblas-libs/issues/170
-            if [ "$MB_ML_LIBC" == "musllinux" ]; then
+            if [ "$MB_ML_LIBC" == "musllinux" -a "$MB_ML_VER" == "_1_1" ]; then
                 local dynamic_list="ARMV8 CORTEXA57 THUNDERX"
             else
                 local dynamic_list="ARMV8 CORTEXA57 NEOVERSEV1 THUNDERX"

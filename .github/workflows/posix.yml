@@ -13,6 +13,7 @@ env:
   REPO_DIR: OpenBLAS
   OPENBLAS_COMMIT: "d11e7340"
   MACOSX_DEPLOYMENT_TARGET: 10.9
+  MB_PYTHON_VERSION: 3.11
 
 jobs:
   build:
@@ -46,6 +47,7 @@ jobs:
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
 
+          # Move these 6 builds to a faster option
           - os: ubuntu-latest
             PLAT: aarch64
             INTERFACE64: '0'
@@ -64,6 +66,16 @@ jobs:
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_2
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_2
 
         exclude:
           - PLAT: i686
@@ -72,8 +84,6 @@ jobs:
             INTERFACE64: '1'
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-      MB_PYTHON_VERSION: ${{ matrix.python-version }}
-      TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
