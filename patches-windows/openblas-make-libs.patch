@@ -2,7 +2,7 @@ diff --git a/exports/Makefile b/exports/Makefile
 index d8173534..4e2e0d7b 100644
 --- a/exports/Makefile
 +++ b/exports/Makefile
-@@ -119,11 +119,21 @@ dll  : ../$(LIBDLLNAME)
+@@ -123,11 +123,21 @@ dll  : ../$(LIBDLLNAME)
  # in their import table.  By instead using a stable name it is possible to
  # upgrade between library versions, without needing to re-link an application.
  # For more details see: https://github.com/xianyi/OpenBLAS/issues/127.
