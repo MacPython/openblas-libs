@@ -106,8 +106,13 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      MAX_STACK_ALLOC=2048 \
      $interface_flags
 make PREFIX=$openblas_root/$build_bits $interface_flags install
-DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}${LIBNAMESUFFIX}
-cp -f "${DLL_BASENAME}.dll.a" "$openblas_root/$build_bits/lib/"
+DLL_BASENAME=libscipy_openblas${LIBNAMESUFFIX}
+if [ -f "${DLL_BASENAME}.dll.a" ]; then
+    cp -f "${DLL_BASENAME}.dll.a" "$openblas_root/$build_bits/lib/"
+else
+    # 32-bit build somehow does not put scipy_ into the import lib name
+    cp -f "libopenblas.dll.a" "$openblas_root/$build_bits/lib/"
+fi
 
 # OpenBLAS does not build a symbol-suffixed static library on Windows:
 # do it ourselves. On 32-bit builds, the objcopy.def names need a '_' prefix
