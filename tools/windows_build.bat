@@ -8,6 +8,7 @@ set LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprint
 set MSYSTEM=UCRT64
 set PLAT=x86_64
 set START_DIR=d:\pypy_stuff\openblas-libs
-rmdir /q /s c:\opt\64
+set OPENBLAS_ROOT=c:\\opt
 rmdir /q /s c:\opt\64
 rem %BASH_PATH% -lc tools/build_openblas.sh
+rem %BASH_PATH% -lc tools/build_gfortran.sh
