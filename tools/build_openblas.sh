@@ -106,6 +106,7 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      MAX_STACK_ALLOC=2048 \
      $interface_flags
 make PREFIX=$openblas_root/$build_bits $interface_flags install
+ls -l .
 cp -f "*.dll.a" "$openblas_root/$build_bits/lib/"
 DLL_BASENAME=libscipy_openblas${SYMBOLSUFFIX}${LIBNAMESUFFIX}
 
