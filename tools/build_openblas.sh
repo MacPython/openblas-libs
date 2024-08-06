@@ -49,12 +49,12 @@ git submodule update --init --recursive
 
 
 # Get / clean code
-# git fetch origin
-# if [ -n "$OPENBLAS_COMMIT" ]; then
-#     git checkout $OPENBLAS_COMMIT
-# fi
-# git clean -fxd
-# git reset --hard
+git fetch origin
+if [ -n "$OPENBLAS_COMMIT" ]; then
+    git checkout $OPENBLAS_COMMIT
+fi
+git clean -fxd
+git reset --hard
 rm -rf $openblas_root/$build_bits
 
 # Set architecture flags
@@ -90,13 +90,14 @@ interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
-# Patch OpenBLAS to exclude stray GFortran symbol.
-# Replacement snprintf symbol only present for UCRTC 64-bit build.
-# if [ "$BUILD_BITS" == 64 ]; then
-#    patch -p1 < ../patches-windows/openblas-make-libs.patch
-# fi
+
+# Patch OpenBLAS build to resolve all symbols and avoid linking
+# with libquadmath
+if [ "$BUILD_BITS" == 64 ]; then
+   patch -p1 < ../patches-windows/openblas-make-libs.patch
+fi
+
 # Build OpenBLAS
-# Variable used in creating output libraries
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
      BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20\
@@ -107,12 +108,10 @@ make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      $interface_flags
 make PREFIX=$openblas_root/$build_bits $interface_flags install
 DLL_BASENAME=libscipy_openblas${LIBNAMESUFFIX}
-if [ -f "${DLL_BASENAME}.dll.a" ]; then
-    cp -f "${DLL_BASENAME}.dll.a" "$openblas_root/$build_bits/lib/"
-else
-    # 32-bit build somehow does not put scipy_ into the import lib name
-    cp -f "libopenblas.dll.a" "$openblas_root/$build_bits/lib/"
-fi
+echo ------
+ls *.dll.a
+echo ------
+cp -f *.dll.a $openblas_root/$build_bits/lib/{DLL_BASENAME}.dll.a
 
 # OpenBLAS does not build a symbol-suffixed static library on Windows:
 # do it ourselves. On 32-bit builds, the objcopy.def names need a '_' prefix
