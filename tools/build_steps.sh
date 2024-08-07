@@ -55,7 +55,7 @@ function build_lib {
     # OSX or manylinux build
     #
     # Input arg
-    #     plat - one of i686, x86_64
+    #     plat - one of i686, x86_64, arm64
     #     interface64 - 1 if build with INTERFACE64 and SYMBOLSUFFIX
     #     nightly - 1 if building for nightlies
     #
@@ -103,7 +103,7 @@ function patch_source {
 function do_build_lib {
     # Build openblas lib
     # Input arg
-    #     plat - one of i686, x86_64
+    #     plat - one of i686, x86_64, arm64
     #     suffix (optional) - suffix for output archive name
     #                         Suffix added with hyphen prefix
     #     interface64 (optional) - whether to build ILP64 openblas
@@ -116,7 +116,6 @@ function do_build_lib {
     local suffix=$2
     local interface64=$3
     local nightly=$4
-    echo "Building with settings: '$plat' '$suffix' '$interface64'"
     case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
@@ -125,6 +124,8 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target_flags="TARGET=CORE2"
+            # Pick up the gfortran runtime libraries
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-i686)
             local bitness=32
@@ -162,18 +163,29 @@ function do_build_lib {
     esac
     interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
     mkdir -p libs
-    start_spinner
     set -x
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+    echo start building
+    if [ -v dynamic_list ]; then
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            DYNAMIC_LIST="$dynamic_list" \
+            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    else
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
+            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+    fi
+    echo done building, now testing
     make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
         USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags > /dev/null
+        BINARY=$bitness $interface_flags $target_flags tests
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
-    stop_spinner
     if [ "$nightly" = "1" ]; then
         local version="HEAD"
     else
@@ -204,16 +216,4 @@ function do_build_lib {
         $BUILD_PREFIX/lib/cmake/openblas
 }
 
-function upload_to_anaconda {
-    if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
-        echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping."
-    else
-        anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
-            --no-progress --force -u scientific-python-nightly-wheels \
-            -t file -p "openblas-libs" \
-            -v "$(cd OpenBLAS && git describe --tags --abbrev=8)" \
-            -d "OpenBLAS for multibuild wheels" \
-            -s "OpenBLAS for multibuild wheels" \
-            libs/openblas*.tar.gz
-    fi
-}
+
