@@ -94,6 +94,8 @@ OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 # Patch OpenBLAS build to resolve all symbols and avoid linking
 # with libquadmath
 patch -p1 < ../patches-windows/openblas-make-libs.patch
+# Revert v0.3.26 changes to windows threading
+patch -p1 < ../patches-windows/revert-win-threading.patch
 
 # Build OpenBLAS
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
