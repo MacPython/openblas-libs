@@ -64,12 +64,14 @@ if [ "$build_bits" == 64 ]; then
     extra="-fno-asynchronous-unwind-tables"
     vc_arch="X64"
     plat_tag="win_amd64"
+    dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
 else
     march=pentium4
     extra="-mfpmath=sse -msse2"
     fextra="-m32"
     vc_arch="i386"
     plat_tag="win32"
+    dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
 fi
 cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
@@ -100,8 +102,9 @@ patch -p1 < ../patches-windows/revert-win-threading.patch
 # Build OpenBLAS
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
-     BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20\
+     BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20 \
      LDFLAGS="$LDFLAGS" \
+     DYNAMIC_LIST="$dynamic_list" \
      COMMON_OPT="$cflags" \
      FCOMMON_OPT="$fflags" \
      MAX_STACK_ALLOC=2048 \

@@ -120,6 +120,7 @@ function do_build_lib {
         Linux-x86_64)
             local bitness=64
             local target_flags="TARGET=PRESCOTT"
+            local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
         Darwin-x86_64)
             local bitness=64
@@ -130,6 +131,7 @@ function do_build_lib {
         *-i686)
             local bitness=32
             local target_flags="TARGET=PRESCOTT"
+            local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
             ;;
         Linux-aarch64)
             local bitness=64
