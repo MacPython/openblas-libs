@@ -71,6 +71,7 @@ jobs:
       REPO_DIR: OpenBLAS
       OPENBLAS_COMMIT: "v0.3.27"
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+      BRANCH_NAME: ${{ github.ref_name }}
       MACOSX_DEPLOYMENT_TARGET: 10.9
       MB_PYTHON_VERSION: ${{ matrix.python-version }}
       TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
@@ -125,7 +126,8 @@ jobs:
         source tools/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
-        if [[ "$NIGHTLY" = "true" ]]; then
+        echo BRANCH_NAME is "${BRANCH_NAME}"
+        if [ "$NIGHTLY" = "true"  -a  "$BRANCH_NAME" = "main" ]; then
           echo "------ CLEAN CODE --------"
           clean_code $REPO_DIR develop
           echo "------ BUILD LIB --------"
