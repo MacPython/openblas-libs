@@ -141,8 +141,9 @@ jobs:
 
     - name: Build and test wheel
       run: |
-        if [[ "$NIGHTLY" = "true" ]]; then
+        if [ "$NIGHTLY" = "true"  -a  "$BRANCH_NAME" = "main" ]; then
           # Set the pyproject.toml version: convert v0.3.24-30-g138ed79f to 0.3.34.30
+          # This will fail if `git describe --tags` hits a tag like v0.3.27
           version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
           sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
         fi
