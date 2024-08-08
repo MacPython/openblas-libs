@@ -20,16 +20,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-11]
+        os: [ubuntu-latest, macos-13]
         PLAT: [i686, x86_64]
         INTERFACE64: ['0', '1']
         MB_ML_VER: ['2014']
         MB_ML_LIBC: ['manylinux']
         include:
-          - os: macos-11
+          - os: macos-13
             PLAT: arm64
             INTERFACE64: '1'
-          - os: macos-11
+          - os: macos-13
             PLAT: arm64
             INTERFACE64: '0'
           - os: ubuntu-latest
@@ -42,9 +42,29 @@ jobs:
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
+
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_VER: '2014'
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_VER: '2014'
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '0'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+          - os: ubuntu-latest
+            PLAT: aarch64
+            INTERFACE64: '1'
+            MB_ML_LIBC: musllinux
+            MB_ML_VER: _1_1
+
         exclude:
           - PLAT: i686
-            os: macos-11
+            os: macos-13
           - PLAT: i686
             INTERFACE64: '1'
     env:
@@ -78,6 +98,19 @@ jobs:
         # else
         # fi
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
+
+    - uses: maxim-lobanov/setup-xcode@v1.6.0
+      if: ${{ matrix.os == 'macos-13' }}
+      with:
+        xcode-version: '14.3'
+
+    - name: Allow docker with qemu
+      if: ${{ matrix.PLAT == 'aarch64' }}
+      run: |
+        sudo apt-get update -q -y
+        sudo apt-get -qq install -y qemu qemu-user-static
+        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
+
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
@@ -89,11 +122,6 @@ jobs:
     - name: Build OpenBLAS
       run: |
         set -xeo pipefail
-        if [[ "$PLAT" == "arm64" ]]; then
-          sudo xcode-select -switch /Applications/Xcode_12.5.1.app
-          export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
-          clang --version
-        fi
         source tools/build_steps.sh
         echo "------ BEFORE BUILD ---------"
         before_build
@@ -116,7 +144,7 @@ jobs:
           version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
           sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
         fi
-        if [ "macos-11" == "${{ matrix.os }}" ]; then
+        if [ "macos-13" == "${{ matrix.os }}" ]; then
           source tools/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
@@ -138,9 +166,12 @@ jobs:
         name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}
         path: libs/openblas*.tar.gz
 
-    - uses: conda-incubator/setup-miniconda@v3.0.1
+    - uses: conda-incubator/setup-miniconda@v3.0.4
       with:
+        channels: conda-forge
+        channel-priority: true
         activate-environment: upload
+        miniforge-version: latest
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why

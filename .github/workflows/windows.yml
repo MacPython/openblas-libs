@@ -47,13 +47,14 @@ jobs:
           echo "PLAT=i686" >> $env:GITHUB_ENV
           echo "WHEEL_PLAT=win32" >> $env:GITHUB_ENV
           echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
-          echo "LDFLAGS=-static -static-libgcc" >> $env:GITHUB_ENV
+          # No ucrt on 32-bits, so use _snprintf_c instead
+          echo "LDFLAGS=-static -static-libgcc -Wl,--defsym,_quadmath_snprintf=__snprintf_c" >> $env:GITHUB_ENV
           echo "BUILD_BITS=32" >> $env:GITHUB_ENV
         } else {
           echo "PLAT=x86_64" >> $env:GITHUB_ENV
           echo "WHEEL_PLAT=win_amd64" >> $env:GITHUB_ENV
           echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
-          echo "LDFLAGS=-lucrt -static -static-libgcc" >> $env:GITHUB_ENV
+          echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
           echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         }
         if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
