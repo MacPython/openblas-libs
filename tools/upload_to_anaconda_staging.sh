@@ -29,13 +29,5 @@ upload_wheels() {
         anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
                 --no-progress --force -u scientific-python-nightly-wheels \
                 dist/scipy_openblas*.whl
-
-        tarballs=$(ls -d builds/openblas*.zip libs/openblas*.tar.gz 2>/dev/null)
-        anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
-                --no-progress --force -u scientific-python-nightly-wheels \
-                -t file -p "openblas-libs" -v "$VERSION" \
-                -d "OpenBLAS for multibuild wheels" \
-                -s "OpenBLAS for multibuild wheels" \
-                ${tarballs}
     fi
 }
