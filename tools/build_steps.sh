@@ -174,13 +174,13 @@ function do_build_lib {
     patch_source
     echo start building
     if [ -v dynamic_list ]; then
-        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized -fno-ident" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
     else
-        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
+        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized -fno-ident" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null

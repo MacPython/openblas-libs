@@ -96,6 +96,7 @@ OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 patch -p1 < ../patches-windows/openblas-make-libs.patch
 
 # Build OpenBLAS
+CFLAGS="$CFLAGS -fvisibility=protected -fno-ident" \
 make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
      NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
      BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20\
