@@ -1,0 +1,15 @@
+diff --git a/exports/Makefile b/exports/Makefile
+index 668a4866e..956b51bf4 100644
+--- a/exports/Makefile
++++ b/exports/Makefile
+@@ -126,8 +126,9 @@ dll  : ../$(LIBDLLNAME)
+ ../$(LIBDLLNAME) : ../$(LIBNAME) $(LIBPREFIX).def dllinit.$(SUFFIX)
+ 	$(RANLIB) ../$(LIBNAME)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBPREFIX).def dllinit.$(SUFFIX) \
+-	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(IMPLIBNAME) \
++	-shared -o ../$(LIBDLLNAME) -Wl,-gc-sections -Wl,-s -Wl,-Map,output.map \
+ 	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
++	dlltool -D $(LIBDLLNAME) -d $(LIBPREFIX).def -l ../$(LIBDLLNAME).a
+ 
+ $(LIBPREFIX).def : $(GENSYM)
+ 	./$(GENSYM) win2k    $(ARCH) dummy $(EXPRECISION) $(NO_CBLAS) $(NO_LAPACK) $(NO_LAPACKE) $(NEED2UNDERSCORES) $(ONLY_CBLAS) "$(SYMBOLPREFIX)" "$(SYMBOLSUFFIX)" $(BUILD_LAPACK_DEPRECATED) $(BUILD_BFLOAT16) $(BUILD_SINGLE) $(BUILD_DOUBLE) $(BUILD_COMPLEX) $(BUILD_COMPLEX16) > $(@F)
