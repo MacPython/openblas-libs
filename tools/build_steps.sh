@@ -97,7 +97,7 @@ function patch_source {
     for f in $(ls ../patches); do
         echo applying patch $f
         git apply ../patches/$f
-    done 
+    done
 }
 
 function do_build_lib {
@@ -119,34 +119,34 @@ function do_build_lib {
     case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
-            local target_flags="TARGET=PRESCOTT"
+            local target="PRESCOTT"
             local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
         Darwin-x86_64)
             local bitness=64
-            local target_flags="TARGET=CORE2"
+            local target="CORE2"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-i686)
             local bitness=32
-            local target_flags="TARGET=PRESCOTT"
+            local target="PRESCOTT"
             local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
             ;;
         Linux-aarch64)
             local bitness=64
-            local target_flags="TARGET=ARMV8"
+            local target="ARMV8"
             ;;
         Darwin-arm64)
             local bitness=64
-            local target_flags="TARGET=VORTEX"
+            local target="VORTEX"
             ;;
         *-s390x)
             local bitness=64
             ;;
         *-ppc64le)
             local bitness=64
-            local target_flags="TARGET=POWER8"
+            local target="POWER8"
             ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
@@ -172,20 +172,18 @@ function do_build_lib {
     echo start building
     if [ -v dynamic_list ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
-            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+            BINARY="$bitness" $interface_flags \
+            TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
-            BINARY=$bitness $interface_flags $target_flags shared 2>&1 1>/dev/null
+            BINARY="$bitness" $interface_flags \
+            TARGET="$target"
     fi
-    echo done building, now testing
-    make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-        USE_OPENMP=0 NUM_THREADS=64 \
-        BINARY=$bitness $interface_flags $target_flags tests
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     if [ "$nightly" = "1" ]; then
