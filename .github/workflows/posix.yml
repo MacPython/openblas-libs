@@ -57,30 +57,30 @@ jobs:
             MB_ML_VER: _1_2
 
 
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '0'
             MB_ML_VER: '2014'
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '1'
             MB_ML_VER: '2014'
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_1
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_2
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
@@ -118,13 +118,6 @@ jobs:
       if: ${{ matrix.os == 'macos-13' }}
       with:
         xcode-version: '14.3'
-
-    - name: Allow docker with qemu
-      if: ${{ matrix.PLAT == 'aarch64' }}
-      run: |
-        sudo apt-get update -q -y
-        sudo apt-get -qq install -y qemu qemu-user-static
-        sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes --credential yes
 
     - name: Print some Environment variable
       run: |
@@ -189,6 +182,7 @@ jobs:
 
     - uses: conda-incubator/setup-miniconda@v3.0.4
       with:
+        architecture: ${{ env.PLAT == 'aarch64' && 'aarch64' || '' }}
         channels: conda-forge
         channel-priority: true
         activate-environment: upload
