@@ -11,7 +11,7 @@ on:
 
 env:
   REPO_DIR: OpenBLAS
-  OPENBLAS_COMMIT: "v0.3.28"
+  OPENBLAS_COMMIT: "v0.3.29"
   MACOSX_DEPLOYMENT_TARGET: 10.9
 
 jobs:
@@ -39,23 +39,12 @@ jobs:
             PLAT: x86_64
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_1
-          - os: ubuntu-latest
-            PLAT: x86_64
-            INTERFACE64: '0'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_1
-          - os: ubuntu-latest
-            PLAT: x86_64
-            INTERFACE64: '1'
-            MB_ML_LIBC: musllinux
             MB_ML_VER: _1_2
           - os: ubuntu-latest
             PLAT: x86_64
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_2
-
 
           - os: ubuntu-24.04-arm
             PLAT: aarch64
@@ -65,16 +54,6 @@ jobs:
             PLAT: aarch64
             INTERFACE64: '1'
             MB_ML_VER: '2014'
-          - os: ubuntu-24.04-arm
-            PLAT: aarch64
-            INTERFACE64: '0'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_1
-          - os: ubuntu-24.04-arm
-            PLAT: aarch64
-            INTERFACE64: '1'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_1
           - os: ubuntu-24.04-arm
             PLAT: aarch64
             INTERFACE64: '0'
@@ -194,7 +173,6 @@ jobs:
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
-        conda install -y anaconda-client 'urllib3<2.0.0'
+        conda install -y anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels

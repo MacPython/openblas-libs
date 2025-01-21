@@ -8,7 +8,7 @@ on:
   workflow_dispatch: null
 
 env:
-  OPENBLAS_COMMIT: "v0.3.28"
+  OPENBLAS_COMMIT: "v0.3.29"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
@@ -161,9 +161,12 @@ jobs:
         python -m scipy_openblas32
         python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
 
-    - uses: conda-incubator/setup-miniconda@v3.0.1
+    - uses: conda-incubator/setup-miniconda@v3.1.1
       with:
+        channels: conda-forge
+        channel-priority: true
         activate-environment: upload
+        miniforge-version: latest
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
@@ -172,7 +175,6 @@ jobs:
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        # Pin urllib3<2 due to github.com/Anaconda-Platform/anaconda-client/issues/654
-        conda install -y anaconda-client 'urllib3<2.0.0'
+        conda install -y anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels

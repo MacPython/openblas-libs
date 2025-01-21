@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT: "v0.3.28"
+        - OPENBLAS_COMMIT: "v0.3.29"
         - REPO_DIR=OpenBLAS
 
 sudo: required
@@ -11,36 +11,6 @@ services: docker
 
 matrix:
   include:
-    - os: linux
-      arch: arm64
-      env:
-        - PLAT=aarch64
-        - MB_ML_VER=_1_1
-        - INTERFACE64=0
-        - MB_ML_LIBC=musllinux
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    - os: linux
-      arch: arm64
-      env:
-        - PLAT=aarch64
-        - INTERFACE64=1
-        - MB_ML_VER=_1_1
-        - MB_ML_LIBC=musllinux
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    - os: linux
-      arch: arm64
-      env:
-        - PLAT=aarch64
-        - MB_ML_VER=2014
-        - INTERFACE64=0
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
-    - os: linux
-      arch: arm64
-      env:
-        - PLAT=aarch64
-        - INTERFACE64=1
-        - MB_ML_VER=2014
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: s390x
       env:
@@ -93,7 +63,7 @@ script:
 after_success:
     - set +ex
     - sudo chmod -R a+w /home/travis/.cache
-    - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.8.0
+    - pip install -q git+https://github.com/Anaconda-Platform/anaconda-client@1.13.0
     # Upload libraries to the shared staging area on anaconda.org
     - sudo chmod -R a+w dist
     - source tools/upload_to_anaconda_staging.sh
