@@ -1,6 +1,6 @@
 :: Build script for scipy_openblas wheel on Windows on ARM64
 
-:: Usage: build_openblas.sh [build_bits]
+:: Usage: build_steps_win_arm64.bat [build_bits]
 :: e.g build_steps_win_arm64.bat 64
 
 :: BUILD_BITS  (default binary architecture, 32 or 64, unspec -> 64).
