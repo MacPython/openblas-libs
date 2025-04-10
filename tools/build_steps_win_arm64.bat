@@ -7,6 +7,11 @@
 :: Expects these binaries on the PATH:
 :: clang-cl, flang-new, cmake, perl
 
+:: First commit containing WoA build fixes.
+:: Minimum OpenBLAS commit to build; we'll update to this if commit not
+:: present.
+set first_woa_buildable_commit="de2380e5a6149706a633322a16a0f66faa5591fc"
+
 @echo off
 setlocal enabledelayedexpansion
 
@@ -18,31 +23,24 @@ if "%1"=="" (
 echo Building for %BUILD_BIT%-bit configuration...
  
 :: Define destination directory
-move "..\local\scipy_openblas64" "..\local\scipy_openblas32"
-set "DEST_DIR=%CD%\..\local\scipy_openblas32"
-cd ..
+set ob_out_root=%CD%\local\scipy_openblas
+set ob_64="%ob_out_root%64"
+set ob_32="%ob_out_root%32"
+if exist %ob_64% copy %ob_64% %ob_32%
+set DEST_DIR=%ob_32%
+
+:: Clone OpenBLAS
+echo Cloning OpenBLAS repository with submodules...
+git submodule update --init --recursive OpenBLAS
+if errorlevel 1 exit /b 1
  
-:: Check if 'openblas' folder exists and is empty
-if exist "openblas" (
-    dir /b "openblas" | findstr . >nul
-    if errorlevel 1 (
-        echo OpenBLAS folder exists but is empty. Deleting and recloning...
-        rmdir /s /q "openblas"
-    )
+:: Enter OpenBLAS directory and checkout buildable commit
+cd OpenBLAS
+git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
+if errorlevel 1 (
+    echo Updating to WoA buildable commit for OpenBLAS
+    git checkout %first_woa_buildable_commit%
 )
- 
-:: Clone OpenBLAS if not present
-if not exist "openblas" (
-    echo Cloning OpenBLAS repository with submodules...
-    git clone --recursive https://github.com/OpenMathLib/OpenBLAS.git OpenBLAS
-    if errorlevel 1 exit /b 1
-)
- 
-:: Enter OpenBLAS directory and checkout develop branch
-cd openblas
-git checkout develop
- 
-echo Checked out to the latest branch of OpenBLAS.
  
 :: Create build directory and navigate to it
 if not exist build mkdir build
@@ -76,7 +74,7 @@ powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace
 :: Prepare destination directory
 cd OpenBLAS/build
 echo Preparing destination directory at %DEST_DIR%...
-if not exist "%DEST_DIR%\lib\cmake\openblas" mkdir "%DEST_DIR%\lib\cmake\openblas"
+if not exist "%DEST_DIR%\lib\cmake\OpenBLAS" mkdir "%DEST_DIR%\lib\cmake\OpenBLAS"
 if not exist "%DEST_DIR%\include" mkdir "%DEST_DIR%\include"
  
 :: Move library files
