@@ -23,10 +23,11 @@ if "%1"=="" (
 echo Building for %BUILD_BIT%-bit configuration...
  
 :: Define destination directory
+pushd "%~dp0\.."
 set ob_out_root=%CD%\local\scipy_openblas
 set ob_64="%ob_out_root%64"
 set ob_32="%ob_out_root%32"
-if exist %ob_64% copy %ob_64% %ob_32%
+if exist %ob_64% xcopy %ob_64% %ob_32% /I /Y
 set DEST_DIR=%ob_32%
 
 :: Clone OpenBLAS
@@ -43,8 +44,8 @@ if errorlevel 1 (
 )
  
 :: Create build directory and navigate to it
-if not exist build mkdir build
-cd build
+if exist build (rmdir /S /Q build || exit /b 1)
+mkdir build || exit /b 1 & cd build || exit /b 1
  
 echo Setting up ARM64 Developer Command Prompt and running CMake...
  
@@ -97,7 +98,7 @@ if exist openblasconfigversion.cmake copy /Y openblasconfigversion.cmake "%DEST_
 :: Copy header files
 echo Copying generated header files...
 if exist generated xcopy /E /Y generated "%DEST_DIR%\include\"
-if exist lapacke_mangling copy /Y lapacke_mangling "%DEST_DIR%\include\"
+if exist lapacke_mangling.h copy /Y lapacke_mangling.h "%DEST_DIR%\include\"
 if exist openblas_config.h copy /Y openblas_config.h "%DEST_DIR%\include\"
 
  
@@ -111,6 +112,7 @@ cd ../..
  
 :: Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel...
+python -c "import build" 2>NUL || pip install build
 python -m build
 if errorlevel 1 exit /b 1
  
