@@ -24,11 +24,11 @@ echo Building for %BUILD_BIT%-bit configuration...
  
 :: Define destination directory
 pushd "%~dp0\.."
-set ob_out_root=%CD%\local\scipy_openblas
-set ob_64="%ob_out_root%64"
-set ob_32="%ob_out_root%32"
-if exist %ob_64% xcopy %ob_64% %ob_32% /I /Y
-set DEST_DIR=%ob_32%
+set "ob_out_root=%CD%\local\scipy_openblas"
+set "ob_64=%ob_out_root%64"
+set "ob_32=%ob_out_root%32"
+if exist "%ob_64%" xcopy "%ob_64%" "%ob_32%" /I /Y
+set "DEST_DIR=%ob_32%"
 
 :: Clone OpenBLAS
 echo Cloning OpenBLAS repository with submodules...
