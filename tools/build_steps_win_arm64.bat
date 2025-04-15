@@ -66,7 +66,8 @@ echo Build complete. Returning to Batch.
 :: Rewrite the name of the project to scipy-openblas32
 echo Rewrite to scipy_openblas32
 cd ../..
-powershell -Command "(Get-Content 'pyproject.toml') -replace 'openblas64', 'openblas32' | Set-Content 'pyproject.toml'"
+set out_pyproject=pyproject_64_32.toml
+powershell -Command "(Get-Content 'pyproject.toml') -replace 'openblas64', 'openblas32' | Set-Content %out_pyproject%
 powershell -Command "(Get-Content 'local\scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__main__.py' -Encoding utf8"
 powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
 powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
@@ -113,9 +114,12 @@ cd ../..
 :: Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel...
 python -c "import build" 2>NUL || pip install build
+move /Y  pyproject.toml pyproject.toml.bak
+move /Y  %out_pyproject% pyproject.toml
 python -m build
 if errorlevel 1 exit /b 1
- 
+move /Y pyproject.toml.bak pyproject.toml
+
 :: Locate the built wheel
 for /f %%f in ('dir /b dist\scipy_openblas*.whl 2^>nul') do set WHEEL_FILE=dist\%%f
  
