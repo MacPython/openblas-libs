@@ -7,6 +7,11 @@
 :: Expects these binaries on the PATH:
 :: clang-cl, flang-new, cmake, perl
 
+:: First commit containing WoA build fixes.
+:: Minimum OpenBLAS commit to build; we'll update to this if commit not
+:: present.
+set first_woa_buildable_commit="de2380e5a6149706a633322a16a0f66faa5591fc"
+
 @echo off
 setlocal enabledelayedexpansion
 
@@ -18,35 +23,29 @@ if "%1"=="" (
 echo Building for %BUILD_BIT%-bit configuration...
  
 :: Define destination directory
-move "..\local\scipy_openblas64" "..\local\scipy_openblas32"
-set "DEST_DIR=%CD%\..\local\scipy_openblas32"
-cd ..
+pushd "%~dp0\.."
+set "ob_out_root=%CD%\local\scipy_openblas"
+set "ob_64=%ob_out_root%64"
+set "ob_32=%ob_out_root%32"
+if exist "%ob_64%" xcopy "%ob_64%" "%ob_32%" /I /Y
+set "DEST_DIR=%ob_32%"
+
+:: Clone OpenBLAS
+echo Cloning OpenBLAS repository with submodules...
+git submodule update --init --recursive OpenBLAS
+if errorlevel 1 exit /b 1
  
-:: Check if 'openblas' folder exists and is empty
-if exist "openblas" (
-    dir /b "openblas" | findstr . >nul
-    if errorlevel 1 (
-        echo OpenBLAS folder exists but is empty. Deleting and recloning...
-        rmdir /s /q "openblas"
-    )
+:: Enter OpenBLAS directory and checkout buildable commit
+cd OpenBLAS
+git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
+if errorlevel 1 (
+    echo Updating to WoA buildable commit for OpenBLAS
+    git checkout %first_woa_buildable_commit%
 )
- 
-:: Clone OpenBLAS if not present
-if not exist "openblas" (
-    echo Cloning OpenBLAS repository with submodules...
-    git clone --recursive https://github.com/OpenMathLib/OpenBLAS.git OpenBLAS
-    if errorlevel 1 exit /b 1
-)
- 
-:: Enter OpenBLAS directory and checkout develop branch
-cd openblas
-git checkout develop
- 
-echo Checked out to the latest branch of OpenBLAS.
  
 :: Create build directory and navigate to it
-if not exist build mkdir build
-cd build
+if exist build (rmdir /S /Q build || exit /b 1)
+mkdir build || exit /b 1 & cd build || exit /b 1
  
 echo Setting up ARM64 Developer Command Prompt and running CMake...
  
@@ -67,7 +66,8 @@ echo Build complete. Returning to Batch.
 :: Rewrite the name of the project to scipy-openblas32
 echo Rewrite to scipy_openblas32
 cd ../..
-powershell -Command "(Get-Content 'pyproject.toml') -replace 'openblas64', 'openblas32' | Set-Content 'pyproject.toml'"
+set out_pyproject=pyproject_64_32.toml
+powershell -Command "(Get-Content 'pyproject.toml') -replace 'openblas64', 'openblas32' | Set-Content %out_pyproject%
 powershell -Command "(Get-Content 'local\scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__main__.py' -Encoding utf8"
 powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
 powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
@@ -76,7 +76,7 @@ powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace
 :: Prepare destination directory
 cd OpenBLAS/build
 echo Preparing destination directory at %DEST_DIR%...
-if not exist "%DEST_DIR%\lib\cmake\openblas" mkdir "%DEST_DIR%\lib\cmake\openblas"
+if not exist "%DEST_DIR%\lib\cmake\OpenBLAS" mkdir "%DEST_DIR%\lib\cmake\OpenBLAS"
 if not exist "%DEST_DIR%\include" mkdir "%DEST_DIR%\include"
  
 :: Move library files
@@ -99,7 +99,7 @@ if exist openblasconfigversion.cmake copy /Y openblasconfigversion.cmake "%DEST_
 :: Copy header files
 echo Copying generated header files...
 if exist generated xcopy /E /Y generated "%DEST_DIR%\include\"
-if exist lapacke_mangling copy /Y lapacke_mangling "%DEST_DIR%\include\"
+if exist lapacke_mangling.h copy /Y lapacke_mangling.h "%DEST_DIR%\include\"
 if exist openblas_config.h copy /Y openblas_config.h "%DEST_DIR%\include\"
 
  
@@ -113,9 +113,13 @@ cd ../..
  
 :: Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel...
+python -c "import build" 2>NUL || pip install build
+move /Y  pyproject.toml pyproject.toml.bak
+move /Y  %out_pyproject% pyproject.toml
 python -m build
 if errorlevel 1 exit /b 1
- 
+move /Y pyproject.toml.bak pyproject.toml
+
 :: Locate the built wheel
 for /f %%f in ('dir /b dist\scipy_openblas*.whl 2^>nul') do set WHEEL_FILE=dist\%%f
  
