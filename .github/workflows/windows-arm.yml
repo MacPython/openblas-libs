@@ -1,0 +1,97 @@
+name: Windows-on-ARM
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  OPENBLAS_COMMIT: "v0.3.29"
+  OPENBLAS_ROOT: "c:\\opt"
+  # Preserve working directory for calls into bash
+  # Without this, invoking bash will cd to the home directory
+  CHERE_INVOKING: "yes"
+  BASH_PATH: "C:\\Program Files\\Git\\bin\\bash.exe"
+  PLAT: arm64
+  INTERFACE64: 0
+  BUILD_BITS: 32
+
+jobs:
+  build:
+    runs-on: windows-11-arm
+    timeout-minutes: 90
+
+    steps:
+
+    - uses: actions/checkout@v4.1.1
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+        architecture: arm64
+
+    - name: Setup visual studio
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Download, install 7zip.
+      run: |
+        Invoke-WebRequest https://www.7-zip.org/a/7z2409-arm64.exe -UseBasicParsing -OutFile 7z_arm.exe
+        Start-Process -FilePath ".\7z_arm.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\7-Zip" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Download and install LLVM installer
+      run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.5/LLVM-19.1.5-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Update CMake for WoA
+      run: |
+        pip install cmake
+        get-command cmake
+
+    - name: Build
+      run: |
+        git submodule update --init --recursive
+        .\tools\build_steps_win_arm64.bat
+
+    - name: Pack
+      run: |
+        cd local
+        cp -r "scipy_openblas${env:BUILD_BITS}" $env:BUILD_BITS
+        7z a ../builds/openblas-${env:PLAT}-${env:INTERFACE64}.zip -tzip $env:BUILD_BITS
+
+    - name: Test 32-bit interface wheel
+      run: |
+        python -m pip install --no-index --find-links dist scipy_openblas32
+        python -m scipy_openblas32
+        python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
+
+    - uses: actions/upload-artifact@v4.3.0
+      with:
+        name: wheels-${{ env.PLAT }}-${{ env.INTERFACE64 }}
+        path: dist/scipy_openblas*.whl
+
+    - uses: actions/upload-artifact@v4.3.0
+      with:
+        name: openblas-${{ env.PLAT }}-${{ env.INTERFACE64 }}
+        path: builds/openblas*.zip
+
+    - name: Install Anaconda client
+      run: |
+        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
+        .\rustup-init.exe -y
+        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
+        pip install anaconda-client
+
+    - name: Upload
+      # see https://github.com/marketplace/actions/setup-miniconda for why
+      # `-el {0}` is required.
+      shell: bash -el {0}
+      env:
+       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+      run: |
+        source tools/upload_to_anaconda_staging.sh
+        upload_wheels
