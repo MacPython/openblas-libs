@@ -16,11 +16,11 @@ set first_woa_buildable_commit="de2380e5a6149706a633322a16a0f66faa5591fc"
 setlocal enabledelayedexpansion
 
 if "%1"=="" (
-    set BUILD_BIT=64
+    set BUILD_BITS=64
 ) else (
-    set BUILD_BIT=%1
+    set BUILD_BITS=%1
 )
-echo Building for %BUILD_BIT%-bit configuration...
+echo Building for %BUILD_BITS%-bit configuration...
  
 :: Define destination directory
 pushd "%~dp0\.."
@@ -54,7 +54,7 @@ for /f "usebackq tokens=*" %%i in (`"C:\Program Files (x86)\Microsoft Visual Stu
  
 :: Run CMake and Ninja build
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DTARGET=ARMV8 -DBUILD_SHARED_LIBS=ON -DARCH=arm64 ^
--DBINARY=%BUILD_BIT% -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_C_COMPILER=clang-cl ^
+-DBINARY=%BUILD_BITS% -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_C_COMPILER=clang-cl ^
 -DCMAKE_Fortran_COMPILER=flang-new -DSYMBOLPREFIX="scipy_" -DLIBNAMEPREFIX="scipy_"
 if errorlevel 1 exit /b 1
  
