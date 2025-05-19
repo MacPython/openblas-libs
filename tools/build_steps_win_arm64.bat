@@ -32,7 +32,7 @@ if "%2"=="" (
 ) else (
     set "if_bits=%2"
 )
-echo Building for %build_bits%-bit configuration...
+echo Building for %build_bits%-bit binary, %if_bits%-bit interface...
  
 :: Define destination directory
 pushd "%~dp0\.."
