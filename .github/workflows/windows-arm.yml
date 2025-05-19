@@ -81,6 +81,7 @@ jobs:
 
     - name: Install Anaconda client
       run: |
+        # Rust installation needed for rpds-py.
         Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
         .\rustup-init.exe -y
         $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
