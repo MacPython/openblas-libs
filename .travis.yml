@@ -5,11 +5,10 @@ env:
         - OPENBLAS_COMMIT: "v0.3.29-265-gb5456c1b"
         - REPO_DIR=OpenBLAS
 
-sudo: required
 dist: jammy
 services: docker
 
-matrix:
+jobs:
   include:
     - os: linux
       arch: s390x
