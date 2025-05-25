@@ -47,10 +47,11 @@ install:
     # Maybe get and clean and patch source
     - |
       if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
-        clean_code $REPO_DIR develop
+        clean_code_local $REPO_DIR develop
       else
-        clean_code $REPO_DIR $OPENBLAS_COMMIT
+        clean_code_local $REPO_DIR $OPENBLAS_COMMIT
       fi
+      echo done install step
 
 script:
     # Build library and collect into libs subdirectory
