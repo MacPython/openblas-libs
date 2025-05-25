@@ -38,11 +38,17 @@ function clean_code_local {
     # XXX no need to do this
     # fill_submodule "$repo_dir"
     pushd $repo_dir
+    echo in $repo_dir
     git fetch origin --tags
+    echo after git fetch origin
     git checkout $build_commit
+    echo after git checkout $build_commit
     git clean -fxd 
+    echo after git clean
     git reset --hard
+    echo after git reset
     git submodule update --init --recursive
+    echo after git submodule update
     popd
 }
 
