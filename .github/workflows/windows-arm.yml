@@ -14,13 +14,23 @@ env:
   CHERE_INVOKING: "yes"
   BASH_PATH: "C:\\Program Files\\Git\\bin\\bash.exe"
   PLAT: arm64
-  INTERFACE64: 0
-  BUILD_BITS: 32
 
 jobs:
   build:
     runs-on: windows-11-arm
     timeout-minutes: 90
+
+    strategy:
+      matrix:
+        include:
+          - INTERFACE64: 1
+            BUILD_BITS: 64
+          - INTERFACE64: 0
+            BUILD_BITS: 32
+
+    env:
+      INTERFACE64: ${{ matrix.INTERFACE64 }}
+      BUILD_BITS: ${{ matrix.BUILD_BITS }}
 
     steps:
 
@@ -55,7 +65,7 @@ jobs:
     - name: Build
       run: |
         git submodule update --init --recursive
-        .\tools\build_steps_win_arm64.bat
+        if ($env:INTERFACE64 -eq "1") { .\tools\build_steps_win_arm64.bat 64 64 } else { .\tools\build_steps_win_arm64.bat }
 
     - name: Pack
       run: |
@@ -63,11 +73,11 @@ jobs:
         cp -r "scipy_openblas${env:BUILD_BITS}" $env:BUILD_BITS
         7z a ../builds/openblas-${env:PLAT}-${env:INTERFACE64}.zip -tzip $env:BUILD_BITS
 
-    - name: Test 32-bit interface wheel
+    - name: Test ${{ matrix.BUILD_BITS }}-bit interface wheel
       run: |
-        python -m pip install --no-index --find-links dist scipy_openblas32
-        python -m scipy_openblas32
-        python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
+        python -m pip install --no-index --find-links dist scipy_openblas${env:BUILD_BITS}
+        python -m scipy_openblas${env:BUILD_BITS}
+        python -c "import scipy_openblas${env:BUILD_BITS}; print(scipy_openblas${env:BUILD_BITS}.get_pkg_config())"
 
     - uses: actions/upload-artifact@v4.3.0
       with:
