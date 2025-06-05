@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 from textwrap import dedent
-
+import platform
 
 _HERE = Path(__file__).resolve().parent
 
@@ -68,8 +68,11 @@ def get_pkg_config(use_preloading=False):
     ``f"-L{get_library()}" so that at runtime this module must be imported before
     the target module
     """
+    machine = platform.machine().lower()
+    extralib = ""
     if sys.platform == "win32":
-        extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
+        if machine != "arm64":
+            extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
         libs_flags = f"-L${{libdir}} -l{get_library()}"
     else:
         extralib = f"-lm -lpthread -lgfortran -lquadmath -L${{libdir}} -l{get_library()}"
