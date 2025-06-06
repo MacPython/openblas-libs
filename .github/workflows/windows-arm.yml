@@ -22,15 +22,10 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - INTERFACE64: 1
-            BUILD_BITS: 64
-          - INTERFACE64: 0
-            BUILD_BITS: 32
+        INTERFACE64: ['1', '0']
 
     env:
       INTERFACE64: ${{ matrix.INTERFACE64 }}
-      BUILD_BITS: ${{ matrix.BUILD_BITS }}
 
     steps:
 
@@ -62,22 +57,30 @@ jobs:
         pip install cmake
         get-command cmake
 
+    - name: Set env variables
+      run: |
+        if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
+          echo "INTERFACE_BITS=64" >> $env:GITHUB_ENV
+        } else {
+          echo "INTERFACE_BITS=32" >> $env:GITHUB_ENV
+        }
+
     - name: Build
       run: |
         git submodule update --init --recursive
-        if ($env:INTERFACE64 -eq "1") { .\tools\build_steps_win_arm64.bat 64 64 } else { .\tools\build_steps_win_arm64.bat }
+        .\tools\build_steps_win_arm64.bat 64 ${env:INTERFACE_BITS}
 
     - name: Pack
       run: |
         cd local
-        cp -r "scipy_openblas${env:BUILD_BITS}" $env:BUILD_BITS
-        7z a ../builds/openblas-${env:PLAT}-${env:INTERFACE64}.zip -tzip $env:BUILD_BITS
+        cp -r "scipy_openblas${env:INTERFACE_BITS}" $env:INTERFACE_BITS
+        7z a ../builds/openblas-${env:PLAT}-${env:INTERFACE64}.zip -tzip $env:INTERFACE_BITS
 
-    - name: Test ${{ matrix.BUILD_BITS }}-bit interface wheel
+    - name: Test ${{ matrix.INTERFACE_BITS }}-bit interface wheel
       run: |
-        python -m pip install --no-index --find-links dist scipy_openblas${env:BUILD_BITS}
-        python -m scipy_openblas${env:BUILD_BITS}
-        python -c "import scipy_openblas${env:BUILD_BITS}; print(scipy_openblas${env:BUILD_BITS}.get_pkg_config())"
+        python -m pip install --no-index --find-links dist scipy_openblas${env:INTERFACE_BITS}
+        python -m scipy_openblas${env:INTERFACE_BITS}
+        python -c "import scipy_openblas${env:INTERFACE_BITS}; print(scipy_openblas${env:INTERFACE_BITS}.get_pkg_config())"
 
     - uses: actions/upload-artifact@v4.3.0
       with:
