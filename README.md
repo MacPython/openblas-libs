@@ -1,7 +1,24 @@
-# OpenBLAS
+# Wheels containing OpenBLAS
 
-We build OpenBLAS on Travis-CI (for linux aarch64, ppc64, s390x) and github actions
-for linux, windows, macOS x86_64 and macOS arm64.
+1. The primary purposes of the scipy-openblas32 and scipy-openblas64 wheels are:
+   - (a) to use them as build and runtime dependencies in CI and local development for NumPy and SciPy
+   - (b) to be vendored into NumPy and SciPy wheels
+   - (c) possibly, in the future, being used as runtime dependencies for NumPy
+       and/or SciPy.
+2. Other Python projects are also welcome to use these wheels for 1(a) and 1(b).
+   - Please note that there is no strong guarantee of backwards compatibility
+     for the symbol names nor the small Python API shipped in the wheels to
+     enable linking against the shared library. If you want to use them, you
+     should probably use `==` pins in the relevant CI/lock files, like NumPy
+     and SciPy also do.
+
+> [!WARNING]
+> Please do not add a runtime dependency on these wheels if you're not
+> NumPy or SciPy. This is not supported and likely to lead to breakage or symbol
+> conflicts due to either changes in this repository or due to NumPy or SciPy
+> starting to depend on a particular version of this package.
+
+# OpenBLAS library build process
 
 First, tarballs are built using `do_build_lib` in `tools/build_steps.sh` (on
 posix in a docker and drectly on macos) or `build_openblas.sh` on windows.
@@ -34,4 +51,4 @@ project like SciPy or NumPy:
 ## Runtime
 
 - importing will load openblas into the executable and provide the openblas
-  symbols.
+  symbols to the exectuable.
