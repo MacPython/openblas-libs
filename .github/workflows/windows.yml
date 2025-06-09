@@ -112,6 +112,8 @@ jobs:
         else
             rm -rf local/scipy_openblas64/32
         fi
+        sed -e "s/bin/lib/" -i local/scipy_openblas64/lib/cmake/openblas/OpenBLASConfig.cmake
+        sed -e "s/dll/lib/" -i local/scipy_openblas64/lib/cmake/openblas/OpenBLASConfig.cmake
         if [[ "${INTERFACE64}" != "1" ]]; then
             mv local/scipy_openblas64 local/scipy_openblas32
             # rewrite the name of the project to scipy-openblas32
