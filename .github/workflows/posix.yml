@@ -96,12 +96,9 @@ jobs:
     - name: Setup clang from homebrew
       if: ${{ matrix.os == 'macos-13' }}
       run: |
-        brew reinstall gcc
-        brew install coreutils
-        brew install llvm
+        brew reinstall gcc@14
         ver=$(ls /usr/local/Cellar/gcc)
         cc=$(ls /usr/local/Cellar/gcc/$ver/bin/gcc-1*)
-        echo "/usr/local/Cellar/gcc/$ver/bin" >>$GITHUB_PATH
         echo "CC=$cc" >> $GITHUB_ENV;
         echo "RANLIB=/usr/bin/ranlib" >> $GITHUB_ENV;
       
@@ -110,6 +107,7 @@ jobs:
       run: |
         echo "PLAT: ${PLAT}"
         echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
+        echo "CC: ${CC}"
     - name: Install VirtualEnv
       run: |
         python3 -m pip install --upgrade pip
