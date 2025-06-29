@@ -99,7 +99,9 @@ jobs:
         brew reinstall gcc
         brew install coreutils
         brew install llvm
-        echo "CC=/opt/homebrew/opt/llvm/bin/clang" >> $GITHUB_ENV;
+        ls /usr/local/opt/llvm/bin
+        echo "/usr/local/opt/llvm/bin" >>$GITHUB_PATH
+        echo "CC=/usr/local/opt/llvm/bin/clang" >> $GITHUB_ENV;
 
     - name: Print some Environment variable
       run: |
