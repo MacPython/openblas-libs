@@ -207,11 +207,6 @@ function do_build_lib {
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
     fi
     echo start building
-    echo "========== gcc ============="
-    echo path $PATH
-    echo gcc path $(which gcc)
-    echo gcc version $(gcc --version)
-    echo "========== gcc ============="
     if [ "$dynamic_list" != "" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \

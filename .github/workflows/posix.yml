@@ -99,9 +99,11 @@ jobs:
         brew reinstall gcc
         brew install coreutils
         brew install llvm
-        ls /usr/local/opt/llvm/bin
+        ls /usr/local/Cellar/llvm
         echo "/usr/local/opt/llvm/bin" >>$GITHUB_PATH
         echo "CC=/usr/local/opt/llvm/bin/clang" >> $GITHUB_ENV;
+        echo "RANLIB=/usr/bin/ranlib" >> $GITHUB_ENV;
+      
 
     - name: Print some Environment variable
       run: |
@@ -164,9 +166,19 @@ jobs:
         name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: libs/openblas*.tar.gz
 
-    - uses: conda-incubator/setup-miniconda@v3.2.0
+    - name: install micromamba
+      uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b
       with:
-        conda-remove-defaults: true
+        # for installation of anaconda-client, required for upload to
+        # anaconda.org
+        # Note that this step is *after* specific pythons have been used to
+        # build and test the wheel
+        # for installation of anaconda-client, for upload to anaconda.org
+        # environment will be activated after creation, and in future bash steps
+        init-shell: bash
+        environment-name: upload-env
+        create-args: >-
+          anaconda-client
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
@@ -175,6 +187,5 @@ jobs:
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        conda install -y -c conda-forge anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels
