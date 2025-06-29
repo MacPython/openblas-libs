@@ -97,8 +97,8 @@ jobs:
       if: ${{ matrix.os == 'macos-13' }}
       run: |
         brew reinstall gcc@14
-        ver=$(ls /usr/local/Cellar/gcc)
-        cc=$(ls /usr/local/Cellar/gcc/$ver/bin/gcc-1*)
+        ver=$(ls /usr/local/Cellar/gcc@14)
+        cc=$(ls /usr/local/Cellar/gcc@14/$ver/bin/gcc-1*)
         echo "CC=$cc" >> $GITHUB_ENV;
         echo "RANLIB=/usr/bin/ranlib" >> $GITHUB_ENV;
       
