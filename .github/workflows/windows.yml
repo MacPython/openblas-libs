@@ -164,12 +164,6 @@ jobs:
         python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
 
     - uses: conda-incubator/setup-miniconda@v3.2.0
-      with:
-        channels: conda-forge
-        channel-priority: true
-        activate-environment: upload
-        miniforge-version: latest
-        conda-remove-default: true
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
@@ -178,6 +172,6 @@ jobs:
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        conda install -y anaconda-client
+        conda install -y -c conda-forge anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels

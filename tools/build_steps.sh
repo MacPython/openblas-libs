@@ -200,7 +200,6 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
-    echo start building
     if [ "$plat" == "loongarch64" ]; then
         # https://github.com/OpenMathLib/OpenBLAS/blob/develop/.github/workflows/loongarch64.yml#L65
         echo -n > utest/test_dsdot.c
@@ -221,10 +220,11 @@ function do_build_lib {
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     fi
-    echo ========== gcc =============
-    which gcc
-    gcc --version
-    echo ========== gcc =============
+    echo start building
+    echo "========== gcc ============="
+    echo gcc path $(which gcc)
+    echo gcc version $(gcc --version)
+    echo "========== gcc ============="
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     if [ "$nightly" = "1" ]; then
