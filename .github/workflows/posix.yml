@@ -161,12 +161,13 @@ jobs:
         name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: libs/openblas*.tar.gz
 
-    - uses: conda-incubator/setup-miniconda@v3.1.1
+    - uses: conda-incubator/setup-miniconda@v3.2.0
       with:
         channels: conda-forge
         channel-priority: true
         activate-environment: upload
         miniforge-version: latest
+        conda-remove-defaults: true
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why

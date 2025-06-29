@@ -207,7 +207,7 @@ function do_build_lib {
         echo "Due to the qemu versions 7.2 causing utest cases to fail,"
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
     fi
-    if [ -v dynamic_list ]; then
+    if [ "$dynamic_list" != "" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
