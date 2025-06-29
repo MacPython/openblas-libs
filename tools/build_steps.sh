@@ -186,7 +186,7 @@ function do_build_lib {
             local interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
             local symbolsuffix="64_";
             if [ -n "$IS_OSX" ]; then
-                $PWD/objconv/objconv --help
+                $PWD/objconv/objconv -h
             fi
             ;;
         *)
@@ -221,6 +221,10 @@ function do_build_lib {
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     fi
+    echo ========== gcc =============
+    which gcc
+    gcc --version
+    echo ========== gcc =============
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     if [ "$nightly" = "1" ]; then
