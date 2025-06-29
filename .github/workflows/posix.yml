@@ -163,6 +163,8 @@ jobs:
         path: libs/openblas*.tar.gz
 
     - uses: conda-incubator/setup-miniconda@v3.2.0
+      with:
+        conda-remove-defaults: true
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why

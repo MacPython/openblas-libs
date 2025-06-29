@@ -164,6 +164,8 @@ jobs:
         python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
 
     - uses: conda-incubator/setup-miniconda@v3.2.0
+      with:
+        conda-remove-defaults: true
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
