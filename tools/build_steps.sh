@@ -206,6 +206,12 @@ function do_build_lib {
         echo "Due to the qemu versions 7.2 causing utest cases to fail,"
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
     fi
+    echo start building
+    echo "========== gcc ============="
+    echo path $PATH
+    echo gcc path $(which gcc)
+    echo gcc version $(gcc --version)
+    echo "========== gcc ============="
     if [ "$dynamic_list" != "" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
@@ -220,11 +226,6 @@ function do_build_lib {
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     fi
-    echo start building
-    echo "========== gcc ============="
-    echo gcc path $(which gcc)
-    echo gcc version $(gcc --version)
-    echo "========== gcc ============="
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     if [ "$nightly" = "1" ]; then
