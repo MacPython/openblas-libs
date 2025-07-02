@@ -168,6 +168,7 @@ function do_build_lib {
         Darwin-arm64)
             local bitness=64
             local target="VORTEX"
+            CFLAGS="$CFLAGS -ftrapping-math"
             ;;
         *-s390x)
             local bitness=64
