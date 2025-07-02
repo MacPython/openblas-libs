@@ -65,8 +65,8 @@ function build_openblas {
     # Build OpenBLAS
     set -xeo pipefail
     if [ "$PLAT" == "arm64" ]; then
-      sudo xcode-select -switch /Applications/Xcode_12.5.1.app
-      export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
+      sudo xcode-select -switch /Applications/Xcode_15.4.0.app
+      export SDKROOT=/Applications/Xcode_15.4.0-app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
       clang --version
     fi
     source tools/build_steps.sh
