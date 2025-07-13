@@ -1,17 +1,16 @@
 # Build script for manylinux and OSX
 BUILD_PREFIX=/usr/local
-# OSX gfortran archive
-GFORTRAN_DMG="archives/gfortran-4.9.0-Mavericks.dmg"
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 source ${ROOT_DIR}/multibuild/common_utils.sh
-source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
 MB_PYTHON_VERSION=3.9
 
 function before_build {
     # Manylinux Python version set in build_lib
     if [ -n "$IS_OSX" ]; then
+        sudo mkdir -p /usr/local/lib
+        sudo chmod 777 /usr/local/lib
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
         source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
@@ -89,7 +88,6 @@ function build_lib {
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
-    #     GFORTRAN_DMG
     #     MB_ML_VER
     set -x
     local plat=${1:-$PLAT}
