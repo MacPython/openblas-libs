@@ -97,7 +97,7 @@ function build_lib {
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
-        wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
+        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
         return
     fi
     # Manylinux wrapper
@@ -166,7 +166,8 @@ function do_build_lib {
         Darwin-arm64)
             local bitness=64
             local target="VORTEX"
-            CFLAGS="$CFLAGS -ftrapping-math"
+            CFLAGS="$CFLAGS -ftrapping-math -mmacosx-version-min=11.0"
+            MACOSX_DEPLOYMENT_TARGET="11.0"
             ;;
         *-s390x)
             local bitness=64
