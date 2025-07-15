@@ -11,6 +11,7 @@ function before_build {
     if [ -n "$IS_OSX" ]; then
         sudo mkdir -p /usr/local/lib
         sudo chmod 777 /usr/local/lib
+        touch /usr/local/lib/.dir_exists
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
         source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
@@ -153,6 +154,7 @@ function do_build_lib {
             local target="CORE2"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+            CFLAGS="$CFLAGS -arch x86_64"
             ;;
         *-i686)
             local bitness=32
