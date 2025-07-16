@@ -14,10 +14,12 @@ function before_build {
         touch /usr/local/lib/.dir_exists
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
-        source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
         # Since install_fortran uses `uname -a` to determine arch,
         # force the architecture
-        arch -${PLAT} install_gfortran
+        arch -${PLAT} bash -s << EOF
+source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
+install_gfortran
+EOF
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
