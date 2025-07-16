@@ -159,6 +159,7 @@ function do_build_lib {
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
+            export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-i686)
             local bitness=32
@@ -172,8 +173,9 @@ function do_build_lib {
         Darwin-arm64)
             local bitness=64
             local target="VORTEX"
-            CFLAGS="$CFLAGS -ftrapping-math -mmacosx-version-min=11.0"
+            CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
             MACOSX_DEPLOYMENT_TARGET="11.0"
+            export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-s390x)
             local bitness=64
