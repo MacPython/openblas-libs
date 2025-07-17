@@ -12,6 +12,9 @@ function before_build {
         sudo mkdir -p /usr/local/lib
         sudo chmod 777 /usr/local/lib
         touch /usr/local/lib/.dir_exists
+        sudo mkdir -p /usr/local/include
+        sudo chmod 777 /usr/local/include
+        touch /usr/local/include/.dir_exists
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
         # Since install_fortran uses `uname -a` to determine arch,
