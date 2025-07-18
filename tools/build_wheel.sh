@@ -101,10 +101,15 @@ if [ "${PLAT}" == "arm64" ]; then
     exit 0
 fi
 # Test that the wheel works with a different python
+PYTHON=python3.11
+if [ $(uname) == "Darwin" ] -a [ "${PLAT}" == "x86_64" ]; then
+    which python3.11
+    PYTHON="arch -x86_64 python3.11"
+fi
 if [ "${INTERFACE64}" != "1" ]; then
-  python3.11 -m pip install --no-index --find-links dist scipy_openblas32
-  python3.11 -m scipy_openblas32
+  $PYTHON -m pip install --no-index --find-links dist scipy_openblas32
+  $PYTHON -m scipy_openblas32
 else
-  python3.11 -m pip install --no-index --find-links dist scipy_openblas64
-  python3.11 -m scipy_openblas64
+  $PYTHON -m pip install --no-index --find-links dist scipy_openblas64
+  $PYTHON -m scipy_openblas64
 fi

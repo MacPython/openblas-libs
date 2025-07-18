@@ -9,12 +9,16 @@ MB_PYTHON_VERSION=3.9
 function before_build {
     # Manylinux Python version set in build_lib
     if [ -n "$IS_OSX" ]; then
-        sudo mkdir -p /usr/local/lib
-        sudo chmod 777 /usr/local/lib
-        touch /usr/local/lib/.dir_exists
-        sudo mkdir -p /usr/local/include
-        sudo chmod 777 /usr/local/include
-        touch /usr/local/include/.dir_exists
+        if [ ! -e /usr/local/lib ]; then
+            sudo mkdir -p /usr/local/lib
+            sudo chmod 777 /usr/local/lib
+            touch /usr/local/lib/.dir_exists
+        fi
+        if [ ! -e /usr/local/include ]; then
+            sudo mkdir -p /usr/local/include
+            sudo chmod 777 /usr/local/include
+            touch /usr/local/include/.dir_exists
+        fi
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
         # Since install_fortran uses `uname -a` to determine arch,
@@ -179,6 +183,7 @@ function do_build_lib {
             CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
             MACOSX_DEPLOYMENT_TARGET="11.0"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-s390x)
             local bitness=64

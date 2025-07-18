@@ -4,7 +4,10 @@
 set -e
 
 # Set extra env
-if [[ $(uname -m) == "x86_64" ]]; then
+if [[ $(uname) == "Darwin" ]]; then
+    # Force x86_64
+    export PLAT=x86_64
+elif [[ $(uname -m) == "x86_64" ]]; then
     echo got x86_64
     export TRAVIS_OS_NAME=ubuntu-latest
     export PLAT=x86_64
@@ -64,11 +67,6 @@ function build_openblas {
     fi
     # Build OpenBLAS
     set -xeo pipefail
-    if [ "$PLAT" == "arm64" ]; then
-      sudo xcode-select -switch /Applications/Xcode_12.5.1.app
-      export SDKROOT=/Applications/Xcode_12.5.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
-      clang --version
-    fi
     source tools/build_steps.sh
     echo "------ BEFORE BUILD ---------"
     before_build
