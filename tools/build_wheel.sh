@@ -102,7 +102,7 @@ if [ "${PLAT}" == "arm64" ]; then
 fi
 # Test that the wheel works with a different python
 PYTHON=python3.11
-if [ $(uname) == "Darwin" ] -a [ "${PLAT}" == "x86_64" ]; then
+if [ "$(uname)" == "Darwin" -a "${PLAT}" == "x86_64" ]; then
     which python3.11
     PYTHON="arch -x86_64 python3.11"
 fi
