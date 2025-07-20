@@ -1,21 +1,32 @@
 # Build script for manylinux and OSX
 BUILD_PREFIX=/usr/local
-# OSX gfortran archive
-GFORTRAN_DMG="archives/gfortran-4.9.0-Mavericks.dmg"
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 source ${ROOT_DIR}/multibuild/common_utils.sh
-source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
 MB_PYTHON_VERSION=3.9
 
 function before_build {
     # Manylinux Python version set in build_lib
     if [ -n "$IS_OSX" ]; then
+        if [ ! -e /usr/local/lib ]; then
+            sudo mkdir -p /usr/local/lib
+            sudo chmod 777 /usr/local/lib
+            touch /usr/local/lib/.dir_exists
+        fi
+        if [ ! -e /usr/local/include ]; then
+            sudo mkdir -p /usr/local/include
+            sudo chmod 777 /usr/local/include
+            touch /usr/local/include/.dir_exists
+        fi
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
-        source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
-        install_gfortran
+        # Since install_fortran uses `uname -a` to determine arch,
+        # force the architecture
+        arch -${PLAT} bash -s << EOF
+source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
+install_gfortran
+EOF
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
@@ -89,7 +100,6 @@ function build_lib {
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
-    #     GFORTRAN_DMG
     #     MB_ML_VER
     set -x
     local plat=${1:-$PLAT}
@@ -99,7 +109,7 @@ function build_lib {
     # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
-        wrap_wheel_builder do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
+        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
         return
     fi
     # Manylinux wrapper
@@ -155,6 +165,8 @@ function do_build_lib {
             local target="CORE2"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+            CFLAGS="$CFLAGS -arch x86_64"
+            export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-i686)
             local bitness=32
@@ -168,7 +180,10 @@ function do_build_lib {
         Darwin-arm64)
             local bitness=64
             local target="VORTEX"
-            CFLAGS="$CFLAGS -ftrapping-math"
+            CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
+            MACOSX_DEPLOYMENT_TARGET="11.0"
+            export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-s390x)
             local bitness=64
@@ -208,7 +223,7 @@ function do_build_lib {
         echo "Due to the qemu versions 7.2 causing utest cases to fail,"
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
     fi
-    if [ -v dynamic_list ]; then
+    if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
