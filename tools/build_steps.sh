@@ -176,6 +176,7 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target="ARMV8"
+            CFLAGS="$CFLAGS -DBUILD_BFLOAT16=0"
             ;;
         Darwin-arm64)
             local bitness=64
