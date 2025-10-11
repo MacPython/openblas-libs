@@ -132,7 +132,7 @@ jobs:
           version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
           sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
         fi
-        if [ "macos-latest" == "${{ matrix.os }}" ]; then
+        if [[ "${{ matrix.os }}" =~ "macos" ]]; then
           source tools/build_wheel.sh
         else
           libc=${MB_ML_LIBC:-manylinux}
