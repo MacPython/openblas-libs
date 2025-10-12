@@ -21,14 +21,8 @@ function before_build {
         fi
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
-        # Since install_fortran uses `uname -a` to determine arch,
-        # force the architecture
-        arch -${PLAT} bash -s << EOF
-source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
-install_gfortran
-EOF
-        # Deployment target set by gfortran_utils
-        echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
+
+        alias gfortran gfortran-15
 
         # Build the objconv tool
         (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
@@ -166,6 +160,7 @@ function do_build_lib {
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
+            export MACOSX_DEPLOYMENT_TARGET="11.0"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-i686)
@@ -181,7 +176,7 @@ function do_build_lib {
             local bitness=64
             local target="VORTEX"
             CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
-            MACOSX_DEPLOYMENT_TARGET="11.0"
+            export MACOSX_DEPLOYMENT_TARGET="11.0"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
