@@ -22,7 +22,7 @@ function before_build {
         source ${ROOT_DIR}/multibuild/osx_utils.sh
         get_macpython_environment ${MB_PYTHON_VERSION} venv
 
-        alias gfortran gfortran-15
+        alias gfortran=gfortran-15
 
         # Build the objconv tool
         (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
