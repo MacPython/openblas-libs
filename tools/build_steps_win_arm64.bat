@@ -93,6 +93,9 @@ echo Setting up ARM64 Developer Command Prompt and running CMake...
 :: Initialize VS ARM64 environment
 for /f "usebackq tokens=*" %%i in (`"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvarsall.bat" arm64
  
+:: Prefer LLVM flang
+PATH=C:\Program Files\LLVM\bin;%PATH%
+
 :: Run CMake and Ninja build
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_THREADS=1 -DNUM_THREADS=24 -DTARGET=ARMV8 -DBUILD_SHARED_LIBS=ON -DARCH=arm64 ^
 -DBINARY=%build_bits% -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_C_COMPILER=clang-cl ^
