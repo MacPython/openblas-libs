@@ -158,9 +158,9 @@ function do_build_lib {
             local bitness=64
             local target="CORE2"
             # Pick up the gfortran runtime libraries
-            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+            # export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
-            export MACOSX_DEPLOYMENT_TARGET="11.0"
+            export MACOSX_DEPLOYMENT_TARGET="10.9"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-i686)
