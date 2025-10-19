@@ -2,9 +2,26 @@
 BUILD_PREFIX=/usr/local
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
-source ${ROOT_DIR}/multibuild/common_utils.sh
 
 MB_PYTHON_VERSION=3.9
+
+function any_python {
+    for cmd in $PYTHON_EXE python3 python; do
+        if [ -n "$(type -t $cmd)" ]; then
+            echo $cmd
+            return
+        fi
+    done
+    echo "Could not find python or python3"
+    exit 1
+}
+
+function get_os {
+    # Report OS as given by uname
+    # Use any Python that comes to hand.
+    $(any_python) -c 'import platform; print(platform.uname()[0])'
+}
+
 
 function before_build {
     # Manylinux Python version set in build_lib
@@ -19,12 +36,13 @@ function before_build {
             sudo chmod 777 /usr/local/include
             touch /usr/local/include/.dir_exists
         fi
-        source ${ROOT_DIR}/multibuild/osx_utils.sh
-        get_macpython_environment ${MB_PYTHON_VERSION} venv
+        # get_macpython_environment ${MB_PYTHON_VERSION} venv
+        python3.9 -m venv venv
+        source venv/bin/activate
         # Since install_fortran uses `uname -a` to determine arch,
         # force the architecture
         arch -${PLAT} bash -s << EOF
-source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
+source tools/gfortran_utils.sh
 install_gfortran
 EOF
         # Deployment target set by gfortran_utils
@@ -115,18 +133,19 @@ function build_lib {
     # Manylinux wrapper
     local libc=${MB_ML_LIBC:-manylinux}
     local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
-    docker pull $docker_image
-    # Docker sources this script, and runs `do_build_lib`
-    docker run --rm \
-        -e BUILD_PREFIX="$BUILD_PREFIX" \
-        -e PLAT="${plat}" \
-        -e INTERFACE64="${interface64}" \
-        -e NIGHTLY="${nightly}" \
-        -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
-        -e MB_ML_VER=${manylinux} \
-        -e MB_ML_LIBC=${libc} \
-        -v $PWD:/io \
-        $docker_image /io/tools/docker_build_wrap.sh
+    # docker pull $docker_image
+    # # Docker sources this script, and runs `do_build_lib`
+    # docker run --rm \
+    #     -e BUILD_PREFIX="$BUILD_PREFIX" \
+    #     -e PLAT="${plat}" \
+    #     -e INTERFACE64="${interface64}" \
+    #     -e NIGHTLY="${nightly}" \
+    #     -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
+    #     -e MB_ML_VER=${manylinux} \
+    #     -e MB_ML_LIBC=${libc} \
+    #     -v $PWD:/io \
+    #     $docker_image /io/tools/docker_build_wrap.sh
+    bash ./tools/docker_build_wrap.sh
 }
 
 function patch_source {

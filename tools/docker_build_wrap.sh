@@ -5,6 +5,6 @@
 set -e
 
 # Change into root directory of repo
-cd /io
+# cd /io
 source tools/build_steps.sh
 do_build_lib "$PLAT" "" "$INTERFACE64" "$NIGHTLY"

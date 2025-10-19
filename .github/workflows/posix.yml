@@ -23,106 +23,55 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        PLAT: [i686, x86_64]
-        INTERFACE64: ['0', '1']
-        MB_ML_VER: ['2014']
-        MB_ML_LIBC: ['manylinux']
         include:
-          - os: macos-latest
-            PLAT: arm64
-            INTERFACE64: '1'
-          - os: macos-latest
-            PLAT: arm64
-            INTERFACE64: '0'
-          - os: ubuntu-latest
-            PLAT: x86_64
-            INTERFACE64: '1'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_2
-          - os: ubuntu-latest
-            PLAT: x86_64
-            INTERFACE64: '0'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_2
+          - { os: ubuntu-latest, PLAT: i686, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - os: ubuntu-24.04-arm
-            PLAT: aarch64
-            INTERFACE64: '0'
-            MB_ML_VER: '2014'
-          - os: ubuntu-24.04-arm
-            PLAT: aarch64
-            INTERFACE64: '1'
-            MB_ML_VER: '2014'
-          - os: ubuntu-24.04-arm
-            PLAT: aarch64
-            INTERFACE64: '0'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_2
-          - os: ubuntu-24.04-arm
-            PLAT: aarch64
-            INTERFACE64: '1'
-            MB_ML_LIBC: musllinux
-            MB_ML_VER: _1_2
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-        exclude:
-          - PLAT: i686
-            os: macos-latest
-          - PLAT: i686
-            INTERFACE64: '1'
+          - { os: macos-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+
+          - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-      MB_PYTHON_VERSION: ${{ matrix.python-version }}
-      TRAVIS_PYTHON_VERSION: ${{ matrix.python-version }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
       BUILD_DIR: ${{ github.workspace }}
       PLAT: ${{ matrix.PLAT }}
+      OS-NAME: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4.1.1
       with:
         submodules: recursive
         fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
+
     - name: Set extra env
       run: |
         echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
 
     - uses: maxim-lobanov/setup-xcode@v1.6.0
-      if: ${{ matrix.os == 'macos-latest' }}
+      if: ${{ contains(matrix.os, 'macos') }}
       with:
-        xcode-version: '15.4'
+        xcode-version: '16.0'
 
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
         echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
-    - name: Install VirtualEnv
-      run: |
-        python3 -m pip install --upgrade pip
-        pip install virtualenv
-    - name: Build OpenBLAS
-      run: |
-        set -xeo pipefail
-        source tools/build_steps.sh
-        echo "------ BEFORE BUILD ---------"
-        before_build
-        if [[ "$NIGHTLY" = "true" ]]; then
-          echo "------ CLEAN CODE --------"
-          clean_code $REPO_DIR develop
-          echo "------ BUILD LIB --------"
-          build_lib "$PLAT" "$INTERFACE64" "1"
-        else
-          echo "------ CLEAN CODE --------"
-          clean_code $REPO_DIR $OPENBLAS_COMMIT
-          echo "------ BUILD LIB --------"
-          build_lib "$PLAT" "$INTERFACE64" "0"
-        fi
 
     # - name: Setup tmate session
     #   if: ${{ failure() }}
@@ -130,34 +79,33 @@ jobs:
     #   with:
     #     limit-access-to-actor: true
 
-    - name: Build and test wheel
-      run: |
-        if [[ "$NIGHTLY" = "true" ]]; then
-          # Set the pyproject.toml version: convert v0.3.24-30-g138ed79f to 0.3.34.30
-          version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
-          sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
-        fi
-        if [ "macos-latest" == "${{ matrix.os }}" ]; then
-          source tools/build_wheel.sh
-        else
-          libc=${MB_ML_LIBC:-manylinux}
-          docker_image=quay.io/pypa/${libc}${MB_ML_VER}_${PLAT}
-          docker run --rm -e INTERFACE64="${INTERFACE64}" \
-            -e MB_ML_LIBC="${MB_ML_LIBC}" \
-            -v $(pwd):/openblas $docker_image \
-            /bin/bash -xe /openblas/tools/build_wheel.sh
-          sudo chmod -R a+w dist
-        fi
+    - name: Build and Test wheels
+      uses: pypa/cibuildwheel@v3.1.4
+      with:
+        output-dir: dist
+      env:
+        CIBW_ARCHS: ${{matrix.PLAT}}
+        CIBW_BUILD_VERBOSITY: 1
+        CIBW_BUILD:  "cp39-${{ matrix.MB_ML_LIBC }}_${{matrix.PLAT}}"
 
-    - uses: actions/upload-artifact@v4.3.0
+        CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+
+    - name: Upload wheels to artifacts
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: dist/scipy_openblas*.whl
 
-    - uses: actions/upload-artifact@v4.3.0
+
+    - name: Upload openblas to artifacts
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
-        path: libs/openblas*.tar.gz
+        path: dist/openblas*.tar.gz
 
     - uses: conda-incubator/setup-miniconda@v3.2.0
       with:

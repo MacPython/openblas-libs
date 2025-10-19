@@ -39,3 +39,20 @@ install_requires = "importlib-metadata ~= 1.0 ; python_version < '3.8'"
 
 [tool.setuptools.package-data]
 scipy_openblas64 = ["lib/*", "include/*", "lib/pkgconfig/*", "lib/cmake/openblas/*"]
+
+[tool.cibuildwheel]
+before-build = "bash ci-before-build.sh"
+repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
+test-command = "cd {package} && bash ci-test.sh "
+environment-pass = [
+  "REPO_DIR",
+  "OPENBLAS_COMMIT",
+  "MACOSX_DEPLOYMENT_TARGET",
+  "NIGHTLY",
+  "MB_ML_LIBC",
+  "MB_ML_VER",
+  "INTERFACE64",
+  "BUILD_DIR",
+  "PLAT",
+  "OS-NAME",
+]
