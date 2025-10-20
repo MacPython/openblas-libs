@@ -19,6 +19,8 @@ echo "Repairing wheel with auditwheel"
 auditwheel repair -w dist --lib-sdir /lib dist/*.whl
 echo "Wheel repaired."
 
+rm dist/*none-linux*.whl
+
 ls -l dist/
 
 # Add an RPATH to libgfortran:
