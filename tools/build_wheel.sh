@@ -15,7 +15,7 @@ source tools/build_prepare.sh
 $PYTHON -m pip wheel -w dist -v .
 
 auditwheel repair -w dist --lib-sdir /lib dist/*.whl
-rm dist/scipy_openblas*-none-any.whl
+
 # Add an RPATH to libgfortran:
 # https://github.com/pypa/auditwheel/issues/451
 if [ "$MB_ML_LIBC" == "musllinux" ]; then
