@@ -288,12 +288,49 @@ function do_build_lib {
         $BUILD_PREFIX/lib/cmake/openblas
 }
 
+
+function build_lib_on_travis {
+    # OSX or manylinux build
+    #
+    # Input arg
+    #     plat - one of i686, x86_64, arm64
+    #     interface64 - 1 if build with INTERFACE64 and SYMBOLSUFFIX
+    #     nightly - 1 if building for nightlies
+    #
+    # Depends on globals
+    #     BUILD_PREFIX - install suffix e.g. "/usr/local"
+    #     MB_ML_VER
+    set -x
+    local plat=${1:-$PLAT}
+    local interface64=${2:-$INTERFACE64}
+    local nightly=${3:0}
+    local manylinux=${MB_ML_VER:-1}
+
+    # Manylinux wrapper
+    local libc=${MB_ML_LIBC:-manylinux}
+    local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
+    docker pull $docker_image
+    # Docker sources this script, and runs `do_build_lib`
+    docker run --rm \
+        -e BUILD_PREFIX="$BUILD_PREFIX" \
+        -e PLAT="${plat}" \
+        -e INTERFACE64="${interface64}" \
+        -e NIGHTLY="${nightly}" \
+        -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
+        -e MB_ML_VER=${manylinux} \
+        -e MB_ML_LIBC=${libc} \
+        -v $PWD:/io \
+        $docker_image /io/tools/docker_build_wrap.sh
+}
+
+
+
 function build_on_travis {
     if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
-        build_lib "$PLAT" "$INTERFACE64" 1
+        build_lib_on_travis "$PLAT" "$INTERFACE64" 1
         version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
         sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
     else
-        build_lib "$PLAT" "$INTERFACE64" 0
+        build_lib_on_travis "$PLAT" "$INTERFACE64" 0
     fi
 }
