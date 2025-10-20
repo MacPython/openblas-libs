@@ -2,13 +2,17 @@
 # $INTERFACE64 ("1" or "0")
 # $PLAT (x86_64, i686, arm64, aarch64, s390x, ppc64le)
 
+# The code below is for Travis use only.
+
 set -xe
+
+if [[ ! -e tools/build_prepare.sh ]];then
+    cd /openblas
+fi
 
 source tools/build_prepare.sh
 
 $PYTHON -m pip wheel -w dist -v .
-
-# The code below is for Travis use only.
 
 auditwheel repair -w dist --lib-sdir /lib dist/*.whl
 rm dist/scipy_openblas*-none-any.whl
