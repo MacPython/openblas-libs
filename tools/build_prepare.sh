@@ -67,3 +67,6 @@ if [ "${INTERFACE64}" != "1" ]; then
 fi
 
 rm -rf dist/*
+
+
+echo "The build preparation is done."
