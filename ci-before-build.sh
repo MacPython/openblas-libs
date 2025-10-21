@@ -69,15 +69,6 @@ set -e
 MULTIBUILD_DIR=$(dirname "${BASH_SOURCE[0]}")
 DOWNLOADS_SDIR=downloads
 PYPY_URL=https://downloads.python.org/pypy
-# For back-compatibility.  We use the "ensurepip" module now
-# instead of get-pip.py
-GET_PIP_URL=https://bootstrap.pypa.io/get-pip.py
-
-# Unicode width, default 32. Used here and in travis_linux_steps.sh
-# In docker_build_wrap.sh it is passed in when calling "docker run"
-# The docker test images also use it when choosing the python to run
-# with, so it is passed in when calling "docker run" for tests.
-UNICODE_WIDTH=${UNICODE_WIDTH:-32}
 
 if [ $(uname) == "Darwin" ]; then
   IS_MACOS=1; IS_OSX=1;
@@ -105,22 +96,6 @@ shell_session_update() { :; }
 unset -f cd
 unset -f pushd
 unset -f popd
-
-function cmd_notexit {
-    # wraps a command, capturing its return code and preventing it
-    # from exiting the shell. Handles -e / +e modes.
-    # Parameters
-    #    cmd - command
-    #    any further parameters are passed to the wrapped command
-    # If called without an argument, it will exit the shell with an error
-    local cmd=$1
-    if [ -z "$cmd" ];then echo "no command"; exit 1; fi
-    if [[ $- = *e* ]]; then errexit_set=true; fi
-    set +e
-    ("${@:1}") ; retval=$?
-    [[ -n $errexit_set ]] && set -e
-    return $retval
-}
 
 # Build OpenBLAS
 source build-openblas.sh

@@ -39,12 +39,7 @@ function before_build {
         # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
-        # Since install_fortran uses `uname -a` to determine arch,
-        # force the architecture
-        arch -${PLAT} bash -s << EOF
-source tools/gfortran_utils.sh
-install_gfortran
-EOF
+        alias gfortran=gfortran-15
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
@@ -60,12 +55,6 @@ function clean_code_local {
     local build_commit=${2:-$BUILD_COMMIT}
     [ -z "$repo_dir" ] && echo "repo_dir not defined" && exit 1
     [ -z "$build_commit" ] && echo "build_commit not defined" && exit 1
-    # The package $repo_dir may be a submodule. git submodules do not
-    # have a .git directory. If $repo_dir is copied around, tools like
-    # Versioneer which require that it be a git repository are unable
-    # to determine the version.  Give submodule proper git directory
-    # XXX no need to do this
-    # fill_submodule "$repo_dir"
     pushd $repo_dir
     echo in $repo_dir
     git fetch origin --tags
@@ -124,28 +113,12 @@ function build_lib {
     local interface64=${2:-$INTERFACE64}
     local nightly=${3:0}
     local manylinux=${MB_ML_VER:-1}
-    # Make directory to store built archive
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
         do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
-        return
+    else
+        do_build_lib "$plat" "" "$interface64" "$nightly"
     fi
-    # Manylinux wrapper
-    local libc=${MB_ML_LIBC:-manylinux}
-    local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
-    # docker pull $docker_image
-    # # Docker sources this script, and runs `do_build_lib`
-    # docker run --rm \
-    #     -e BUILD_PREFIX="$BUILD_PREFIX" \
-    #     -e PLAT="${plat}" \
-    #     -e INTERFACE64="${interface64}" \
-    #     -e NIGHTLY="${nightly}" \
-    #     -e PYTHON_VERSION="$MB_PYTHON_VERSION" \
-    #     -e MB_ML_VER=${manylinux} \
-    #     -e MB_ML_LIBC=${libc} \
-    #     -v $PWD:/io \
-    #     $docker_image /io/tools/docker_build_wrap.sh
-    bash ./tools/docker_build_wrap.sh
 }
 
 function patch_source {
@@ -310,7 +283,7 @@ function build_lib_on_travis {
     local libc=${MB_ML_LIBC:-manylinux}
     local docker_image=quay.io/pypa/${libc}${manylinux}_${plat}
     docker pull $docker_image
-    # Docker sources this script, and runs `do_build_lib`
+    # run `do_build_lib` in the docker image
     docker run --rm \
         -e BUILD_PREFIX="$BUILD_PREFIX" \
         -e PLAT="${plat}" \
