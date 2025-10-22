@@ -1,0 +1,61 @@
+From fe2f02876134dcfdd75860c622226b6913eef93e Mon Sep 17 00:00:00 2001
+From: mattip <matti.picus@gmail.com>
+Date: Wed, 22 Oct 2025 14:40:01 +0300
+Subject: [PATCH] backout PR 4741
+
+---
+ driver/level3/level3_thread.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/driver/level3/level3_thread.c b/driver/level3/level3_thread.c
+index 22f27975b..0832db58b 100644
+--- a/driver/level3/level3_thread.c
++++ b/driver/level3/level3_thread.c
+@@ -588,8 +588,8 @@ static int gemm_driver(blas_arg_t *args, BLASLONG *range_m, BLASLONG
+   InitializeCriticalSection((PCRITICAL_SECTION)&level3_lock);
+ #else
+   static pthread_mutex_t  level3_lock    = PTHREAD_MUTEX_INITIALIZER;
+-  static pthread_cond_t  level3_wakeup    = PTHREAD_COND_INITIALIZER;
+-  volatile static BLASLONG CPU_AVAILABLE = MAX_CPU_NUMBER;
++  // static pthread_cond_t  level3_wakeup    = PTHREAD_COND_INITIALIZER;
++  // volatile static BLASLONG CPU_AVAILABLE = MAX_CPU_NUMBER;
+ #endif
+ 
+   blas_arg_t newarg;
+@@ -659,12 +659,12 @@ static int gemm_driver(blas_arg_t *args, BLASLONG *range_m, BLASLONG
+   EnterCriticalSection((PCRITICAL_SECTION)&level3_lock);
+ #else
+   pthread_mutex_lock(&level3_lock);
+-  while(CPU_AVAILABLE < nthreads) { 
+-    pthread_cond_wait(&level3_wakeup, &level3_lock);
+-  } 
+-  CPU_AVAILABLE -= nthreads;
+-  WMB;
+-  pthread_mutex_unlock(&level3_lock);
++  // while(CPU_AVAILABLE < nthreads) {
++  //   pthread_cond_wait(&level3_wakeup, &level3_lock);
++  // }
++  // CPU_AVAILABLE -= nthreads;
++  // WMB;
++  // pthread_mutex_unlock(&level3_lock);
+ #endif
+ 
+ #ifdef USE_ALLOC_HEAP
+@@ -816,10 +816,10 @@ static int gemm_driver(blas_arg_t *args, BLASLONG *range_m, BLASLONG
+ #elif defined(OS_WINDOWS)
+   LeaveCriticalSection((PCRITICAL_SECTION)&level3_lock);
+ #else
+-  pthread_mutex_lock(&level3_lock);
+-  CPU_AVAILABLE += nthreads;
+-  WMB;
+-  pthread_cond_signal(&level3_wakeup);
++  // pthread_mutex_lock(&level3_lock);
++  // CPU_AVAILABLE += nthreads;
++  // WMB;
++  // pthread_cond_signal(&level3_wakeup);
+   pthread_mutex_unlock(&level3_lock);
+ #endif
+ 
+-- 
+2.43.0
+
