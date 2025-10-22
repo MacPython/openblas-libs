@@ -16,28 +16,24 @@ jobs:
         - PLAT=s390x
         - MB_ML_VER=2014
         - INTERFACE64=0
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: s390x
       env:
         - PLAT=s390x
         - INTERFACE64=1
         - MB_ML_VER=2014
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: ppc64le
       env:
         - PLAT=ppc64le
         - MB_ML_VER=2014
         - INTERFACE64=0
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
     - os: linux
       arch: ppc64le
       env:
         - PLAT=ppc64le
         - INTERFACE64=1
         - MB_ML_VER=2014
-        - DOCKER_TEST_IMAGE=multibuild/xenial_{PLAT}
 
 before_install:
     - source tools/build_steps.sh

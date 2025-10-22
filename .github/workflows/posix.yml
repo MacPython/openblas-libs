@@ -59,10 +59,6 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-    - name: Set extra env
-      run: |
-        echo "DOCKER_TEST_IMAGE=$(echo multibuild/xenial_${{ matrix.PLAT}})" >> $GITHUB_ENV;
-
     - uses: maxim-lobanov/setup-xcode@v1.6.0
       if: ${{ contains(matrix.os, 'macos') }}
       with:
@@ -71,7 +67,6 @@ jobs:
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
-        echo "DOCKER_TEST_IMAGE: ${DOCKER_TEST_IMAGE}"
 
     # - name: Setup tmate session
     #   if: ${{ failure() }}

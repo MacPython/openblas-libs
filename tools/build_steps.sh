@@ -1,5 +1,5 @@
 # Build script for manylinux and OSX
-BUILD_PREFIX=/usr/local
+BUILD_PREFIX=${BUILD_PREFIX:-/usr/local}
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 
