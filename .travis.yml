@@ -3,7 +3,6 @@ env:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
         - OPENBLAS_COMMIT: "v0.3.30"
-        - REPO_DIR=OpenBLAS
 
 dist: jammy
 services: docker
@@ -43,9 +42,9 @@ install:
     # Maybe get and clean and patch source
     - |
       if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
-        clean_code_local $REPO_DIR develop
+        clean_code develop
       else
-        clean_code_local $REPO_DIR $OPENBLAS_COMMIT
+        clean_code $OPENBLAS_COMMIT
       fi
       echo done install step
 
