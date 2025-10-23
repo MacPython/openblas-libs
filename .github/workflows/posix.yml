@@ -10,7 +10,6 @@ on:
     - cron: '0 0 * * 0'
 
 env:
-  REPO_DIR: OpenBLAS
   OPENBLAS_COMMIT: "v0.3.30"
   MACOSX_DEPLOYMENT_TARGET: 10.9
 

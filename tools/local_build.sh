@@ -23,14 +23,14 @@ else
     # export PLAT=arm64
     export SUFFIX=gf_c469a42
 fi
-export REPO_DIR=OpenBLAS
-export OPENBLAS_COMMIT="develop"
+export OPENBLAS_COMMIT="v0.3.30"
 
 # export MB_ML_LIBC=musllinux
 # export MB_ML_VER=_1_2
 # export MB_ML_VER=2014
 export INTERFACE64=1
-# export BUILD_PREFIX=/tmp/openblas
-# mkdir -p $BUILD_PREFIX
+export BUILD_PREFIX=/tmp/openblas
+mkdir -p $BUILD_PREFIX
 
-bash ./build-openblas.sh
+ROOT_DIR=$(dirname $(dirname $0))
+bash ${ROOT_DIR}/build-openblas.sh

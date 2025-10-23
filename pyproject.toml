@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "scipy-openblas64"
 # v0.3.30
-version = "0.3.30.0.4"
+version = "0.3.30.0.5"
 requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
 readme = "README.md"
@@ -45,7 +45,6 @@ before-build = "bash ci-before-build.sh"
 repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
 test-command = "cd {package} && bash ci-test.sh "
 environment-pass = [
-  "REPO_DIR",
   "OPENBLAS_COMMIT",
   "MACOSX_DEPLOYMENT_TARGET",
   "NIGHTLY",
