@@ -47,11 +47,13 @@ source tools/build_steps.sh
 echo "------ BEFORE BUILD ---------"
 before_build
 
-if [[ "$NIGHTLY" = "true" ]]; then
+if [[ "$NIGHTLY" = "true" || ${TRAVIS_EVENT_TYPE} == "cron" ]] ; then
     echo "------ CLEAN CODE --------"
     clean_code develop
     echo "------ BUILD LIB --------"
-    build_lib "$PLAT" "$INTERFACE64" "1"
+    build_lib "$PLAT" "$INTERFACE64" 1
+    version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
+    sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
 else
     echo "------ CLEAN CODE --------"
     clean_code $OPENBLAS_COMMIT

@@ -1,0 +1,258 @@
+name: build-wheel
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: null
+  schedule:
+    - cron: '0 0 * * 0'
+
+env:
+  OPENBLAS_COMMIT: "v0.3.30"
+  MACOSX_DEPLOYMENT_TARGET: 10.9
+  OPENBLAS_ROOT: "c:\\opt"
+  # Preserve working directory for calls into bash
+  # Without this, invoking bash will cd to the home directory
+  CHERE_INVOKING: "yes"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, PLAT: i686, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+          - { os: macos-15-intel, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-15-intel, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+
+          - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+
+
+          - { os: windows-latest, PLAT: amd64, INTERFACE64: '1', MB_ML_LIBC: win}
+          - { os: windows-latest, PLAT: amd64, INTERFACE64: '0', MB_ML_LIBC: win}
+          - { os: windows-latest, PLAT: x86, INTERFACE64: '0', MB_ML_LIBC: win}
+
+          - { os: windows-11-arm, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: win}
+          - { os: windows-11-arm, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: win}
+
+    env:
+      NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+      MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
+      MB_ML_VER: ${{ matrix.MB_ML_VER }}
+      INTERFACE64: ${{ matrix.INTERFACE64 }}
+      BUILD_DIR: ${{ github.workspace }}
+      PLAT: ${{ matrix.PLAT }}
+      OS-NAME: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4.1.1
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - uses: maxim-lobanov/setup-xcode@v1.6.0
+      if: ${{ contains(matrix.os, 'macos') }}
+      with:
+        xcode-version: '16.0'
+
+    - name: Print some Environment variable
+      run: |
+        echo "PLAT: ${PLAT}"
+    - name: install-rtools
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        # rtools 42+ does not support 32 bits builds.
+        choco install -y rtools --no-progress --force --version=4.0.0.20220206
+
+    - name: Set env variables
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        echo "START_DIR=$PWD" >> $env:GITHUB_ENV
+        # For interpretation of MSYSTEM, see:
+        # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
+        if ( "${{ matrix.plat }}" -eq "x86") {
+          echo "PLAT=i686" >> $env:GITHUB_ENV
+          echo "WHEEL_PLAT=win32" >> $env:GITHUB_ENV
+          echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
+          # No ucrt on 32-bits, so use _snprintf_c instead
+          echo "LDFLAGS=-static -static-libgcc -Wl,--defsym,_quadmath_snprintf=__snprintf_c" >> $env:GITHUB_ENV
+          echo "BUILD_BITS=32" >> $env:GITHUB_ENV
+        } else {
+          echo "PLAT=x86_64" >> $env:GITHUB_ENV
+          echo "WHEEL_PLAT=win_amd64" >> $env:GITHUB_ENV
+          echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
+          echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
+          echo "BUILD_BITS=64" >> $env:GITHUB_ENV
+        }
+        if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
+          echo "INTERFACE64=1" >> $env:GITHUB_ENV
+        }
+        $CIBW = "${{ github.workspace }}/.openblas"
+        $CIBW = $CIBW.replace("\","/")
+        echo "CIBW_ENVIRONMENT_WINDOWS=PKG_CONFIG_PATH=$CIBW" >> $env:GITHUB_ENV
+
+    - name: Debug
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
+
+    - name: Setup visual studio
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Download, install 7zip.
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        Invoke-WebRequest https://www.7-zip.org/a/7z2409-arm64.exe -UseBasicParsing -OutFile 7z_arm.exe
+        Start-Process -FilePath ".\7z_arm.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\7-Zip" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Download and install LLVM installer
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.5/LLVM-19.1.5-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Update CMake for WoA
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        pip install cmake
+        get-command cmake
+    - name: Set env variables
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
+          echo "INTERFACE_BITS=64" >> $env:GITHUB_ENV
+        } else {
+          echo "INTERFACE_BITS=32" >> $env:GITHUB_ENV
+        }
+
+
+    # - name: Setup tmate session
+    #   if: ${{ failure() }}
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     limit-access-to-actor: true
+  
+    - name: Build OpenBLAS for Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+          Set-Item -Path env:BASH_PATH -Value "c:\\rtools40\\usr\\bin\\bash.exe"
+          # Build
+          & $env:BASH_PATH -lc tools/build_openblas.sh
+
+          # Test
+          & $env:BASH_PATH -lc tools/build_gfortran.sh
+          echo "Static test"
+          .\for_test\test.exe
+          echo "Dynamic test"
+          .\for_test\test_dyn.exe
+
+          # Copy
+          cp for_test\test*.exe builds
+
+          bash tools/build_wheel_prepare_for_win.sh
+    - name: Build OpenBLAS for Windows On ARM
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+          Set-Item -Path env:BASH_PATH -Value "C:\\Program Files\\Git\\bin\\bash.exe"
+          .\tools\build_steps_win_arm64.bat 64 ${env:INTERFACE_BITS}
+
+    - name: Set CIBW_BUILD
+      shell: bash
+      run: |
+        if [[ "${{ matrix.os }}" == "windows-latest" && "${{matrix.PLAT}}" == "x86" ]]; then
+          echo "CIBW_BUILD=cp39-${{ matrix.MB_ML_LIBC }}32" >> $GITHUB_ENV
+        else
+          echo "CIBW_BUILD=cp39-${{ matrix.MB_ML_LIBC }}_${{ matrix.PLAT }}" >> $GITHUB_ENV
+        fi
+
+    - name: Build and Test wheels
+      uses: pypa/cibuildwheel@v3.1.4
+      with:
+        output-dir: dist
+      env:
+        CIBW_BUILD_VERBOSITY: 1
+
+        CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+
+    - name: Upload wheels to artifacts
+      if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-latest' }}
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
+        path: dist/scipy_openblas*.whl
+
+
+    - name: Upload openblas to artifacts
+      if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'macos-latest' }}
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
+        path: dist/openblas*.tar.gz
+    - name: Pack
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        cd local
+        cp -r "scipy_openblas${env:INTERFACE_BITS}" $env:INTERFACE_BITS
+        7z a ../builds/openblas-${env:PLAT}-${env:INTERFACE64}.zip -tzip $env:INTERFACE_BITS
+
+    - uses: actions/upload-artifact@v4.3.0
+      if: ${{ matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm' }}
+      with:
+        name: wheels-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
+        path: dist/scipy_openblas*.whl
+
+    - uses: actions/upload-artifact@v4.3.0
+      if: ${{ matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm' }}
+      with:
+        name: openblas-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
+        path: builds/openblas*.zip
+    - name: Install Anaconda client
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        pip install anaconda-client
+
+    - uses: conda-incubator/setup-miniconda@v3.2.0
+      if: ${{ matrix.os != 'windows-11-arm' }}
+      with:
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: upload
+        miniforge-version: latest
+        conda-remove-defaults: "true"
+    - name: install anaconda client
+      if: ${{ matrix.os != 'windows-11-arm' }}
+      run: |
+        conda install anaconda-client
+    - name: Upload
+      # see https://github.com/marketplace/actions/setup-miniconda for why
+      # `-el {0}` is required.
+      shell: bash -el {0}
+      env:
+       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+      run: |
+        source tools/upload_to_anaconda_staging.sh
+        upload_wheels
