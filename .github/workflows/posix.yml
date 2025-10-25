@@ -10,7 +10,7 @@ on:
     - cron: '0 0 * * 0'
 
 env:
-  OPENBLAS_COMMIT: "v0.3.30"
+  OPENBLAS_COMMIT: "585e6d06802a0"
   MACOSX_DEPLOYMENT_TARGET: 10.9
 
 jobs:
@@ -28,8 +28,8 @@ jobs:
           - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
           - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: macos-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
-          - { os: macos-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+          - { os: macos-intel-15, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-intel-15, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
 
           - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
           - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
