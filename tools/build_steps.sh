@@ -39,10 +39,15 @@ function before_build {
         # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
-        alias gfortran=gfortran-15
-        echo "gfortran --version"
+
+        # Link to gfortran, see https://github.com/actions/runner-images/issues/3371
+        sudo ln -fs /opt/homebrew/bin/gfortran-${GCC_V} /usr/local/bin/gfortran
+        sudo mkdir -p /usr/local/gfortran
+        sudo ln -sf /opt/homebrew/Cellar/gcc@${GCC_V}/*/lib/gcc/${GCC_V} /usr/local/gfortran/lib
+        echo GFORTRAN
         which gfortran
         gfortran --version
+        echo --------
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
