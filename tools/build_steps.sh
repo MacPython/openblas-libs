@@ -152,7 +152,7 @@ function do_build_lib {
             local target="CORE2"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
-            CFLAGS="$CFLAGS -arch x86_64"
+            CFLAGS="$CFLAGS -arch x86_64 -Wno-shift-op-parentheses -Wno-logical-op-parentheses -Wno-deprecated-declarations"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-i686)
