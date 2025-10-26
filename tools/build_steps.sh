@@ -40,6 +40,9 @@ function before_build {
         python3.9 -m venv venv
         source venv/bin/activate
         alias gfortran=gfortran-15
+        echo "gfortran --version"
+        which gfortran
+        gfortran --version
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
@@ -152,7 +155,7 @@ function do_build_lib {
             local target="CORE2"
             # Pick up the gfortran runtime libraries
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
-            CFLAGS="$CFLAGS -arch x86_64 -Wno-shift-op-parentheses -Wno-logical-op-parentheses -Wno-deprecated-declarations"
+            export CFLAGS="$CFLAGS -arch x86_64 -Wno-shift-op-parentheses -Wno-logical-op-parentheses -Wno-deprecated-declarations"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-i686)
@@ -212,14 +215,14 @@ function do_build_lib {
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=0 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=0 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
