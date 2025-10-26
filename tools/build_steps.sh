@@ -41,6 +41,7 @@ function before_build {
         source venv/bin/activate
 
         # Link to gfortran, see https://github.com/actions/runner-images/issues/3371
+        GCC_V=15
         sudo ln -fs /opt/homebrew/bin/gfortran-${GCC_V} /usr/local/bin/gfortran
         sudo mkdir -p /usr/local/gfortran
         sudo ln -sf /opt/homebrew/Cellar/gcc@${GCC_V}/*/lib/gcc/${GCC_V} /usr/local/gfortran/lib
