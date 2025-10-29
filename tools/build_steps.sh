@@ -60,9 +60,9 @@ EOF
 
 function clean_code {
     set -ex
-    # Copied from common_utils.sh, with added debugging
     local build_commit=$1
     [ -z "$build_commit" ] && echo "build_commit not defined" && exit 1
+    git submodule update --init --recursive
     pushd OpenBLAS
     git fetch origin --tags
     echo after git fetch origin
@@ -70,8 +70,6 @@ function clean_code {
     echo after git checkout $build_commit
     git clean -fxd
     echo after git clean
-    git submodule update --init --recursive
-    echo after git submodule update
     popd
 }
 
