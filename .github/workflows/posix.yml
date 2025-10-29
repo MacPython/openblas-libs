@@ -28,8 +28,8 @@ jobs:
           - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
           - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: macos-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
-          - { os: macos-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+          - { os: macos-14, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-14, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
 
           - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
           - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
@@ -59,9 +59,14 @@ jobs:
         fetch-depth: 0
 
     - uses: maxim-lobanov/setup-xcode@v1.6.0
-      if: ${{ contains(matrix.os, 'macos') }}
+      if: ${{ matrix.os == 'macos-latest' }}
       with:
         xcode-version: '16.0'
+
+    - uses: maxim-lobanov/setup-xcode@v1.6.0
+      if: ${{ matrix.os == 'macos-14' }}
+      with:
+        xcode-version: '15.4'
 
     - name: Print some Environment variable
       run: |

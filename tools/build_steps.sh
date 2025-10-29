@@ -150,10 +150,18 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target="CORE2"
-            # Pick up the gfortran runtime libraries
+            # Use gfortran-11
+            unalias gfortran
+            # Since install_fortran uses `uname -a` to determine arch,
+            # force the architecture
+            arch -${PLAT} bash -s << EOF
+source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
+install_gfortran
+EOF
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
+            local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
         *-i686)
             local bitness=32
