@@ -39,12 +39,13 @@ function before_build {
         # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
+        # Since install_fortran uses `uname -a` to determine arch,
+        # force the architecture
+        arch -${PLAT} bash -s << EOF
+source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
+install_gfortran
+EOF
 
-        # Link to gfortran, see https://github.com/actions/runner-images/issues/3371
-        GCC_V=15
-        sudo ln -fs /opt/homebrew/bin/gfortran-${GCC_V} /usr/local/bin/gfortran
-        sudo mkdir -p /usr/local/gfortran
-        sudo ln -sf /opt/homebrew/Cellar/gcc@${GCC_V}/*/lib/gcc/${GCC_V} /usr/local/gfortran/lib
         echo GFORTRAN
         which gfortran
         gfortran --version
@@ -67,7 +68,7 @@ function clean_code {
     echo after git fetch origin
     git checkout $build_commit
     echo after git checkout $build_commit
-    git clean -fxd 
+    git clean -fxd
     echo after git clean
     git submodule update --init --recursive
     echo after git submodule update
@@ -221,14 +222,14 @@ function do_build_lib {
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=0 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=0 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
