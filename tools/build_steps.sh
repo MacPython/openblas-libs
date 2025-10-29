@@ -161,6 +161,7 @@ EOF
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
+            local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
         *-i686)
             local bitness=32
