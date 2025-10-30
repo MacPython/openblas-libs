@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  OPENBLAS_COMMIT: "v0.3.30"
+  OPENBLAS_COMMIT: "v0.3.30-322-gef6f9762"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
