@@ -37,15 +37,6 @@ jobs:
         python-version: 3.12
         architecture: arm64
 
-    - name: Setup visual studio
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Download, install 7zip.
-      run: |
-        Invoke-WebRequest https://www.7-zip.org/a/7z2409-arm64.exe -UseBasicParsing -OutFile 7z_arm.exe
-        Start-Process -FilePath ".\7z_arm.exe" -ArgumentList "/S" -Wait
-        echo "C:\Program Files\7-Zip" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
     - name: Download and install LLVM installer
       run: |
         Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
@@ -58,7 +49,7 @@ jobs:
           Invoke-WebRequest https://github.com/Kitware/CMake/releases/download/v3.29.4/cmake-3.29.4-windows-arm64.msi -OutFile cmake-arm64.msi
           Start-Process msiexec.exe -ArgumentList "/i cmake-arm64.msi /quiet /norestart" -Wait
           echo "C:\Program Files\CMake\bin" >> $env:GITHUB_PATH
-          
+
           Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-winarm64.zip -OutFile ninja-winarm64.zip
           Expand-Archive ninja-winarm64.zip -DestinationPath ninja
           Copy-Item ninja\ninja.exe -Destination "C:\Windows\System32"
@@ -76,12 +67,6 @@ jobs:
         git submodule update --init --recursive
         .\tools\build_steps_win_arm64.bat 64 ${env:INTERFACE_BITS}
 
-    - name: Pack
-      run: |
-        cd local
-        cp -r "scipy_openblas${env:INTERFACE_BITS}" $env:INTERFACE_BITS
-        7z a ../builds/openblas-${env:PLAT}-${env:INTERFACE64}.zip -tzip $env:INTERFACE_BITS
-
     - name: Test ${{ matrix.INTERFACE_BITS }}-bit interface wheel
       run: |
         python -m pip install --no-index --find-links dist scipy_openblas${env:INTERFACE_BITS}
@@ -92,11 +77,6 @@ jobs:
       with:
         name: wheels-${{ env.PLAT }}-${{ env.INTERFACE64 }}
         path: dist/scipy_openblas*.whl
-
-    - uses: actions/upload-artifact@v4.3.0
-      with:
-        name: openblas-${{ env.PLAT }}-${{ env.INTERFACE64 }}
-        path: builds/openblas*.zip
 
     - name: Install Anaconda client
       run: |
