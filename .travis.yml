@@ -2,7 +2,7 @@ env:
     global:
         # The archive that gets built has name from ``git describe`` on this
         # commit.
-        - OPENBLAS_COMMIT: "v0.3.30"
+        - OPENBLAS_COMMIT: "v0.3.30-322-gef6f9762"
 
 dist: jammy
 services: docker
