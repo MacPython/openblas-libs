@@ -131,7 +131,7 @@ jobs:
         cat tools/LICENSE_win32.txt >> LICENSE.txt
         python -m pip wheel -w dist -vv .
         # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
-		if [ -e dist/*any*.whl ]; then
+		if [[ -e dist/*any*.whl ]]; then
 		  for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
 		fi
 
