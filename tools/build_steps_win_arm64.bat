@@ -77,6 +77,10 @@ if errorlevel 1 (
     exit /b 2
 )
  
+:: Patch
+for /r %%f in (..\patches\*) do git am %%f
+if errorlevel 1 exit /b 1
+
 :: Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
     set "interface_flags=-DINTERFACE64=1 -DSYMBOLSUFFIX=64_"
@@ -98,7 +102,7 @@ PATH=C:\Program Files\LLVM\bin;%PATH%
 
 :: Run CMake and Ninja build
 
-set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage
+set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
 cmake .. -G Ninja ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DTARGET=ARMV8 ^
