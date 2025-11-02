@@ -175,8 +175,6 @@ EOF
             if [ "$MB_ML_VER" == "2014" ]; then
                 echo setting DYNAMIC_LIST for manylinux2014 to ARMV8 only
                 local dynamic_list="ARMV8"
-            else
-                local dynamic_list="ARMV8 CORTEXA53 NEOVERSEN1 NEOVERSEN2 VORTEX A64FX ARM9SME"
             fi
             ;;
         Darwin-arm64)
