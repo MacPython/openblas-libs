@@ -1,0 +1,35 @@
+From ef6f97624ba9a560f64e470ec339f469865fac33 Mon Sep 17 00:00:00 2001
+From: Martin Kroeker <martin@ruby.chemie.uni-freiburg.de>
+Date: Thu, 30 Oct 2025 11:12:47 -0700
+Subject: [PATCH 5/6] [WIP,Testing] remove the lock around the thread shutdown
+ function again (#5479)
+
+* remove the lock around the thread shutdown function - server is locked already here
+---
+ driver/others/blas_server.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/driver/others/blas_server.c b/driver/others/blas_server.c
+index 3d89803a6..4a3182354 100644
+--- a/driver/others/blas_server.c
++++ b/driver/others/blas_server.c
+@@ -984,8 +984,6 @@ int BLASFUNC(blas_thread_shutdown)(void){
+ 
+   int i;
+ 
+-  LOCK_COMMAND(&server_lock);
+-
+   //Free buffers allocated for threads
+   for(i=0; i<MAX_CPU_NUMBER; i++){
+     if(blas_thread_buffer[i]!=NULL){
+@@ -1025,7 +1023,6 @@ int BLASFUNC(blas_thread_shutdown)(void){
+     blas_server_avail = 0;
+ 
+   }
+-  UNLOCK_COMMAND(&server_lock);
+ 
+   return 0;
+ }
+-- 
+2.43.0
+
