@@ -78,7 +78,7 @@ if errorlevel 1 (
 )
  
 :: Patch
-for /r %%f in (..\patches\*) do git am %%f
+for /r %%f in (..\patches\*) do git apply %%f
 if errorlevel 1 exit /b 1
 
 :: Set suffixed-ILP64 flags
