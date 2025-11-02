@@ -171,6 +171,8 @@ EOF
         Linux-aarch64)
             local bitness=64
             local target="ARMV8"
+            # manylinux2014 image uses gcc-10, which miscompiles ARMV8SVE and up
+            local dynamic_list="ARMV8 CORTEXA53 NEOVERSEN1 NEOVERSEN2 VORTEX"
             ;;
         Darwin-arm64)
             local bitness=64
