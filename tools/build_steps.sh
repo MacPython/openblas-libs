@@ -181,11 +181,14 @@ EOF
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-s390x)
+            # The TargetList.txt has only ZARCH_GENERIC, Z13, Z14. Not worth
+            # messing with dynamic lists and targets.
             local bitness=64
             ;;
         *-ppc64le)
             local bitness=64
             local target="POWER8"
+            local dynamic_list="POWER8 POWER10"
             ;;
         Linux-loongarch64)
             local target="GENERIC"
