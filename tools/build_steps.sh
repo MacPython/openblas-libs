@@ -171,6 +171,11 @@ EOF
         Linux-aarch64)
             local bitness=64
             local target="ARMV8"
+            # manylinux2014 image uses gcc-10, which miscompiles ARMV8SVE and up
+            if [ "$MB_ML_VER" == "2014" ]; then
+                echo setting DYNAMIC_LIST for manylinux2014 to ARMV8 only
+                local dynamic_list="ARMV8"
+            fi
             ;;
         Darwin-arm64)
             local bitness=64
