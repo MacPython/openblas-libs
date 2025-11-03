@@ -74,7 +74,7 @@ jobs:
       with:
         xcode-version: '15.4'
 
-	- name: Set up QEMU
+    - name: Set up QEMU
       if: runner.os == 'Linux' && runner.arch == 'X64'
       uses: docker/setup-qemu-action@v3
       with:
