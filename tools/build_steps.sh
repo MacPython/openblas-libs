@@ -163,11 +163,14 @@ function do_build_lib {
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-s390x)
+            # The TargetList.txt has only ZARCH_GENERIC, Z13, Z14. Not worth
+            # messing with dynamic lists and targets.
             local bitness=64
             ;;
         *-ppc64le)
             local bitness=64
             local target="POWER8"
+            local dynamic_list="POWER8 POWER10"
             ;;
         Linux-loongarch64)
             local target="GENERIC"

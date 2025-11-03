@@ -46,6 +46,12 @@ jobs:
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
 
+          - { os: ubuntu-latest, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+          - { os: ubuntu-latest, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
@@ -70,6 +76,12 @@ jobs:
       if: ${{ matrix.os == 'macos-14' }}
       with:
         xcode-version: '15.4'
+
+    - name: Set up QEMU
+      if: runner.os == 'Linux' && runner.arch == 'X64'
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: all
 
     - name: Print some Environment variable
       run: |
