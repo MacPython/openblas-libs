@@ -1,7 +1,7 @@
 #! /bin/bash
 
 
-# Most of the content in this file comes from https://github.com/multi-build/multibuild, with some modifications 
+# Most of the content in this file comes from https://github.com/multi-build/multibuild, with some modifications
 # Follow the license below
 
 # .. _license:
@@ -48,6 +48,11 @@ if [[ "$NIGHTLY" = "true" ]]; then
     version=$(git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
     popd
     sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
+fi
+
+if [ "$(uname)" != "Darwin" ]; then
+  ./tools/install-static-clang.sh
+  export PATH=/opt/clang/bin:$PATH
 fi
 
 # Work round bug in travis xcode image described at

@@ -43,7 +43,7 @@ scipy_openblas64 = ["lib/*", "include/*", "lib/pkgconfig/*", "lib/cmake/openblas
 [tool.cibuildwheel]
 before-build = "bash ci-before-build.sh"
 repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
-test-command = "cd {package} && bash ci-test.sh "
+test-command = "cd {package} && bash ci-test.sh"
 environment-pass = [
   "OPENBLAS_COMMIT",
   "NIGHTLY",
@@ -53,4 +53,7 @@ environment-pass = [
   "BUILD_DIR",
   "PLAT",
   "OS-NAME",
+  "RUNNER_ARCH",
 ]
+[tool.cibuildwheel.linux]
+environment = { CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld" }
