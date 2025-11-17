@@ -10,7 +10,7 @@ on:
     - cron: '0 0 * * 0'
 
 env:
-  OPENBLAS_COMMIT: "v0.3.30-322-gef6f9762"
+  OPENBLAS_COMMIT: "v0.3.30-349-gf6df9beb"
   MACOSX_DEPLOYMENT_TARGET: 10.9
 
 jobs:
