@@ -77,6 +77,10 @@ if errorlevel 1 (
     exit /b 2
 )
  
+:: Patch
+for /r %%f in (..\patches\*) do git apply %%f
+if errorlevel 1 exit /b 1
+
 :: Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
     set "interface_flags=-DINTERFACE64=1 -DSYMBOLSUFFIX=64_"
@@ -91,18 +95,32 @@ mkdir build || exit /b 1 & cd build || exit /b 1
 echo Setting up ARM64 Developer Command Prompt and running CMake...
  
 :: Initialize VS ARM64 environment
-for /f "usebackq tokens=*" %%i in (`"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvarsall.bat" arm64
+CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
  
 :: Prefer LLVM flang
 PATH=C:\Program Files\LLVM\bin;%PATH%
 
 :: Run CMake and Ninja build
-cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DUSE_THREADS=1 -DNUM_THREADS=24 -DTARGET=ARMV8 -DBUILD_SHARED_LIBS=ON -DARCH=arm64 ^
--DBINARY=%build_bits% -DCMAKE_SYSTEM_PROCESSOR=ARM64 -DCMAKE_C_COMPILER=clang-cl ^
--DCMAKE_Fortran_COMPILER=flang-new -DSYMBOLPREFIX="scipy_" -DLIBNAMEPREFIX="scipy_" %interface_flags%
+
+set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
+cmake .. -G Ninja ^
+ -DCMAKE_BUILD_TYPE=Release ^
+ -DTARGET=ARMV8 ^
+ -DBINARY=%build_bits% ^
+ -DCMAKE_C_COMPILER=clang-cl ^
+ -DCMAKE_Fortran_COMPILER=flang-new ^
+ -DBUILD_SHARED_LIBS=ON ^
+ -DCMAKE_SYSTEM_PROCESSOR=arm64 ^
+ -DCMAKE_SYSTEM_NAME=Windows ^
+ -DSYMBOLPREFIX="scipy_" ^
+ -DLIBNAMEPREFIX="scipy_" ^
+ -DUSE_THREADS=1 ^
+ -DNUM_THREADS=24 ^
+ %interface_flags%
+
 if errorlevel 1 exit /b 1
 
-ninja
+ninja -j 16
 if errorlevel 1 exit /b 1
  
 echo Build complete. Returning to Batch.
