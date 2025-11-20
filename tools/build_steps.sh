@@ -44,7 +44,7 @@ function before_build {
         # force the architecture when using rosetta
         unalias gfortran || true
         arch -${PLAT} bash -s << "        EOF"
-            source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
+            source tools/gfortran_utils.sh
             install_gfortran
         EOF
         # Deployment target set by gfortran_utils
