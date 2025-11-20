@@ -84,6 +84,8 @@ function check_gfortran {
         echo Missing gfortran
         exit 1
     fi
+    echo gfortran version
+    gfortran --version
 }
 
 function get_gf_lib_for_suf {
@@ -101,6 +103,7 @@ function get_gf_lib_for_suf {
 }
 
 if [ "$(uname)" == "Darwin" ]; then
+    set -ex
     mac_target=${MACOSX_DEPLOYMENT_TARGET:-$(get_macosx_target)}
     export MACOSX_DEPLOYMENT_TARGET=$mac_target
     # Keep this for now as some builds might depend on this being
