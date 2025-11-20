@@ -105,29 +105,29 @@ if [ "$(uname)" == "Darwin" ]; then
     export MACOSX_DEPLOYMENT_TARGET=$mac_target
     # Keep this for now as some builds might depend on this being
     # available before install_gfortran is called
-    export GFORTRAN_SHA=c469a420d2d003112749dcdcbe3c684eef42127e
     # Set SDKROOT env variable if not set
     export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
 
     function download_and_unpack_gfortran {
 	local arch=$1
 	local type=$2
-        curl -L -O https://github.com/isuruf/gcc/releases/download/gcc-11.3.0-2/gfortran-darwin-${arch}-${type}.tar.gz
+        curl -L -O https://github.com/isuruf/gcc/releases/download/gcc-15.2.0/gfortran-darwin-${arch}-${type}.tar.gz
 	case ${arch}-${type} in
 	    arm64-native)
-	        export GFORTRAN_SHA=0d5c118e5966d0fb9e7ddb49321f63cac1397ce8
+	        export GFORTRAN_SHA=999a91eef894d32f99e3b641520bef9f475055067f301f0f1947b8b716b5922a
 		;;
 	    arm64-cross)
-		export GFORTRAN_SHA=527232845abc5af21f21ceacc46fb19c190fe804
+            export GFORTRAN_SHA=39ef2590629c2f238f1a67469fa429d8d6362425b277abb57fd2f3c982568a3f
 		;;
 	    x86_64-native)
-		export GFORTRAN_SHA=c469a420d2d003112749dcdcbe3c684eef42127e
+            export GFORTRAN_SHA=fb03c1f37bf0258ada6e3e41698e3ad416fff4dad448fd746e01d8ccf1efdc0f
 		;;
 	    x86_64-cross)
-		export GFORTRAN_SHA=107604e57db97a0ae3e7ca7f5dd722959752f0b3
+            export GFORTRAN_SHA=0a19ca91019a75501e504eed1cad2be6ea92ba457ec815beb0dd28652eb0ce3f
 		;;
+        *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
 	esac
-        if [[ "$(shasum gfortran-darwin-${arch}-${type}.tar.gz)" != "${GFORTRAN_SHA}  gfortran-darwin-${arch}-${type}.tar.gz" ]]; then
+        if [[ "$(sha256sum gfortran-darwin-${arch}-${type}.tar.gz)" != "${GFORTRAN_SHA}  gfortran-darwin-${arch}-${type}.tar.gz" ]]; then
             echo "shasum mismatch for gfortran-darwin-${arch}-${type}"
             exit 1
         fi
