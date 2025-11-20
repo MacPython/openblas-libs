@@ -109,26 +109,29 @@ if [ "$(uname)" == "Darwin" ]; then
     export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
 
     function download_and_unpack_gfortran {
-	local arch=$1
-	local type=$2
+        local arch=$1
+        local type=$2
         curl -L -O https://github.com/isuruf/gcc/releases/download/gcc-15.2.0/gfortran-darwin-${arch}-${type}.tar.gz
-	case ${arch}-${type} in
-	    arm64-native)
-	        export GFORTRAN_SHA=999a91eef894d32f99e3b641520bef9f475055067f301f0f1947b8b716b5922a
-		;;
-	    arm64-cross)
-            export GFORTRAN_SHA=39ef2590629c2f238f1a67469fa429d8d6362425b277abb57fd2f3c982568a3f
-		;;
-	    x86_64-native)
-            export GFORTRAN_SHA=fb03c1f37bf0258ada6e3e41698e3ad416fff4dad448fd746e01d8ccf1efdc0f
-		;;
-	    x86_64-cross)
-            export GFORTRAN_SHA=0a19ca91019a75501e504eed1cad2be6ea92ba457ec815beb0dd28652eb0ce3f
-		;;
-        *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
-	esac
-        if [[ "$(python3 tools/sha256sum.py gfortran-darwin-${arch}-${type}.tar.gz)" != "${GFORTRAN_SHA}  gfortran-darwin-${arch}-${type}.tar.gz" ]]; then
-            echo "shasum mismatch for gfortran-darwin-${arch}-${type}"
+        case ${arch}-${type} in
+            arm64-native)
+                local GFORTRAN_SHA=999a91eef894d32f99e3b641520bef9f475055067f301f0f1947b8b716b5922a
+            ;;
+            arm64-cross)
+                local export GFORTRAN_SHA=39ef2590629c2f238f1a67469fa429d8d6362425b277abb57fd2f3c982568a3f
+            ;;
+            x86_64-native)
+                local export GFORTRAN_SHA=fb03c1f37bf0258ada6e3e41698e3ad416fff4dad448fd746e01d8ccf1efdc0f
+            ;;
+            x86_64-cross)
+                local export GFORTRAN_SHA=0a19ca91019a75501e504eed1cad2be6ea92ba457ec815beb0dd28652eb0ce3f
+            ;;
+            *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
+        esac
+        local filesha=$(python3 tools/sha256sum.py gfortran-darwin-${arch}-${type}.tar.gz)
+        if [[ "$filesha" != "${GFORTRAN_SHA}" ]]; then
+            echo shasum mismatch for gfortran-darwin-${arch}-${type}
+            echo expected $GFORTRAN_SHA,
+            echo got      $filesha
             exit 1
         fi
         sudo mkdir -p /opt/
@@ -137,18 +140,18 @@ if [ "$(uname)" == "Darwin" ]; then
             sudo tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
             sudo rm gfortran-darwin-${arch}-${type}.tar.gz
         popd
-	if [[ "${type}" == "native" ]]; then
-	    # Link these into /usr/local so that there's no need to add rpath or -L
-	    for f in libgfortran.dylib libgfortran.5.dylib libgcc_s.1.dylib libgcc_s.1.1.dylib libquadmath.dylib libquadmath.0.dylib; do
-                ln -sf /opt/gfortran-darwin-${arch}-${type}/lib/$f /usr/local/lib/$f
+        if [[ "${type}" == "native" ]]; then
+            # Link these into /usr/local so that there's no need to add rpath or -L
+            for f in libgfortran.dylib libgfortran.5.dylib libgcc_s.1.dylib libgcc_s.1.1.dylib libquadmath.dylib libquadmath.0.dylib; do
+                    ln -sf /opt/gfortran-darwin-${arch}-${type}/lib/$f /usr/local/lib/$f
             done
-	    # Add it to PATH
-	    ln -sf /opt/gfortran-darwin-${arch}-${type}/bin/gfortran /usr/local/bin/gfortran
-	fi
+            # Add it to PATH
+            ln -sf /opt/gfortran-darwin-${arch}-${type}/bin/gfortran /usr/local/bin/gfortran
+        fi
     }
 
     function install_arm64_cross_gfortran {
-	download_and_unpack_gfortran arm64 cross
+        download_and_unpack_gfortran arm64 cross
         export FC_ARM64="$(find /opt/gfortran-darwin-arm64-cross/bin -name "*-gfortran")"
         local libgfortran="$(find /opt/gfortran-darwin-arm64-cross/lib -name libgfortran.dylib)"
         local libdir=$(dirname $libgfortran)
@@ -157,6 +160,7 @@ if [ "$(uname)" == "Darwin" ]; then
         if [[ "${PLAT:-}" == "arm64" ]]; then
             export FC=$FC_ARM64
         fi
+        check_gfortran
     }
     function install_gfortran {
         download_and_unpack_gfortran $(uname -m) native
@@ -170,6 +174,7 @@ if [ "$(uname)" == "Darwin" ]; then
         # Get lib with gfortran suffix
         get_gf_lib_for_suf "gf_${GFORTRAN_SHA:0:7}" $@
     }
+
 else
     function install_gfortran {
         # No-op - already installed on manylinux image
