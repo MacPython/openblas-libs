@@ -127,7 +127,7 @@ if [ "$(uname)" == "Darwin" ]; then
 		;;
         *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
 	esac
-        if [[ "$(sha256sum gfortran-darwin-${arch}-${type}.tar.gz)" != "${GFORTRAN_SHA}  gfortran-darwin-${arch}-${type}.tar.gz" ]]; then
+        if [[ "$(python3 tools/sha256sum.py gfortran-darwin-${arch}-${type}.tar.gz)" != "${GFORTRAN_SHA}  gfortran-darwin-${arch}-${type}.tar.gz" ]]; then
             echo "shasum mismatch for gfortran-darwin-${arch}-${type}"
             exit 1
         fi
