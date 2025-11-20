@@ -39,7 +39,16 @@ function before_build {
         # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
-        alias gfortran=gfortran-15
+        # Since install_fortran uses `uname -a` to determine arch,
+        # force the architecture
+        arch -${PLAT} bash -s << "        EOF"
+            set -ex
+            source tools/gfortran_utils.sh
+            install_gfortran
+        EOF
+        which gfortran
+        gfortran --version
+
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
