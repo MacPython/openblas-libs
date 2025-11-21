@@ -24,8 +24,18 @@ function get_os {
 
 
 function before_build {
-    # Manylinux Python version set in build_lib
+    if [ ! -e /usr/local/lib ]; then
+        sudo mkdir -p /usr/local/lib
+        sudo chmod 777 /usr/local/lib
+        touch /usr/local/lib/.dir_exists
+    fi
+    if [ ! -e /usr/local/include ]; then
+        sudo mkdir -p /usr/local/include
+        sudo chmod 777 /usr/local/include
+        touch /usr/local/include/.dir_exists
+    fi
     if [ -n "$IS_OSX" ]; then
+        # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
         # Use gfortran from conda
