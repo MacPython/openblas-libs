@@ -18,9 +18,15 @@
 
 function check_gfortran {
     # Check that gfortran exists on the path
-    if [ -z "$(which gfortran)" ]; then
+    if [[ -v FC  && -e "$FC" ]]; then
+        echo using gfortran from FC
+        echo $FC --version
+    elif [ -z "$(which gfortran)" ]; then
         echo Missing gfortran
         exit 1
+    else
+        echo using gfortran on the PATH
+        echo gfortran --version
     fi
 }
 
