@@ -32,65 +32,50 @@ if [ "$(uname)" == "Darwin" ]; then
         local gccver=gcc-15.2.0
         case ${arch}-${type} in
             arm64-native)
-                local GFORTRAN_SHA=999a91eef894d32f99e3b641520bef9f475055067f301f0f1947b8b716b5922a
+                export GFORTRAN_SHA=999a91eef894d32f99e3b641520bef9f475055067f301f0f1947b8b716b5922a
             ;;
             arm64-cross)
-                local export GFORTRAN_SHA=39ef2590629c2f238f1a67469fa429d8d6362425b277abb57fd2f3c982568a3f
+                export GFORTRAN_SHA=39ef2590629c2f238f1a67469fa429d8d6362425b277abb57fd2f3c982568a3f
             ;;
             x86_64-native)
                 #override gccver
                 gccver=gcc-11.3.0.2
-                local export GFORTRAN_SHA=981367dd0ad4335613e91bbee453d60b6669f5d7e976d18c7bdb7f1966f26ae4
+                export GFORTRAN_SHA=981367dd0ad4335613e91bbee453d60b6669f5d7e976d18c7bdb7f1966f26ae4
             ;;
             x86_64-cross)
-                local export GFORTRAN_SHA=0a19ca91019a75501e504eed1cad2be6ea92ba457ec815beb0dd28652eb0ce3f
+                export GFORTRAN_SHA=0a19ca91019a75501e504eed1cad2be6ea92ba457ec815beb0dd28652eb0ce3f
             ;;
             *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
         esac
         curl -L -O https://github.com/isuruf/gcc/releases/download/${gccver}/gfortran-darwin-${arch}-${type}.tar.gz
         local filesha=$(python3 tools/sha256sum.py gfortran-darwin-${arch}-${type}.tar.gz)
         if [[ "$filesha" != "${GFORTRAN_SHA}" ]]; then
-            echo shasum mismatch for gfortran-darwin-${arch}-${type}
-            echo expected $GFORTRAN_SHA,
+            echo shasum mismatch for ${gccver}/gfortran-darwin-${arch}-${type}
+            echo expected $GFORTRAN_SHA
             echo got      $filesha
             exit 1
         fi
-        sudo mkdir -p /opt/
-        sudo cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/gfortran-darwin-${arch}-${type}.tar.gz
-        pushd /opt
-            sudo tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
-            sudo rm gfortran-darwin-${arch}-${type}.tar.gz
+        if [[ ! -e /opt/gfortran ]]; then
+            sudo mkdir -p /opt/gfortran
+            sudo chmod 777 -p /opt/gfortran
+        fi
+        cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/gfortran/gfortran-darwin-${arch}-${type}.tar.gz
+        pushd /opt/gfortran
+        tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
+        rm gfortran-darwin-${arch}-${type}.tar.gz
         popd
-        if [[ "${type}" == "native" ]]; then
-            # Link these into /usr/local so that there's no need to add rpath or -L
-            for f in libgfortran.dylib libgfortran.5.dylib \
-                     libgcc_s.1.dylib libgcc_s.1.1.dylib libquadmath.dylib \
-                     libquadmath.0.dylib libgfortran.spec; do
-                ln -sf /opt/gfortran-darwin-${arch}-${type}/lib/$f /usr/local/lib/$f
-            done
-            # Add it to PATH
-            ln -sf /opt/gfortran-darwin-${arch}-${type}/bin/gfortran /usr/local/bin/gfortran
-        fi
-    }
-
-    function install_arm64_cross_gfortran {
-        download_and_unpack_gfortran arm64 cross
-        export FC_ARM64="$(find /opt/gfortran-darwin-arm64-cross/bin -name "*-gfortran")"
-        local libgfortran="$(find /opt/gfortran-darwin-arm64-cross/lib -name libgfortran.dylib)"
+        export FC="$(find /opt/gfortran/gfortran-darwin-${arch}-${type}/bin -name "*-gfortran")"
+        local libgfortran="$(find /opt/gfortran/gfortran-darwin-${arch}-${cross}/lib -name libgfortran.dylib)"
         local libdir=$(dirname $libgfortran)
-
-        export FC_ARM64_LDFLAGS="-L$libdir -Wl,-rpath,$libdir"
-        if [[ "${PLAT:-}" == "arm64" ]]; then
-            export FC=$FC_ARM64
-        fi
-        check_gfortran
+        export FFLAGS="-L$libdir -Wl,-rpath,$libdir"
     }
+
     function install_gfortran {
         download_and_unpack_gfortran $(uname -m) native
-        check_gfortran
         if [[ "${PLAT:-}" == "universal2" || "${PLAT:-}" == "arm64" ]]; then
-            install_arm64_cross_gfortran
+            download_and_unpack_gfortran arm64 cross
         fi
+        check_gfortran
     }
 
 else
