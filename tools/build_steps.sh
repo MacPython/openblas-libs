@@ -161,6 +161,7 @@ function do_build_lib {
             CFLAGS="$CFLAGS -arch x86_64"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
+            MACOSX_DEPLOYMENT_TARGET="10.13"
             ;;
         *-i686)
             local bitness=32
