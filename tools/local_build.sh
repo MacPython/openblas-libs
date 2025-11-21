@@ -5,8 +5,12 @@ set -e
 
 # Set extra env
 if [[ $(uname) == "Darwin" ]]; then
-    # Force x86_64
-    export PLAT=x86_64
+    # export PLAT=x86_64
+    export PLAT=arm64
+    # Force installation of gfortran
+    export IS_MACOS=1
+    export IS_OSX=1
+
 elif [[ $(uname -m) == "x86_64" ]]; then
     echo got x86_64
     export PLAT=x86_64

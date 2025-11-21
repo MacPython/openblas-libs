@@ -26,17 +26,6 @@ function get_os {
 function before_build {
     # Manylinux Python version set in build_lib
     if [ -n "$IS_OSX" ]; then
-        if [ ! -e /usr/local/lib ]; then
-            sudo mkdir -p /usr/local/lib
-            sudo chmod 777 /usr/local/lib
-            touch /usr/local/lib/.dir_exists
-        fi
-        if [ ! -e /usr/local/include ]; then
-            sudo mkdir -p /usr/local/include
-            sudo chmod 777 /usr/local/include
-            touch /usr/local/include/.dir_exists
-        fi
-        # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
         # Use gfortran from conda
@@ -48,6 +37,11 @@ function before_build {
             source tools/gfortran_utils.sh
             install_gfortran
         EOF
+        # re-export these, since we ran in a shell
+        export FC="$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/bin -name "*-gfortran")"
+        local libgfortran="$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/lib -name libgfortran.dylib)"
+        local libdir=$(dirname $libgfortran)
+        export FFLAGS="-L$libdir -Wl,-rpath,$libdir"
 
         # Build the objconv tool
         (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
@@ -61,13 +55,9 @@ function clean_code {
     [ -z "$build_commit" ] && echo "build_commit not defined" && exit 1
     pushd OpenBLAS
     git fetch origin --tags
-    echo after git fetch origin
     git checkout $build_commit
-    echo after git checkout $build_commit
     git clean -fxd 
-    echo after git clean
     git submodule update --init --recursive
-    echo after git submodule update
     popd
 }
 
