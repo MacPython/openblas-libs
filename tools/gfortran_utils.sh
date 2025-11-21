@@ -48,6 +48,7 @@ if [ "$(uname)" == "Darwin" ]; then
             *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
         esac
         curl -L -O https://github.com/isuruf/gcc/releases/download/${gccver}/gfortran-darwin-${arch}-${type}.tar.gz
+        ls -lh gfortran-darwin-${arch}-${type}.tar.gz
         local filesha=$(python3 tools/sha256sum.py gfortran-darwin-${arch}-${type}.tar.gz)
         if [[ "$filesha" != "${GFORTRAN_SHA}" ]]; then
             echo shasum mismatch for ${gccver}/gfortran-darwin-${arch}-${type}
@@ -65,7 +66,7 @@ if [ "$(uname)" == "Darwin" ]; then
         rm gfortran-darwin-${arch}-${type}.tar.gz
         popd
         export FC="$(find /opt/gfortran/gfortran-darwin-${arch}-${type}/bin -name "*-gfortran")"
-        local libgfortran="$(find /opt/gfortran/gfortran-darwin-${arch}-${cross}/lib -name libgfortran.dylib)"
+        local libgfortran="$(find /opt/gfortran/gfortran-darwin-${arch}-${type}/lib -name libgfortran.dylib)"
         local libdir=$(dirname $libgfortran)
         export FFLAGS="-L$libdir -Wl,-rpath,$libdir"
     }
