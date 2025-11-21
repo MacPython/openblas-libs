@@ -39,7 +39,7 @@ if [ "$(uname)" == "Darwin" ]; then
             ;;
             x86_64-native)
                 #override gccver
-                gccver=gcc-11.3.0.2
+                gccver=gcc-11.3.0-2
                 export GFORTRAN_SHA=981367dd0ad4335613e91bbee453d60b6669f5d7e976d18c7bdb7f1966f26ae4
             ;;
             x86_64-cross)
@@ -58,7 +58,7 @@ if [ "$(uname)" == "Darwin" ]; then
         fi
         if [[ ! -e /opt/gfortran ]]; then
             sudo mkdir -p /opt/gfortran
-            sudo chmod 777 -p /opt/gfortran
+            sudo chmod 777 /opt/gfortran
         fi
         cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/gfortran/gfortran-darwin-${arch}-${type}.tar.gz
         pushd /opt/gfortran
