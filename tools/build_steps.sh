@@ -48,10 +48,9 @@ function before_build {
             install_gfortran
         EOF
         # re-export these, since we ran in a shell
-        export FC="$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/bin -name "*-gfortran")"
-        local libgfortran="$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/lib -name libgfortran.dylib)"
-        local libdir=$(dirname $libgfortran)
-        export FFLAGS="-L$libdir -Wl,-rpath,$libdir"
+        export FC=$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/bin -name "*-gfortran")
+        local libdir=/opt/gfortran/gfortran-darwin-${PLAT}-native/lib
+        export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
 
         # Build the objconv tool
         (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
