@@ -29,7 +29,7 @@ if [ "$(uname)" == "Darwin" ]; then
     function download_and_unpack_gfortran {
         local arch=$1
         local type=$2
-        curl -L -O https://github.com/isuruf/gcc/releases/download/gcc-15.2.0/gfortran-darwin-${arch}-${type}.tar.gz
+        local gccver=gcc-15.2.0
         case ${arch}-${type} in
             arm64-native)
                 local GFORTRAN_SHA=999a91eef894d32f99e3b641520bef9f475055067f301f0f1947b8b716b5922a
@@ -38,13 +38,16 @@ if [ "$(uname)" == "Darwin" ]; then
                 local export GFORTRAN_SHA=39ef2590629c2f238f1a67469fa429d8d6362425b277abb57fd2f3c982568a3f
             ;;
             x86_64-native)
-                local export GFORTRAN_SHA=fb03c1f37bf0258ada6e3e41698e3ad416fff4dad448fd746e01d8ccf1efdc0f
+                #override gccver
+                gccver=gcc-11.3.0.2
+                local export GFORTRAN_SHA=981367dd0ad4335613e91bbee453d60b6669f5d7e976d18c7bdb7f1966f26ae4
             ;;
             x86_64-cross)
                 local export GFORTRAN_SHA=0a19ca91019a75501e504eed1cad2be6ea92ba457ec815beb0dd28652eb0ce3f
             ;;
             *) echo Did not recognize arch-plat $arch-$plat; return 1 ;;
         esac
+        curl -L -O https://github.com/isuruf/gcc/releases/download/${gccver}/gfortran-darwin-${arch}-${type}.tar.gz
         local filesha=$(python3 tools/sha256sum.py gfortran-darwin-${arch}-${type}.tar.gz)
         if [[ "$filesha" != "${GFORTRAN_SHA}" ]]; then
             echo shasum mismatch for gfortran-darwin-${arch}-${type}

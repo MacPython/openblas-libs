@@ -47,8 +47,6 @@ function before_build {
             source tools/gfortran_utils.sh
             install_gfortran
         EOF
-        # Deployment target set by gfortran_utils
-        echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
         # Build the objconv tool
         (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
@@ -161,7 +159,7 @@ function do_build_lib {
             CFLAGS="$CFLAGS -arch x86_64"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
-            MACOSX_DEPLOYMENT_TARGET="10.13"
+            MACOSX_DEPLOYMENT_TARGET="10.9"
             ;;
         *-i686)
             local bitness=32
