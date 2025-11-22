@@ -94,7 +94,7 @@ jobs:
     #     limit-access-to-actor: true
 
     - name: Build and Test wheels
-      uses: pypa/cibuildwheel@v3.1.4
+      uses: pypa/cibuildwheel@v3.3.0
       with:
         output-dir: dist
       env:
