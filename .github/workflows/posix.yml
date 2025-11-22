@@ -44,11 +44,11 @@ jobs:
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
 
-          - { os: ubuntu-latest, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-latest, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: ubuntu-latest, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-latest, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
@@ -76,7 +76,7 @@ jobs:
         xcode-version: '15.4'
 
     - name: Set up QEMU
-      if: runner.os == 'Linux' && runner.arch == 'X64'
+      if: matrix.PLAT == 'ppc64le' || matrix.PLAT == 's390x'
       uses: docker/setup-qemu-action@v3
       with:
         platforms: all
@@ -93,6 +93,7 @@ jobs:
 
     - name: Build and Test wheels
       uses: pypa/cibuildwheel@v3.3.0
+      timeout-minutes: 60
       with:
         output-dir: dist
       env:
