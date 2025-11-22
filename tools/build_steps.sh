@@ -54,7 +54,7 @@ function clean_code {
     pushd OpenBLAS
     git fetch origin --tags
     git checkout $build_commit
-    git clean -fxd 
+    git clean -fxd
     git submodule update --init --recursive
     popd
 }
@@ -164,13 +164,13 @@ function do_build_lib {
             ;;
         *-s390x)
             # The TargetList.txt has only ZARCH_GENERIC, Z13, Z14. Not worth
-            # messing with dynamic lists and targets.
+            # messing with dynamic lists.
             local bitness=64
+            local target="ZARCH_GENERIC"
             ;;
         *-ppc64le)
             local bitness=64
             local target="POWER8"
-            local dynamic_list="POWER8 POWER10"
             ;;
         Linux-loongarch64)
             local target="GENERIC"
@@ -199,6 +199,13 @@ function do_build_lib {
         echo -n > utest/test_dsdot.c
         echo "Due to the qemu versions 7.2 causing utest cases to fail,"
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
+    elif [ "$plat" == "s390x" ]; then
+        sed -i 's/CTEST(samin, positive_step_1_N_70){/CTEST_SKIP(samin, positive_step_1_N_70){/g' ./utest/test_extensions/test_samin.c
+        sed -i 's/CTEST(samin, negative_step_1_N_70){/CTEST_SKIP(samin, negative_step_1_N_70){/g' ./utest/test_extensions/test_samin.c
+        sed -i 's/CTEST(damin, positive_step_1_N_70){/CTEST_SKIP(damin, positive_step_1_N_70){/g' ./utest/test_extensions/test_damin.c
+        sed -i 's/CTEST(damin, negative_step_1_N_70){/CTEST_SKIP(damin, negative_step_1_N_70){/g' ./utest/test_extensions/test_damin.c
+        echo "the utest samin/damin have been temporarily disabled."
+        echo "QEMU does not support the 'lper' /'lpdr' instructions used"
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
