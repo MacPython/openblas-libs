@@ -38,20 +38,6 @@ function before_build {
         # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
-        # Use gfortran from conda
-        # Since install_fortran uses `uname -a` to determine arch,
-        # force the architecture when using rosetta
-        unalias gfortran || true
-        arch -${PLAT} bash -s << "        EOF"
-            set -xe
-            source tools/gfortran_utils.sh
-            install_gfortran
-        EOF
-        # re-export these, since we ran in a shell
-        export FC=$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/bin -name "*-gfortran")
-        local libdir=/opt/gfortran/gfortran-darwin-${PLAT}-native/lib
-        export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
-
         # Build the objconv tool
         (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
     fi
@@ -115,9 +101,9 @@ function build_lib {
     local manylinux=${MB_ML_VER:-1}
     if [ -n "$IS_OSX" ]; then
         # Do build, add gfortran hash to end of name
-        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
+        do_build_lib "$plat" "$interface64" "$nightly"
     else
-        do_build_lib "$plat" "" "$interface64" "$nightly"
+        do_build_lib "$plat" "$interface64" "$nightly"
     fi
 }
 
@@ -134,8 +120,6 @@ function do_build_lib {
     # Build openblas lib
     # Input arg
     #     plat - one of i686, x86_64, arm64
-    #     suffix (optional) - suffix for output archive name
-    #                         Suffix added with hyphen prefix
     #     interface64 (optional) - whether to build ILP64 openblas
     #                              with 64_ symbol suffix
     #     nightly (optional) - whether to build for nightlies
@@ -143,9 +127,8 @@ function do_build_lib {
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     local plat=$1
-    local suffix=$2
-    local interface64=$3
-    local nightly=$4
+    local interface64=$2
+    local nightly=$3
     case $(get_os)-$plat in
         Linux-x86_64)
             local bitness=64
@@ -155,6 +138,20 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target="CORE2"
+            # Use gfortran from conda
+            # Since install_fortran uses `uname -a` to determine arch,
+            # force the architecture when using rosetta
+            unalias gfortran || true
+            arch -${PLAT} bash -s << "            EOF"
+                set -xe
+                source tools/gfortran_utils.sh
+                install_gfortran
+            EOF
+            # re-export these, since we ran in a shell
+            export FC=$(find /opt/gfortran/gfortran-darwin-${PLAT}-native/bin -name "*-gfortran")
+            local libdir=/opt/gfortran/gfortran-darwin-${PLAT}-native/lib
+            export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
+
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
@@ -176,6 +173,16 @@ function do_build_lib {
             fi
             ;;
         Darwin-arm64)
+            export FC=gfortran-15
+            which $FC
+            # guess?
+            local libdir=/opt/homebrew/Cellar/gcc/15.2.0/lib/gcc/current
+            if [! -d $libdir]; then
+                echo where is libfortran.a?
+                find /opt -name libgfortran.a
+                exit 1
+            fi
+            export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
             local bitness=64
             local target="VORTEX"
             CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
@@ -244,8 +251,6 @@ function do_build_lib {
     fi
     mv $BUILD_PREFIX/lib/pkgconfig/openblas*.pc $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     local plat_tag=$(get_plat_tag $plat)
-    local suff=""
-    [ -n "$suffix" ] && suff="-$suffix"
     if [ "$interface64" = "1" ]; then
         # OpenBLAS does not install the symbol suffixed static library,
         # do it ourselves
@@ -258,7 +263,7 @@ function do_build_lib {
     rm $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc.bak
     fi
 
-    local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
+    local out_name="openblas${symbolsuffix}-${version}-${plat_tag}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
