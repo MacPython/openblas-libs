@@ -184,6 +184,7 @@ function do_build_lib {
             fi
             export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
             export GFORTRAN_LIBDIR=$($FC -print-file-name=libgfortran.dylib | xargs dirname)
+            export LDFLAGS="-L/opt/homebrew/opt/llvm/lib -L$GFORTRAN_LIBDIR"
             local bitness=64
             local target="VORTEX"
             CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
