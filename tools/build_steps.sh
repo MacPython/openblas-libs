@@ -177,7 +177,7 @@ function do_build_lib {
             which $FC
             # guess?
             local libdir=/opt/homebrew/Cellar/gcc/15.2.0/lib/gcc/current
-            if [! -d $libdir]; then
+            if [ ! -d $libdir]; then
                 echo where is libfortran.a?
                 find /opt -name libgfortran.a
                 exit 1
