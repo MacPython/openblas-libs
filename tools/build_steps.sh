@@ -177,7 +177,7 @@ function do_build_lib {
             which $FC
             # guess?
             local libdir=/opt/homebrew/Cellar/gcc/15.2.0/lib/gcc/current
-            if [ ! -d $libdir ]; then
+            if [ ! -e $libdir/libgfortran.a ]; then
                 echo where is libfortran.a?
                 find /opt -name libgfortran.a
                 exit 1
@@ -234,14 +234,14 @@ function do_build_lib {
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
