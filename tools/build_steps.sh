@@ -192,6 +192,7 @@ function do_build_lib {
             ;;
         *-s390x)
             local bitness=64
+            local target="ZARCH_GENERIC"
             ;;
         *-ppc64le)
             local bitness=64
@@ -221,7 +222,10 @@ function do_build_lib {
     git config --global --add safe.directory '*'
     pushd OpenBLAS
     patch_source
+    # force failure when fortran compiler is no detected
+    sed -i.bak -e 's/info OpenBLAS: Detecting fortran compiler failed/error OpenBLAS: Detecting fortran compiler failed/g' Makefile
     echo start building
+
     if [ "$plat" == "loongarch64" ]; then
         # https://github.com/OpenMathLib/OpenBLAS/blob/develop/.github/workflows/loongarch64.yml#L65
         echo -n > utest/test_dsdot.c
