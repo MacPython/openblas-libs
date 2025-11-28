@@ -23,7 +23,7 @@ else
     # export PLAT=arm64
     export SUFFIX=gf_c469a42
 fi
-export OPENBLAS_COMMIT="v0.3.30"
+export OPENBLAS_COMMIT="v0.3.30-349-gf6df9beb"
 
 # export MB_ML_LIBC=musllinux
 # export MB_ML_VER=_1_2
