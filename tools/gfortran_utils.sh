@@ -50,7 +50,7 @@ if [ "$(uname)" == "Darwin" ]; then
             sudo mkdir -p /opt/gfortran
             sudo chmod 777 /opt/gfortran
         fi
-        cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/goftran/gfortran-darwin-${arch}-${type}.tar.gz
+        cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/gfortran/gfortran-darwin-${arch}-${type}.tar.gz
         pushd /opt/gfortran
             tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
             rm gfortran-darwin-${arch}-${type}.tar.gz
