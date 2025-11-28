@@ -47,7 +47,7 @@ function before_build {
         which ${FC}
         ${FC} --version
         local libdir=/opt/gfortran/gfortran-darwin-${PLAT}-native/lib
-        export DYLD_LIBRARY_PATH=$libdir:$DYLD_LIBRARY_PATH
+        # export DYLD_LIBRARY_PATH=$libdir:$DYLD_LIBRARY_PATH
         export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
 
         # Deployment target set by gfortran_utils
