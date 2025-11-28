@@ -47,6 +47,7 @@ function before_build {
         which ${FC}
         ${FC} --version
         local libdir=/opt/gfortran/gfortran-darwin-${PLAT}-native/lib
+        export DYLD_LIBRARY_PATH=$libdir:$DYLD_LIBRARY_PATH
         export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
 
         # Deployment target set by gfortran_utils
@@ -159,8 +160,8 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target="CORE2"
-            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
+            MACOSX_DEPLOYMENT_TARGET="10.9"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
@@ -172,8 +173,8 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target="ARMV8"
-            # manylinux2014 image uses gcc-10, which miscompiles ARMV8SVE and up
             if [ "$MB_ML_VER" == "2014" ]; then
+                # manylinux2014 image uses gcc-10, which miscompiles ARMV8SVE and up
                 echo setting DYNAMIC_LIST for manylinux2014 to ARMV8 only
                 local dynamic_list="ARMV8"
             fi
@@ -184,7 +185,6 @@ function do_build_lib {
             CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
             MACOSX_DEPLOYMENT_TARGET="11.0"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
-            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             ;;
         *-s390x)
             local bitness=64

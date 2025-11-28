@@ -46,7 +46,6 @@ repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
 test-command = "cd {package} && bash ci-test.sh "
 environment-pass = [
   "OPENBLAS_COMMIT",
-  "MACOSX_DEPLOYMENT_TARGET",
   "NIGHTLY",
   "MB_ML_LIBC",
   "MB_ML_VER",

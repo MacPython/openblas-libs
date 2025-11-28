@@ -13,7 +13,6 @@ on:
 
 env:
   OPENBLAS_COMMIT: "v0.3.30-349-gf6df9beb"
-  MACOSX_DEPLOYMENT_TARGET: 10.9
 
 jobs:
   build:
