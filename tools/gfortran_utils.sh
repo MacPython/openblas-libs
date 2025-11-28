@@ -79,5 +79,6 @@ if [ "$(uname)" == "Darwin" ]; then
 else
     function install_gfortran {
         # No-op - already installed on manylinux image
+        :
     }
 fi
