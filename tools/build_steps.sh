@@ -39,7 +39,17 @@ function before_build {
         # get_macpython_environment ${MB_PYTHON_VERSION} venv
         python3.9 -m venv venv
         source venv/bin/activate
-        alias gfortran=gfortran-15
+        # Since install_fortran uses `uname -a` to determine arch,
+        # force the architecture
+        unalias gfortran 2>/dev/null || true
+        arch -${PLAT} bash -s << "        EOF"
+            set -ex
+            source tools/gfortran_utils.sh
+            install_gfortran
+        EOF
+        which gfortran
+        gfortran --version
+
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
@@ -150,14 +160,6 @@ function do_build_lib {
         Darwin-x86_64)
             local bitness=64
             local target="CORE2"
-            # Use gfortran-11
-            unalias gfortran
-            # Since install_fortran uses `uname -a` to determine arch,
-            # force the architecture
-            arch -${PLAT} bash -s << EOF
-source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
-install_gfortran
-EOF
             export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             CFLAGS="$CFLAGS -arch x86_64"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
