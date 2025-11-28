@@ -46,7 +46,7 @@ if [ "$(uname)" == "Darwin" ]; then
             echo "shasum mismatch for gfortran-darwin-${arch}-${type}"
             exit 1
         fi
-        if [! -d /opt/gfortran ]; then
+        if [[ ! -d /opt/gfortran ]]; then
             sudo mkdir -p /opt/gfortran
             sudo chmod 777 /opt/gfortran
         fi
@@ -58,7 +58,7 @@ if [ "$(uname)" == "Darwin" ]; then
     }
 
     function install_arm64_cross_gfortran {
-	download_and_unpack_gfortran arm64 cross
+	    download_and_unpack_gfortran arm64 cross
         export FC_ARM64="$(find /opt/gfortran-darwin-arm64-cross/bin -name "*-gfortran")"
         local libgfortran="$(find /opt/gfortran-darwin-arm64-cross/lib -name libgfortran.dylib)"
         local libdir=$(dirname $libgfortran)
@@ -68,6 +68,7 @@ if [ "$(uname)" == "Darwin" ]; then
             export FC=$FC_ARM64
         fi
     }
+
     function install_gfortran {
         download_and_unpack_gfortran $(uname -m) native
         if [[ "${PLAT:-}" == "universal2"]]; then
