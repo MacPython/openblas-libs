@@ -71,7 +71,7 @@ if [ "$(uname)" == "Darwin" ]; then
 
     function install_gfortran {
         download_and_unpack_gfortran $(uname -m) native
-        if [[ "${PLAT:-}" == "universal2"]]; then
+        if [[ "${PLAT:-}" == "universal2" ]]; then
             install_arm64_cross_gfortran
         fi
     }
