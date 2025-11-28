@@ -131,19 +131,14 @@ if [ "$(uname)" == "Darwin" ]; then
             echo "shasum mismatch for gfortran-darwin-${arch}-${type}"
             exit 1
         fi
-        sudo mkdir -p /opt/
-        sudo cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/gfortran-darwin-${arch}-${type}.tar.gz
-        pushd /opt
-            sudo tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
-            sudo rm gfortran-darwin-${arch}-${type}.tar.gz
+        if [! -d /opt/gfortran ]; then
+            sudo mkdir -p /opt/gfortran
+            sudo chmod 777 /opt/gfortran
+        cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/goftran/gfortran-darwin-${arch}-${type}.tar.gz
+        pushd /opt/gfortran
+            tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
+            rm gfortran-darwin-${arch}-${type}.tar.gz
         popd
-	if [[ "${type}" == "native" ]]; then
-	    # Link these into /usr/local so that there's no need to add rpath or -L
-	    for f in libgfortran.dylib libgfortran.5.dylib libgcc_s.1.dylib libgcc_s.1.1.dylib libquadmath.dylib libquadmath.0.dylib; do
-                ln -sf /opt/gfortran-darwin-${arch}-${type}/lib/$f /usr/local/lib/$f
-            done
-	    # Add it to PATH
-	    ln -sf /opt/gfortran-darwin-${arch}-${type}/bin/gfortran /usr/local/bin/gfortran
 	fi
     }
 
@@ -161,7 +156,7 @@ if [ "$(uname)" == "Darwin" ]; then
     function install_gfortran {
         download_and_unpack_gfortran $(uname -m) native
         check_gfortran
-        if [[ "${PLAT:-}" == "universal2" || "${PLAT:-}" == "arm64" ]]; then
+        if [[ "${PLAT:-}" == "universal2"]]; then
             install_arm64_cross_gfortran
         fi
     }
