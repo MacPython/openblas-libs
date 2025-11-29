@@ -1,3 +1,4 @@
+#!bash
 # this file come from https://github.com/MacPython/gfortran-install
 # Follow the license below
 
@@ -23,7 +24,6 @@ if [ "$(uname)" == "Darwin" ]; then
     function download_and_unpack_gfortran {
         local arch=$1
         local type=$2
-            curl -L -O https://github.com/isuruf/gcc/releases/download/gcc-11.3.0-2/gfortran-darwin-${arch}-${type}.tar.gz
         case ${arch}-${type} in
             arm64-native)
                 export GFORTRAN_SHA=0d5c118e5966d0fb9e7ddb49321f63cac1397ce8
@@ -42,6 +42,9 @@ if [ "$(uname)" == "Darwin" ]; then
                 exit 1
             ;;
         esac
+        if [[ ! -e gfortran-darwin-${arch}-${type}.tar.gz ]]; then
+            curl -L -O https://github.com/isuruf/gcc/releases/download/gcc-11.3.0-2/gfortran-darwin-${arch}-${type}.tar.gz
+        fi
         if [[ "$(shasum gfortran-darwin-${arch}-${type}.tar.gz)" != "${GFORTRAN_SHA}  gfortran-darwin-${arch}-${type}.tar.gz" ]]; then
             echo "shasum mismatch for gfortran-darwin-${arch}-${type}"
             exit 1
@@ -52,8 +55,8 @@ if [ "$(uname)" == "Darwin" ]; then
         fi
         cp "gfortran-darwin-${arch}-${type}.tar.gz" /opt/gfortran/gfortran-darwin-${arch}-${type}.tar.gz
         pushd /opt/gfortran
-            tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
-            rm gfortran-darwin-${arch}-${type}.tar.gz
+        tar -xvf gfortran-darwin-${arch}-${type}.tar.gz
+        rm gfortran-darwin-${arch}-${type}.tar.gz
         popd
     }
 

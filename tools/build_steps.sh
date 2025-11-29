@@ -1,3 +1,5 @@
+#!bash
+
 # Build script for manylinux and OSX
 BUILD_PREFIX=${BUILD_PREFIX:-/usr/local}
 
@@ -5,27 +7,9 @@ ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 
 MB_PYTHON_VERSION=3.9
 
-function any_python {
-    for cmd in $PYTHON_EXE python3 python; do
-        if [ -n "$(type -t $cmd)" ]; then
-            echo $cmd
-            return
-        fi
-    done
-    echo "Could not find python or python3"
-    exit 1
-}
-
-function get_os {
-    # Report OS as given by uname
-    # Use any Python that comes to hand.
-    $(any_python) -c 'import platform; print(platform.uname()[0])'
-}
-
-
 function before_build {
     # Manylinux Python version set in build_lib
-    if [ -n "$IS_OSX" ]; then
+    if [ "$(uname -s)" == "Darwin" ]; then
         if [ ! -e /usr/local/lib ]; then
             sudo mkdir -p /usr/local/lib
             sudo chmod 777 /usr/local/lib
@@ -47,14 +31,19 @@ function before_build {
         which ${FC}
         ${FC} --version
         local libdir=/opt/gfortran/gfortran-darwin-${PLAT}-native/lib
-        # export DYLD_LIBRARY_PATH=$libdir:$DYLD_LIBRARY_PATH
+        # Remove conflicting shared objects
+        rm -fv ${libdir}/libiconv*
         export FFLAGS="-L${libdir} -Wl,-rpath,${libdir}"
+        # Not clear why this is needed for tests on arm64...
+        export LDFLAGS="$FFLAGS"
 
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
         # Build the objconv tool
-        (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
+        if [[ ! -x  objconv/objconv ]]; then
+            (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
+        fi
     fi
 }
 
@@ -118,12 +107,7 @@ function build_lib {
     local interface64=${2:-$INTERFACE64}
     local nightly=${3:0}
     local manylinux=${MB_ML_VER:-1}
-    if [ -n "$IS_OSX" ]; then
-        # Do build, add gfortran hash to end of name
-        do_build_lib "$plat" "gf_${GFORTRAN_SHA:0:7}" "$interface64" "$nightly"
-    else
-        do_build_lib "$plat" "" "$interface64" "$nightly"
-    fi
+    do_build_lib "$plat" "$interface64" "$nightly"
 }
 
 function patch_source {
@@ -139,8 +123,6 @@ function do_build_lib {
     # Build openblas lib
     # Input arg
     #     plat - one of i686, x86_64, arm64
-    #     suffix (optional) - suffix for output archive name
-    #                         Suffix added with hyphen prefix
     #     interface64 (optional) - whether to build ILP64 openblas
     #                              with 64_ symbol suffix
     #     nightly (optional) - whether to build for nightlies
@@ -148,10 +130,9 @@ function do_build_lib {
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
     local plat=$1
-    local suffix=$2
-    local interface64=$3
-    local nightly=$4
-    case $(get_os)-$plat in
+    local interface64=$2
+    local nightly=$3
+    case $(uname -s)-$plat in
         Linux-x86_64)
             local bitness=64
             local target="PRESCOTT"
@@ -202,9 +183,6 @@ function do_build_lib {
         1)
             local interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_ OBJCONV=$PWD/objconv/objconv";
             local symbolsuffix="64_";
-            if [ -n "$IS_OSX" ]; then
-                $PWD/objconv/objconv --help
-            fi
             ;;
         *)
             local interface_flags="OBJCONV=$PWD/objconv/objconv"
@@ -226,14 +204,14 @@ function do_build_lib {
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
@@ -247,8 +225,6 @@ function do_build_lib {
     fi
     mv $BUILD_PREFIX/lib/pkgconfig/openblas*.pc $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     local plat_tag=$(get_plat_tag $plat)
-    local suff=""
-    [ -n "$suffix" ] && suff="-$suffix"
     if [ "$interface64" = "1" ]; then
         # OpenBLAS does not install the symbol suffixed static library,
         # do it ourselves
@@ -261,7 +237,7 @@ function do_build_lib {
     rm $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc.bak
     fi
 
-    local out_name="openblas${symbolsuffix}-${version}-${plat_tag}${suff}.tar.gz"
+    local out_name="openblas${symbolsuffix}-${version}-${plat_tag}.tar.gz"
     tar zcvf libs/$out_name \
         $BUILD_PREFIX/include/*blas* \
         $BUILD_PREFIX/include/*lapack* \
