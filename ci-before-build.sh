@@ -4,8 +4,6 @@
 # Most of the content in this file comes from https://github.com/multi-build/multibuild, with some modifications 
 # Follow the license below
 
-
-
 # .. _license:
 
 # *********************
@@ -41,9 +39,6 @@
 #     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-
-#! /bin/bash
 set -xe
 
 if [[ "$NIGHTLY" = "true" ]]; then
@@ -53,40 +48,6 @@ if [[ "$NIGHTLY" = "true" ]]; then
     version=$(git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
     popd
     sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
-fi
-
-
-#!/bin/bash
-# Utilities for both OSX and Docker Linux
-# python or python3 should be on the PATH
-
-# Only source common_utils once
-if [ -n "$COMMON_UTILS_SOURCED" ]; then
-    return
-fi
-COMMON_UTILS_SOURCED=1
-
-# Turn on exit-if-error
-set -e
-
-MULTIBUILD_DIR=$(dirname "${BASH_SOURCE[0]}")
-DOWNLOADS_SDIR=downloads
-PYPY_URL=https://downloads.python.org/pypy
-
-if [ $(uname) == "Darwin" ]; then
-  IS_MACOS=1; IS_OSX=1;
-else
-  # In the manylinux_2_24 image, based on Debian9, "python" is not installed
-  # so link in something for the various system calls before PYTHON_EXE is set
-  which python || export PATH=/opt/python/cp39-cp39/bin:$PATH
-
-  if [ "$MB_ML_LIBC" == "musllinux" ]; then
-    IS_ALPINE=1;
-    MB_ML_VER=${MB_ML_VER:-"_1_2"}
-  else
-    # Default Manylinux version
-    MB_ML_VER=${MB_ML_VER:-2014}
-  fi
 fi
 
 # Work round bug in travis xcode image described at
@@ -103,4 +64,5 @@ unset -f popd
 # Build OpenBLAS
 source build-openblas.sh
 
+# Build wheel
 source tools/build_prepare.sh
