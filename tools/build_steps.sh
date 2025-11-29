@@ -49,18 +49,13 @@ function before_build {
 
 function clean_code {
     set -ex
-    # Copied from common_utils.sh, with added debugging
     local build_commit=$1
     [ -z "$build_commit" ] && echo "build_commit not defined" && exit 1
     pushd OpenBLAS
     git fetch origin --tags
-    echo after git fetch origin
     git checkout $build_commit
-    echo after git checkout $build_commit
     git clean -fxd 
-    echo after git clean
     git submodule update --init --recursive
-    echo after git submodule update
     popd
 }
 
@@ -204,14 +199,14 @@ function do_build_lib {
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
