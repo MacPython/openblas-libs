@@ -202,7 +202,7 @@ function do_build_lib {
         echo "the utest samin/damin have been temporarily disabled."
         echo "QEMU does not support the 'lper' /'lpdr' instructions used"
     fi
-    if [ "$plat" == "loongarch64" ] || [ "$plat" == "ppc64le" ] [ "$plat" == "s390x" ]; then
+    if [ "$plat" == "loongarch64" ] || [ "$plat" == "ppc64le" ] || [ "$plat" == "s390x" ]; then
         sed -i 's/CTEST(fork, safety)/CTEST_SKIP(fork, safety)/g' ./utest/test_fork.c
         sed -i 's/CTEST(fork, safety_after_fork_in_parent)/CTEST_SKIP(fork, safety_after_fork_in_parent)/g' ./utest/test_post_fork.c
         echo "QEMU has a race condition preventing fork tests to work as expected"
