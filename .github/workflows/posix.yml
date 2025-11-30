@@ -106,6 +106,10 @@ jobs:
         CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_PPC64LE_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_PPC64LE_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_S390X_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_S390X_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
 
     - name: Upload wheels to artifacts
       uses: actions/upload-artifact@v4.3.0
