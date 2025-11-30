@@ -54,7 +54,7 @@ function clean_code {
     pushd OpenBLAS
     git fetch origin --tags
     git checkout $build_commit
-    git clean -fxd 
+    git clean -fxd
     git submodule update --init --recursive
     popd
 }
@@ -149,11 +149,6 @@ function do_build_lib {
         Linux-aarch64)
             local bitness=64
             local target="ARMV8"
-            if [ "$MB_ML_VER" == "2014" ]; then
-                # manylinux2014 image uses gcc-10, which miscompiles ARMV8SVE and up
-                echo setting DYNAMIC_LIST for manylinux2014 to ARMV8 only
-                local dynamic_list="ARMV8"
-            fi
             ;;
         Darwin-arm64)
             local bitness=64
@@ -163,7 +158,10 @@ function do_build_lib {
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
         *-s390x)
+            # The TargetList.txt has only ZARCH_GENERIC, Z13, Z14. Not worth
+            # messing with dynamic lists.
             local bitness=64
+            local target="ZARCH_GENERIC"
             ;;
         *-ppc64le)
             local bitness=64
@@ -196,6 +194,18 @@ function do_build_lib {
         echo -n > utest/test_dsdot.c
         echo "Due to the qemu versions 7.2 causing utest cases to fail,"
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
+    elif [ "$plat" == "s390x" ]; then
+        sed -i 's/CTEST(samin, positive_step_1_N_70){/CTEST_SKIP(samin, positive_step_1_N_70){/g' ./utest/test_extensions/test_samin.c
+        sed -i 's/CTEST(samin, negative_step_1_N_70){/CTEST_SKIP(samin, negative_step_1_N_70){/g' ./utest/test_extensions/test_samin.c
+        sed -i 's/CTEST(damin, positive_step_1_N_70){/CTEST_SKIP(damin, positive_step_1_N_70){/g' ./utest/test_extensions/test_damin.c
+        sed -i 's/CTEST(damin, negative_step_1_N_70){/CTEST_SKIP(damin, negative_step_1_N_70){/g' ./utest/test_extensions/test_damin.c
+        echo "the utest samin/damin have been temporarily disabled."
+        echo "QEMU does not support the 'lper' /'lpdr' instructions used"
+    fi
+    if [ "$plat" == "loongarch64" ] || [ "$plat" == "ppc64le" ] || [ "$plat" == "s390x" ]; then
+        sed -i 's/CTEST(fork, safety)/CTEST_SKIP(fork, safety)/g' ./utest/test_fork.c
+        sed -i 's/CTEST(fork, safety_after_fork_in_parent)/CTEST_SKIP(fork, safety_after_fork_in_parent)/g' ./utest/test_post_fork.c
+        echo "QEMU has a race condition preventing fork tests to work as expected"
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \

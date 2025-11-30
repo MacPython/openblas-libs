@@ -12,7 +12,7 @@ on:
     - cron: '0 0 * * 0'
 
 env:
-  OPENBLAS_COMMIT: "v0.3.30-349-gf6df9beb"
+  OPENBLAS_COMMIT: "v0.3.30-359-g29fab2b9"
 
 jobs:
   build:
@@ -40,11 +40,15 @@ jobs:
 
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_2_28', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_2_28', MB_ML_LIBC: manylinux}
 
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
           - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+
+          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
@@ -71,6 +75,12 @@ jobs:
       with:
         xcode-version: '15.4'
 
+    - name: Set up QEMU
+      if: matrix.PLAT == 'ppc64le' || matrix.PLAT == 's390x'
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: all
+
     - name: Print some Environment variable
       run: |
         echo "PLAT: ${PLAT}"
@@ -82,7 +92,8 @@ jobs:
     #     limit-access-to-actor: true
 
     - name: Build and Test wheels
-      uses: pypa/cibuildwheel@v3.1.4
+      uses: pypa/cibuildwheel@v3.3.0
+      timeout-minutes: 60
       with:
         output-dir: dist
       env:
@@ -95,6 +106,10 @@ jobs:
         CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_PPC64LE_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_PPC64LE_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_S390X_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MUSLLINUX_S390X_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
 
     - name: Upload wheels to artifacts
       uses: actions/upload-artifact@v4.3.0
