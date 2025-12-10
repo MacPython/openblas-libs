@@ -30,4 +30,4 @@ export BUILD_PREFIX=/tmp/openblas
 mkdir -p $BUILD_PREFIX
 
 ROOT_DIR=$(dirname $(dirname $0))
-bash ${ROOT_DIR}/build-openblas.sh
+${ROOT_DIR}/build-openblas.sh
