@@ -133,6 +133,8 @@ function patch_source {
         echo applying patch $f
         git apply ../patches/$f
     done
+    # local version=$(git describe --tags --abbrev=8 | sed -e "s/^v//" | sed -e "s/\\./-/g")
+    # sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
 }
 
 function do_build_lib {
@@ -221,16 +223,16 @@ function do_build_lib {
         echo "the utest dsdot:dsdot_n_1 have been temporarily disabled."
     fi
     if [ -n "$dynamic_list" ]; then
-        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
-            USE_OPENMP=0 NUM_THREADS=64 \
+        CFLAGS="$CFLAGS -fvisibility=hidden -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 NO_LAPACKE=1 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
-        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
-            USE_OPENMP=0 NUM_THREADS=64 \
+        CFLAGS="$CFLAGS -fvisibility=hidden -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
+            USE_OPENMP=0 NUM_THREADS=64 NO_LAPACKE=1 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     fi
@@ -306,7 +308,7 @@ function build_lib_on_travis {
 function build_on_travis {
     if [ ${TRAVIS_EVENT_TYPE} == "cron" ]; then
         build_lib_on_travis "$PLAT" "$INTERFACE64" 1
-        version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
+        local version=$(cd OpenBLAS && git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
         sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
     else
         build_lib_on_travis "$PLAT" "$INTERFACE64" 0
