@@ -1,0 +1,13 @@
+diff --git a/interface/scal.c b/interface/scal.c
+index 4f12df7c0..e03038ecb 100644
+--- a/interface/scal.c
++++ b/interface/scal.c
+@@ -73,7 +73,7 @@ void CNAME(blasint n, FLOAT alpha, FLOAT *x, blasint incx){
+   float alpha_float;
+   SBF16TOS_K(1, &alpha, 1, &alpha_float, 1);
+ #else
+-  float alpha_float = alpha;
++  FLOAT alpha_float = alpha;
+ #endif
+ 
+   if (alpha_float == ONE) return;
