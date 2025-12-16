@@ -147,11 +147,6 @@ jobs:
         name: wheels-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
         path: dist/scipy_openblas*.whl
 
-    - uses: actions/upload-artifact@v4.3.0
-      with:
-        name: openblas-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
-        path: builds/openblas*.zip
-
     - name: Test 64-bit interface wheel
       if: matrix.INTERFACE64 == '1'
       run: |
