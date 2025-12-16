@@ -1520,3 +1520,15 @@ index cbb7bba13..bf5d0fa4c 100644
  #ifndef CBLAS
  
  void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/lapack/laswp.c b/interface/lapack/laswp.c
+index 6544dbc5b..f7835abfb 100644
+--- a/interface/lapack/laswp.c
++++ b/interface/lapack/laswp.c
+@@ -52,6 +52,7 @@ static int (*laswp[])(BLASLONG, BLASLONG, BLASLONG, FLOAT, FLOAT *, BLASLONG, FL
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *N, FLOAT *a, blasint *LDA, blasint *K1, blasint *K2, blasint *ipiv, blasint *INCX){
+ 
+   blasint n    = *N;
