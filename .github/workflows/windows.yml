@@ -10,7 +10,6 @@ on:
   workflow_dispatch: null
 
 env:
-  OPENBLAS_COMMIT: "v0.3.30-359-g29fab2b9"
   OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
@@ -71,7 +70,7 @@ jobs:
     - name: Build
       run: |
         git submodule update --init --recursive
-        & $env:BASH_PATH -lc tools/build_openblas.sh
+        & $env:BASH_PATH -lc tools/build_steps_windows.sh
 
     - name: Test
       run: |

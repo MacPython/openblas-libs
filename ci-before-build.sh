@@ -44,10 +44,13 @@ set -xe
 if [[ "$NIGHTLY" = "true" ]]; then
     pushd OpenBLAS
     git checkout develop
+    export OPENBLAS_COMMIT=$(git describe --tags --abbrev=8)
     # Set the pyproject.toml version: convert v0.3.24-30-g138ed79f to 0.3.34.30
-    version=$(git describe --tags --abbrev=8 | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
+    version=$(echo $OPENBLAS_COMMIT | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g")
     popd
     sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
+else
+    export OPENBLAS_COMMIT=$(cat openblas_commit.txt)
 fi
 
 if [ "$(uname)" != "Darwin" ]; then

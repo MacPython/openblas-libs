@@ -1,9 +1,9 @@
 #!/bin/bash
 # Build script for OpenBLAS on Windows
 #
-# Usage: build_openblas.sh [openblas_root [build_bits [if_bits]]]
+# Usage: build_steps_windows.sh [openblas_root [build_bits [if_bits]]]
 #
-# e.g build_openblas.sh c:\\opt 64 32
+# e.g build_steps_windows.sh c:\\opt 64 32
 #
 # Uses the optional environment variables.  We always prefer command line argument
 # values above to environment variable values:
@@ -13,7 +13,6 @@
 #  INTERFACE64  (1 for 64-bit interface, anything else or undefined for 32,
 #                This gives the default value if if_bits not specified above).
 #  START_DIR  (directory containing OpenBLAS source, unspec -> .. from here)
-#  OPENBLAS_COMMIT  (unspec -> current submodule commit)
 #  LDFLAGS  (example: "-lucrt -static -static-libgcc")
 #
 # Expects at leasts these binaries on the PATH:
@@ -50,9 +49,7 @@ git submodule update --init --recursive
 
 # Get / clean code
 git fetch origin
-if [ -n "$OPENBLAS_COMMIT" ]; then
-    git checkout $OPENBLAS_COMMIT
-fi
+git checkout $(cat ../openblas_commit.txt)
 git clean -fxd
 git reset --hard
 rm -rf $openblas_root/$build_bits

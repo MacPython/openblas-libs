@@ -11,9 +11,6 @@ on:
   schedule:
     - cron: '0 0 * * 0'
 
-env:
-  OPENBLAS_COMMIT: "v0.3.30-359-g29fab2b9"
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -117,12 +114,6 @@ jobs:
         name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: dist/scipy_openblas*.whl
 
-
-    - name: Upload openblas to artifacts
-      uses: actions/upload-artifact@v4.3.0
-      with:
-        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
-        path: dist/openblas*.tar.gz
 
     - uses: conda-incubator/setup-miniconda@v3.2.0
       with:
