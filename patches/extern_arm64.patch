@@ -1,0 +1,24 @@
+diff --git a/kernel/generic/cabs.c b/kernel/generic/cabs.c
+index f76f69b20..e2454b41e 100644
+--- a/kernel/generic/cabs.c
++++ b/kernel/generic/cabs.c
+@@ -39,6 +39,7 @@
+ #include <math.h>
+ #include "common.h"
+ 
++__attribute__ ((visibility ("default")))
+ FLOAT NAME(FLOAT *a){
+   return fabs(a[0]) + fabs(a[1]);
+ }
+diff --git a/kernel/generic/lsame.c b/kernel/generic/lsame.c
+index 83fff1798..3ef95f3d4 100644
+--- a/kernel/generic/lsame.c
++++ b/kernel/generic/lsame.c
+@@ -38,6 +38,7 @@
+ 
+ #include <ctype.h>
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(const char *A, const char *B){
+ 
+   char a = *A;

@@ -1,0 +1,84 @@
+diff --git a/common_loongarch64.h b/common_loongarch64.h
+index 6e96984f6..f0c925132 100644
+--- a/common_loongarch64.h
++++ b/common_loongarch64.h
+@@ -270,6 +270,7 @@ static inline int get_cpu_model(char *model_name) {
+     .text ;\
+     .align 5 ;\
+     .globl  REALNAME ;\
++	.hidden REALNAME ;\
+     .type   REALNAME, @function ;\
+ REALNAME: ;\
+ 
+diff --git a/common_mips64.h b/common_mips64.h
+index c7eb212df..2f4640323 100644
+--- a/common_mips64.h
++++ b/common_mips64.h
+@@ -210,6 +210,7 @@ static inline int blas_quickdivide(blasint x, blasint y){
+ 	.set	ASSEMBLER_ARCH ;\
+ 	.align 5 ;\
+ 	.globl	REALNAME ;\
++	.hidden REALNAME ;\
+ 	.ent	REALNAME ;\
+ 	.type	REALNAME, @function ;\
+ REALNAME: ;\
+diff --git a/common_power.h b/common_power.h
+index ded76ad51..1bf964528 100644
+--- a/common_power.h
++++ b/common_power.h
+@@ -535,6 +535,7 @@ static inline int blas_quickdivide(blasint x, blasint y){
+ 	.section .text;\
+ 	.align 6;\
+ 	.globl	REALNAME;\
++	.hidden REALNAME ;\
+ 	.type	REALNAME, @function;\
+ REALNAME:
+ #define EPILOGUE	.size	REALNAME, .-REALNAME
+@@ -544,6 +545,7 @@ REALNAME:
+ 	.section .text;\
+ 	.align 6;\
+ 	.globl	REALNAME;\
++	.hidden REALNAME ;\
+ 	.type	REALNAME, @function;\
+ REALNAME:
+ #define EPILOGUE	.size	REALNAME, .-REALNAME
+@@ -552,6 +554,7 @@ REALNAME:
+ 	.section .text;\
+ 	.align 5;\
+ 	.globl REALNAME;\
++	.hidden REALNAME ;\
+ 	.section	".opd","aw";\
+ 	.align 3;\
+ REALNAME:;\
+@@ -560,6 +563,7 @@ REALNAME:;\
+ 	.size	REALNAME, 24;\
+ 	.type	.REALNAME, @function;\
+ 	.globl	.REALNAME;\
++	.hidden .REALNAME ;\
+ .REALNAME:
+ #define EPILOGUE \
+ 	.long 0 ; \
+diff --git a/common_x86.h b/common_x86.h
+index 65fb9a460..12c854df4 100644
+--- a/common_x86.h
++++ b/common_x86.h
+@@ -339,6 +339,7 @@ REALNAME:
+ 	.text; \
+ 	.align 16; \
+ 	.globl REALNAME ;\
++	.hidden REALNAME ;\
+        .type REALNAME, @function; \
+ REALNAME: \
+ 	_CET_ENDBR
+diff --git a/common_x86_64.h b/common_x86_64.h
+index 143e188a7..fff5eefbc 100644
+--- a/common_x86_64.h
++++ b/common_x86_64.h
+@@ -454,6 +454,7 @@ REALNAME:
+ 	.text; \
+ 	.align 512; \
+ 	.globl REALNAME ;\
++	.hidden REALNAME ;\
+        .type REALNAME, @function; \
+ REALNAME: \
+ 	_CET_ENDBR

@@ -1,0 +1,1534 @@
+diff --git a/Makefile.rule b/Makefile.rule
+index a3eb72dc0..52b2bfd75 100644
+--- a/Makefile.rule
++++ b/Makefile.rule
+@@ -132,7 +132,7 @@ VERSION = 0.3.30.dev
+ # NO_LAPACKE = 1
+ 
+ # Build LAPACK Deprecated functions since LAPACK 3.6.0
+-BUILD_LAPACK_DEPRECATED = 1
++# BUILD_LAPACK_DEPRECATED = 1
+ 
+ # The variable type assumed for the length of character arguments when passing
+ # data between Fortran LAPACK and C BLAS (defaults to "size_t", but older GCC
+diff --git a/common.h b/common.h
+index 4984d727c..7be46c30d 100644
+--- a/common.h
++++ b/common.h
+@@ -193,8 +193,10 @@ extern "C" {
+ 
+ #ifdef NEEDBUNDERSCORE
+ #define BLASFUNC(FUNC) FUNC##_
++#define OPENBLAS_API(FUNC) extern FUNC##_
+ #else
+ #define BLASFUNC(FUNC) FUNC
++#define OPENBLAS_API(FUNC) extern FUNC
+ #endif
+ 
+ #undef	USE_PTHREAD_LOCK
+diff --git a/driver/others/blas_server.c b/driver/others/blas_server.c
+index 4a3182354..cd52b3479 100644
+--- a/driver/others/blas_server.c
++++ b/driver/others/blas_server.c
+@@ -863,6 +863,7 @@ if (openblas_threads_callback_) {
+   return 0;
+ }
+ 
++__attribute__ ((visibility ("default")))
+ void goto_set_num_threads(int num_threads) {
+ 
+   long i;
+@@ -935,6 +936,7 @@ void goto_set_num_threads(int num_threads) {
+ 
+ }
+ 
++__attribute__ ((visibility ("default")))
+ void openblas_set_num_threads(int num_threads) {
+ 	goto_set_num_threads(num_threads);
+ 
+diff --git a/driver/others/memory.c b/driver/others/memory.c
+index c8415f348..77dc99817 100644
+--- a/driver/others/memory.c
++++ b/driver/others/memory.c
+@@ -500,6 +500,7 @@ int blas_get_cpu_number(void){
+ #endif
+ 
+ 
++__attribute__ ((visibility ("default")))
+ int openblas_get_num_procs(void) {
+ #ifndef SMP
+   return 1;
+@@ -508,6 +509,7 @@ int openblas_get_num_procs(void) {
+ #endif
+ }
+ 
++__attribute__ ((visibility ("default")))
+ int openblas_get_num_threads(void) {
+ #ifndef SMP
+   return 1;
+@@ -2071,6 +2073,7 @@ int blas_get_cpu_number(void){
+ #endif
+ 
+ 
++__attribute__ ((visibility ("default")))
+ int openblas_get_num_procs(void) {
+ #ifndef SMP
+   return 1;
+@@ -2079,6 +2082,7 @@ int openblas_get_num_procs(void) {
+ #endif
+ }
+ 
++__attribute__ ((visibility ("default")))
+ int openblas_get_num_threads(void) {
+ #ifndef SMP
+   return 1;
+diff --git a/driver/others/openblas_get_config.c b/driver/others/openblas_get_config.c
+index ff52cfba8..1e74b920a 100644
+--- a/driver/others/openblas_get_config.c
++++ b/driver/others/openblas_get_config.c
+@@ -78,6 +78,7 @@ char *gotoblas_corename(void);
+ static char tmp_config_str[256];
+ int openblas_get_parallel(void);
+ 
++__attribute__ ((visibility ("default")))
+ char* CNAME(void) {
+ char tmpstr[20];
+   strcpy(tmp_config_str, openblas_config_str);
+@@ -93,6 +94,7 @@ char tmpstr[20];
+ }
+ 
+ 
++__attribute__ ((visibility ("default")))
+ char* openblas_get_corename(void) {
+ #ifndef DYNAMIC_ARCH
+   return CHAR_CORENAME;
+diff --git a/driver/others/openblas_get_num_procs.c b/driver/others/openblas_get_num_procs.c
+index 6b0c1ec5c..fbb39e765 100644
+--- a/driver/others/openblas_get_num_procs.c
++++ b/driver/others/openblas_get_num_procs.c
+@@ -35,6 +35,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ extern int openblas_get_num_procs(void);
+ 
++__attribute__ ((visibility ("default")))
+ int openblas_get_num_procs_(void) {
+   return openblas_get_num_procs();
+ }
+diff --git a/driver/others/openblas_get_num_threads.c b/driver/others/openblas_get_num_threads.c
+index e31aa4b4a..d6603bb7c 100644
+--- a/driver/others/openblas_get_num_threads.c
++++ b/driver/others/openblas_get_num_threads.c
+@@ -35,6 +35,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ extern int openblas_get_num_threads(void);
+ 
++__attribute__ ((visibility ("default")))
+ int openblas_get_num_threads_(void) {
+   return openblas_get_num_threads();
+ }
+diff --git a/driver/others/openblas_get_parallel.c b/driver/others/openblas_get_parallel.c
+index becfa0a3a..48021ec18 100644
+--- a/driver/others/openblas_get_parallel.c
++++ b/driver/others/openblas_get_parallel.c
+@@ -41,11 +41,14 @@ static int parallel = 0;
+ #endif
+ 
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifdef NEEDBUNDERSCORE
+ int CNAME(void) {
+   return parallel;
+ }
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(void) {
+   return parallel;
+ }
+diff --git a/driver/others/openblas_set_num_threads.c b/driver/others/openblas_set_num_threads.c
+index c938fde69..6a1647a09 100644
+--- a/driver/others/openblas_set_num_threads.c
++++ b/driver/others/openblas_set_num_threads.c
+@@ -38,6 +38,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ extern  void openblas_set_num_threads(int num_threads) ;
+ extern  int openblas_get_num_threads(void) ;
+ 
++__attribute__ ((visibility ("default")))
+ void openblas_set_num_threads_(int* num_threads){
+ 	openblas_set_num_threads(*num_threads);
+ }
+@@ -53,9 +54,11 @@ int openblas_set_num_threads_local(int num_threads){
+ #else
+ //Single thread
+ 
++__attribute__ ((visibility ("default")))
+ void openblas_set_num_threads(int num_threads) {
+ }
+ 
++__attribute__ ((visibility ("default")))
+ void openblas_set_num_threads_(int* num_threads){
+ 
+ }
+diff --git a/interface/Makefile b/interface/Makefile
+index 83a894b12..b894abb74 100644
+--- a/interface/Makefile
++++ b/interface/Makefile
+@@ -29,6 +29,7 @@
+ TOPDIR	= ..
+ include $(TOPDIR)/Makefile.system
+ 
++
+ SUPPORT_GEMM3M = 0
+ 
+ ifeq ($(ARCH), x86)
+diff --git a/interface/asum.c b/interface/asum.c
+index bd83c88e0..d962b5359 100644
+--- a/interface/asum.c
++++ b/interface/asum.c
+@@ -42,6 +42,7 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ FLOATRET NAME(blasint *N, FLOAT *x, blasint *INCX){
+diff --git a/interface/axpby.c b/interface/axpby.c
+index 63dba81a4..8650dc233 100644
+--- a/interface/axpby.c
++++ b/interface/axpby.c
+@@ -36,6 +36,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *ALPHA, FLOAT *x, blasint *INCX, FLOAT *BETA, FLOAT *y, blasint *INCY)
+diff --git a/interface/axpy.c b/interface/axpy.c
+index 5304ebec3..dab4c87ec 100644
+--- a/interface/axpy.c
++++ b/interface/axpy.c
+@@ -46,6 +46,9 @@
+ #else
+ #define MULTI_THREAD_MINIMAL  10000
+ #endif
++
++
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *ALPHA, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/bf16dot.c b/interface/bf16dot.c
+index 33717e374..6d9e074c3 100644
+--- a/interface/bf16dot.c
++++ b/interface/bf16dot.c
+@@ -4,6 +4,7 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ float NAME(blasint *N, bfloat16 *x, blasint *INCX, bfloat16 *y, blasint *INCY){
+    BLASLONG n    = *N;
+diff --git a/interface/bf16to.c b/interface/bf16to.c
+index 036c0b142..d7a7fdf1c 100644
+--- a/interface/bf16to.c
++++ b/interface/bf16to.c
+@@ -11,6 +11,7 @@
+ #else
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ void NAME(blasint *N, bfloat16 *in, blasint *INC_IN, FLOAT_TYPE *out, blasint *INC_OUT){
+   BLASLONG n    = *N;
+diff --git a/interface/copy.c b/interface/copy.c
+index 20b5aec0a..1885a6164 100644
+--- a/interface/copy.c
++++ b/interface/copy.c
+@@ -42,6 +42,7 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/dot.c b/interface/dot.c
+index 3a918405e..074c6be73 100644
+--- a/interface/dot.c
++++ b/interface/dot.c
+@@ -42,6 +42,7 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ FLOATRET NAME(blasint *N, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/dsdot.c b/interface/dsdot.c
+index 32e4b492f..2454c2698 100644
+--- a/interface/dsdot.c
++++ b/interface/dsdot.c
+@@ -42,6 +42,7 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ double NAME(blasint *N, float *x, blasint *INCX, float *y, blasint *INCY){
+diff --git a/interface/gbmv.c b/interface/gbmv.c
+index 7a6581368..772996f7e 100644
+--- a/interface/gbmv.c
++++ b/interface/gbmv.c
+@@ -74,6 +74,7 @@ static int (*gbmv_thread[])(BLASLONG, BLASLONG, BLASLONG, BLASLONG, FLOAT,
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ 
+ void NAME(char *TRANS, blasint *M, blasint *N,
+diff --git a/interface/geadd.c b/interface/geadd.c
+index a2e6d1081..7c506135b 100644
+--- a/interface/geadd.c
++++ b/interface/geadd.c
+@@ -48,6 +48,8 @@
+ #define ERROR_NAME "SGEADD "
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *M, blasint *N, FLOAT *ALPHA, FLOAT *a, blasint *LDA,
+diff --git a/interface/gemm.c b/interface/gemm.c
+index a16df81ec..e273f9f23 100644
+--- a/interface/gemm.c
++++ b/interface/gemm.c
+@@ -252,6 +252,8 @@ static inline int get_gemm_optimal_nthreads(double MNK) {
+ }
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *TRANSA, char *TRANSB,
+diff --git a/interface/gemm_batch.c b/interface/gemm_batch.c
+index 56ccc12ce..005cc24c4 100644
+--- a/interface/gemm_batch.c
++++ b/interface/gemm_batch.c
+@@ -114,6 +114,7 @@ static size_t zgemm_small_kernel_b0[] = {
+ #endif
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ void CNAME(enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE *  transa_array, enum CBLAS_TRANSPOSE * transb_array,
+ 	   blasint * m_array, blasint * n_array, blasint * k_array,
+ #ifndef COMPLEX
+diff --git a/interface/gemmt.c b/interface/gemmt.c
+index aa65f81ed..d2aa10940 100644
+--- a/interface/gemmt.c
++++ b/interface/gemmt.c
+@@ -84,6 +84,8 @@
+ #define GEMM_MULTITHREAD_THRESHOLD 4
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANSA, char *TRANSB,
+diff --git a/interface/gemv.c b/interface/gemv.c
+index 34b6addd3..eb78665de 100644
+--- a/interface/gemv.c
++++ b/interface/gemv.c
+@@ -127,6 +127,8 @@ static inline int get_gemv_optimal_nthreads(BLASLONG MN) {
+ }
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *TRANS, blasint *M, blasint *N,
+diff --git a/interface/ger.c b/interface/ger.c
+index 640b8cb44..3aa404390 100644
+--- a/interface/ger.c
++++ b/interface/ger.c
+@@ -66,6 +66,7 @@
+ #define GER_THREAD	sger_thread
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ 
+ #ifndef CBLAS
+ 
+diff --git a/interface/imatcopy.c b/interface/imatcopy.c
+index 69876e31e..c4c920cc2 100644
+--- a/interface/imatcopy.c
++++ b/interface/imatcopy.c
+@@ -54,6 +54,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ /* Enables the New IMATCOPY code with inplace operation if lda == ldb   */
+ #define NEW_IMATCOPY
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ void NAME( char* ORDER, char* TRANS, blasint *rows, blasint *cols, FLOAT *alpha, FLOAT *a, blasint *lda, blasint *ldb)
+ {
+diff --git a/interface/imax.c b/interface/imax.c
+index 456460d98..c6b020fc6 100644
+--- a/interface/imax.c
++++ b/interface/imax.c
+@@ -118,6 +118,8 @@
+ 
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ blasint NAME(blasint *N, FLOAT *x, blasint *INCX){
+diff --git a/interface/lapack/gesv.c b/interface/lapack/gesv.c
+index 21fcc2097..b1773c992 100644
+--- a/interface/lapack/gesv.c
++++ b/interface/lapack/gesv.c
+@@ -60,6 +60,7 @@
+ #endif
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *N, blasint *NRHS, FLOAT *a, blasint *ldA, blasint *ipiv,
+          FLOAT *b, blasint *ldB, blasint *Info){
+ 
+diff --git a/interface/lapack/getf2.c b/interface/lapack/getf2.c
+index 8506feca9..289688da6 100644
+--- a/interface/lapack/getf2.c
++++ b/interface/lapack/getf2.c
+@@ -50,6 +50,7 @@
+ #define ERROR_NAME "SGETF2"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *M, blasint *N, FLOAT *a, blasint *ldA, blasint *ipiv, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/getrf.c b/interface/lapack/getrf.c
+index 270604120..774e515e3 100644
+--- a/interface/lapack/getrf.c
++++ b/interface/lapack/getrf.c
+@@ -50,6 +50,7 @@
+ #define ERROR_NAME "SGETRF"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *M, blasint *N, FLOAT *a, blasint *ldA, blasint *ipiv, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/getrs.c b/interface/lapack/getrs.c
+index c2a9eb882..3e4b4bf0d 100644
+--- a/interface/lapack/getrs.c
++++ b/interface/lapack/getrs.c
+@@ -60,6 +60,7 @@ static blasint (*getrs_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *TRANS, blasint *N, blasint *NRHS, FLOAT *a, blasint *ldA,
+   blasint *ipiv, FLOAT *b, blasint *ldB, blasint *Info){
+ 
+diff --git a/interface/lapack/lauu2.c b/interface/lapack/lauu2.c
+index e581e3c15..3cee77aad 100644
+--- a/interface/lapack/lauu2.c
++++ b/interface/lapack/lauu2.c
+@@ -60,6 +60,7 @@ static blasint (*lauu2[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *
+ #endif
+   };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/lauum.c b/interface/lapack/lauum.c
+index 70f6a0ec5..37e8bd2a8 100644
+--- a/interface/lapack/lauum.c
++++ b/interface/lapack/lauum.c
+@@ -60,6 +60,7 @@ static blasint (*lauum_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/potf2.c b/interface/lapack/potf2.c
+index 1537b6ee4..b5b2e2076 100644
+--- a/interface/lapack/potf2.c
++++ b/interface/lapack/potf2.c
+@@ -60,6 +60,7 @@ static blasint (*potf2[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *
+ #endif
+   };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/potrf.c b/interface/lapack/potrf.c
+index a24e48d95..58651bfde 100644
+--- a/interface/lapack/potrf.c
++++ b/interface/lapack/potrf.c
+@@ -60,6 +60,7 @@ static blasint (*potrf_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/potri.c b/interface/lapack/potri.c
+index eb0fcbe70..4d577beff 100644
+--- a/interface/lapack/potri.c
++++ b/interface/lapack/potri.c
+@@ -68,6 +68,7 @@ static blasint (*lauum_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/trti2.c b/interface/lapack/trti2.c
+index 47f04f06f..28955667d 100644
+--- a/interface/lapack/trti2.c
++++ b/interface/lapack/trti2.c
+@@ -60,6 +60,7 @@ static blasint (*trti2[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *
+ #endif
+   };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, char *DIAG, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/trtri.c b/interface/lapack/trtri.c
+index 82d806b8c..e68a74c7c 100644
+--- a/interface/lapack/trtri.c
++++ b/interface/lapack/trtri.c
+@@ -61,6 +61,7 @@ static blasint (*trtri_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ #endif
+ 
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, char *DIAG, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/trtrs.c b/interface/lapack/trtrs.c
+index 3cc449318..3fc50fae8 100644
+--- a/interface/lapack/trtrs.c
++++ b/interface/lapack/trtrs.c
+@@ -60,6 +60,7 @@ static blasint (*trtrs_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, char* TRANS, char* DIAG, blasint *N, blasint *NRHS, FLOAT *a, blasint *ldA,
+   FLOAT *b, blasint *ldB, blasint *Info){
+ 
+diff --git a/interface/lapack/zgetf2.c b/interface/lapack/zgetf2.c
+index 68b9a7e4b..5b879ad57 100644
+--- a/interface/lapack/zgetf2.c
++++ b/interface/lapack/zgetf2.c
+@@ -50,6 +50,7 @@
+ #define ERROR_NAME "CGETF2"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *M, blasint *N, FLOAT *a, blasint *ldA, blasint *ipiv, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/zgetrf.c b/interface/lapack/zgetrf.c
+index d03541fad..5d178c0c7 100644
+--- a/interface/lapack/zgetrf.c
++++ b/interface/lapack/zgetrf.c
+@@ -50,6 +50,7 @@
+ #define ERROR_NAME "CGETRF"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *M, blasint *N, FLOAT *a, blasint *ldA, blasint *ipiv, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/zgetrs.c b/interface/lapack/zgetrs.c
+index 0add909ca..7ac19578a 100644
+--- a/interface/lapack/zgetrs.c
++++ b/interface/lapack/zgetrs.c
+@@ -60,6 +60,7 @@ static blasint (*getrs_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *TRANS, blasint *N, blasint *NRHS, FLOAT *a, blasint *ldA,
+ 	    blasint *ipiv, FLOAT *b, blasint *ldB, blasint *Info){
+ 
+diff --git a/interface/lapack/zlaswp.c b/interface/lapack/zlaswp.c
+index 7bb4a659e..c3e547364 100644
+--- a/interface/lapack/zlaswp.c
++++ b/interface/lapack/zlaswp.c
+@@ -52,6 +52,7 @@ static int (*laswp[])(BLASLONG, BLASLONG, BLASLONG, FLOAT, FLOAT, FLOAT *, BLASL
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *N, FLOAT *a, blasint *LDA, blasint *K1, blasint *K2, blasint *ipiv, blasint *INCX){
+ 
+   blasint n    = *N;
+diff --git a/interface/lapack/zlauu2.c b/interface/lapack/zlauu2.c
+index ae972543c..f1c4f8ee0 100644
+--- a/interface/lapack/zlauu2.c
++++ b/interface/lapack/zlauu2.c
+@@ -61,6 +61,7 @@ static blasint (*lauu2[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *
+ #endif
+   };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/zlauum.c b/interface/lapack/zlauum.c
+index 4a36cc173..28766c74e 100644
+--- a/interface/lapack/zlauum.c
++++ b/interface/lapack/zlauum.c
+@@ -60,6 +60,7 @@ static blasint (*lauum_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/zpotf2.c b/interface/lapack/zpotf2.c
+index c74b66728..aa2d8bca6 100644
+--- a/interface/lapack/zpotf2.c
++++ b/interface/lapack/zpotf2.c
+@@ -61,6 +61,7 @@ static blasint (*potf2[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *
+ #endif
+   };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/zpotrf.c b/interface/lapack/zpotrf.c
+index 298efbbc1..4443aa5b2 100644
+--- a/interface/lapack/zpotrf.c
++++ b/interface/lapack/zpotrf.c
+@@ -60,6 +60,7 @@ static blasint (*potrf_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/zpotri.c b/interface/lapack/zpotri.c
+index 8748c6352..7cd9ae699 100644
+--- a/interface/lapack/zpotri.c
++++ b/interface/lapack/zpotri.c
+@@ -68,6 +68,7 @@ static blasint (*lauum_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/ztrti2.c b/interface/lapack/ztrti2.c
+index cb9c0d557..ccf67493e 100644
+--- a/interface/lapack/ztrti2.c
++++ b/interface/lapack/ztrti2.c
+@@ -60,6 +60,7 @@ static blasint (*trti2[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *
+ #endif
+   };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, char *DIAG, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/ztrtri.c b/interface/lapack/ztrtri.c
+index dda4a9e4b..adbba0ab3 100644
+--- a/interface/lapack/ztrtri.c
++++ b/interface/lapack/ztrtri.c
+@@ -60,6 +60,7 @@ static blasint (*trtri_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, char *DIAG, blasint *N, FLOAT *a, blasint *ldA, blasint *Info){
+ 
+   blas_arg_t args;
+diff --git a/interface/lapack/ztrtrs.c b/interface/lapack/ztrtrs.c
+index ec3343393..17666635a 100644
+--- a/interface/lapack/ztrtrs.c
++++ b/interface/lapack/ztrtrs.c
+@@ -60,6 +60,7 @@ static blasint (*trtrs_parallel[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(char *UPLO, char* TRANS, char* DIAG, blasint *N, blasint *NRHS, FLOAT *a, blasint *ldA,
+   FLOAT *b, blasint *ldB, blasint *Info){
+ 
+diff --git a/interface/max.c b/interface/max.c
+index 7817601b9..c667509fd 100644
+--- a/interface/max.c
++++ b/interface/max.c
+@@ -126,6 +126,8 @@
+ 
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ FLOATRET NAME(blasint *N, FLOAT *x, blasint *INCX){
+diff --git a/interface/nrm2.c b/interface/nrm2.c
+index cfeb13df8..70b131601 100644
+--- a/interface/nrm2.c
++++ b/interface/nrm2.c
+@@ -42,6 +42,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ FLOATRET NAME(blasint *N, FLOAT *x, blasint *INCX){
+diff --git a/interface/omatcopy.c b/interface/omatcopy.c
+index c26446f5c..4cf5e11af 100644
+--- a/interface/omatcopy.c
++++ b/interface/omatcopy.c
+@@ -47,6 +47,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #define BlasNoTrans  0
+ #define BlasTrans    1
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS 
+ void NAME( char* ORDER, char* TRANS, blasint *rows, blasint *cols, FLOAT *alpha, FLOAT *a, blasint *lda, FLOAT *b, blasint *ldb)
+ {
+diff --git a/interface/rot.c b/interface/rot.c
+index 125275a18..deb7dcd66 100644
+--- a/interface/rot.c
++++ b/interface/rot.c
+@@ -42,6 +42,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY, FLOAT *C, FLOAT *S){
+diff --git a/interface/rotg.c b/interface/rotg.c
+index 423ebda21..4d9e9c4f6 100644
+--- a/interface/rotg.c
++++ b/interface/rotg.c
+@@ -5,6 +5,7 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ 
+ #ifndef CBLAS
+ 
+diff --git a/interface/rotm.c b/interface/rotm.c
+index 9ef87da32..576d51b14 100644
+--- a/interface/rotm.c
++++ b/interface/rotm.c
+@@ -3,6 +3,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *dx, blasint *INCX, FLOAT *dy, blasint *INCY, FLOAT *dparam){
+diff --git a/interface/rotmg.c b/interface/rotmg.c
+index b8f627221..08a339b4f 100644
+--- a/interface/rotmg.c
++++ b/interface/rotmg.c
+@@ -50,6 +50,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #define ABS(x) fabsf(x)
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(FLOAT *dd1, FLOAT *dd2, FLOAT *dx1, FLOAT *DY1, FLOAT *dparam){
+diff --git a/interface/sbgemmt.c b/interface/sbgemmt.c
+index 67914fe65..b5861b51d 100644
+--- a/interface/sbgemmt.c
++++ b/interface/sbgemmt.c
+@@ -43,6 +43,8 @@
+ #define GEMM_MULTITHREAD_THRESHOLD 4
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANSA, char *TRANSB,
+diff --git a/interface/sbgemv.c b/interface/sbgemv.c
+index 12db2dfb1..e2f745d80 100644
+--- a/interface/sbgemv.c
++++ b/interface/sbgemv.c
+@@ -51,6 +51,8 @@ static int (*gemv_thread[])(BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IFLOA
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *TRANS, blasint *M, blasint *N, float *ALPHA, bfloat16 *a, blasint *LDA, bfloat16 *x, blasint *INCX, float *BETA, float *y, blasint *INCY)
+diff --git a/interface/sbmv.c b/interface/sbmv.c
+index 25e99ca34..96d2c7a5c 100644
+--- a/interface/sbmv.c
++++ b/interface/sbmv.c
+@@ -81,6 +81,8 @@ static  int (*sbmv_thread[])(BLASLONG, BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, blasint *K, FLOAT  *ALPHA, FLOAT *a, blasint *LDA,
+diff --git a/interface/scal.c b/interface/scal.c
+index 4f12df7c0..62859cc57 100644
+--- a/interface/scal.c
++++ b/interface/scal.c
+@@ -43,6 +43,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *ALPHA, FLOAT *x, blasint *INCX){
+diff --git a/interface/sdsdot.c b/interface/sdsdot.c
+index 6c457fa6c..45a258564 100644
+--- a/interface/sdsdot.c
++++ b/interface/sdsdot.c
+@@ -42,6 +42,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ FLOATRET NAME(blasint *N, FLOAT *a, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/spmv.c b/interface/spmv.c
+index e08ae3f6e..aa2186094 100644
+--- a/interface/spmv.c
++++ b/interface/spmv.c
+@@ -73,6 +73,8 @@ static  int (*spmv_thread[])(BLASLONG, FLOAT, FLOAT *, FLOAT *, BLASLONG, FLOAT
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA, FLOAT *a,
+diff --git a/interface/spr.c b/interface/spr.c
+index 8aafc9f85..c6e28fb21 100644
+--- a/interface/spr.c
++++ b/interface/spr.c
+@@ -73,6 +73,8 @@ static int (*spr_thread[])(BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT *, FLOAT *,
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/spr2.c b/interface/spr2.c
+index b5aab1767..8f99394f3 100644
+--- a/interface/spr2.c
++++ b/interface/spr2.c
+@@ -73,6 +73,8 @@ static int (*spr2_thread[])(BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT *, BLASLON
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/sum.c b/interface/sum.c
+index dfdcc5dcc..eb37604c8 100644
+--- a/interface/sum.c
++++ b/interface/sum.c
+@@ -42,6 +42,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ FLOATRET NAME(blasint *N, FLOAT *x, blasint *INCX){
+diff --git a/interface/swap.c b/interface/swap.c
+index ea40b1fc2..82829d0ed 100644
+--- a/interface/swap.c
++++ b/interface/swap.c
+@@ -50,6 +50,8 @@
+ #undef SMP
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/symm.c b/interface/symm.c
+index 04a8fab7d..01dbc7c51 100644
+--- a/interface/symm.c
++++ b/interface/symm.c
+@@ -146,6 +146,8 @@ static int (*symm[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *, BLA
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *SIDE, char *UPLO,
+diff --git a/interface/symv.c b/interface/symv.c
+index 1f23ce4ee..85828085c 100644
+--- a/interface/symv.c
++++ b/interface/symv.c
+@@ -51,6 +51,8 @@
+ #define ERROR_NAME "SSYMV "
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA, FLOAT *a, blasint *LDA,
+diff --git a/interface/syr.c b/interface/syr.c
+index ad75264b1..9ebd4e484 100644
+--- a/interface/syr.c
++++ b/interface/syr.c
+@@ -73,6 +73,8 @@ static int (*syr_thread[])(BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT *, BLASLONG
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/syr2.c b/interface/syr2.c
+index 632906d28..cd1a4cb2f 100644
+--- a/interface/syr2.c
++++ b/interface/syr2.c
+@@ -73,6 +73,8 @@ static int (*syr2_thread[])(BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT *, BLASLON
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/syr2k.c b/interface/syr2k.c
+index 47df7f89f..61f2864cc 100644
+--- a/interface/syr2k.c
++++ b/interface/syr2k.c
+@@ -79,6 +79,8 @@ static int (*syr2k[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *, BL
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS,
+diff --git a/interface/syrk.c b/interface/syrk.c
+index 9e493b00f..4af62cae5 100644
+--- a/interface/syrk.c
++++ b/interface/syrk.c
+@@ -91,6 +91,8 @@ static int (*syrk[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *, BLA
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS,
+diff --git a/interface/tbmv.c b/interface/tbmv.c
+index b5f3ab740..256060261 100644
+--- a/interface/tbmv.c
++++ b/interface/tbmv.c
+@@ -79,6 +79,8 @@ static int (*tbmv_thread[])(BLASLONG, BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLAS
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/tbsv.c b/interface/tbsv.c
+index 12a1eb003..2de5814df 100644
+--- a/interface/tbsv.c
++++ b/interface/tbsv.c
+@@ -64,6 +64,8 @@ static int (*tbsv[])(BLASLONG, BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLASLONG, v
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/tobf16.c b/interface/tobf16.c
+index 787d9d689..f070911ee 100644
+--- a/interface/tobf16.c
++++ b/interface/tobf16.c
+@@ -11,6 +11,8 @@
+ #else
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ void NAME(blasint *N, FLOAT_TYPE *in, blasint *INC_IN, bfloat16 *out, blasint *INC_OUT){
+    BLASLONG n    = *N;
+diff --git a/interface/tpmv.c b/interface/tpmv.c
+index 262af2285..e7092c71a 100644
+--- a/interface/tpmv.c
++++ b/interface/tpmv.c
+@@ -79,6 +79,8 @@ static int (*tpmv_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, int)
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/tpsv.c b/interface/tpsv.c
+index 58be77cd3..e2ca6be31 100644
+--- a/interface/tpsv.c
++++ b/interface/tpsv.c
+@@ -64,6 +64,8 @@ static int (*tpsv[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, void *) = {
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/trmv.c b/interface/trmv.c
+index 029a83499..df34d4b18 100644
+--- a/interface/trmv.c
++++ b/interface/trmv.c
+@@ -79,6 +79,8 @@ static int (*trmv_thread[])(BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLASLONG, FLOA
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/trsm.c b/interface/trsm.c
+index dcc64769d..ea72e5fc4 100644
+--- a/interface/trsm.c
++++ b/interface/trsm.c
+@@ -109,6 +109,8 @@ static int (*trsm[])(blas_arg_t *, BLASLONG *, BLASLONG *, FLOAT *, FLOAT *, BLA
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *SIDE, char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/trsv.c b/interface/trsv.c
+index a054d8eeb..2dfdbb5a3 100644
+--- a/interface/trsv.c
++++ b/interface/trsv.c
+@@ -64,6 +64,8 @@ static int (*trsv[])(BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLASLONG, void *) = {
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/xerbla.c b/interface/xerbla.c
+index c3a174552..acb6c4991 100644
+--- a/interface/xerbla.c
++++ b/interface/xerbla.c
+@@ -6,6 +6,8 @@
+ #include <stdarg.h>
+ #include "common.h"
+ 
++__attribute__ ((visibility ("default")))
++
+ void CNAME(blasint p, char *rout, char *form, ...)
+ {
+    va_list args;
+diff --git a/interface/zaxpby.c b/interface/zaxpby.c
+index e5065270d..38788d7b6 100644
+--- a/interface/zaxpby.c
++++ b/interface/zaxpby.c
+@@ -37,6 +37,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, void *VALPHA, FLOAT *x, blasint *INCX, void *VBETA, FLOAT *y, blasint *INCY)
+diff --git a/interface/zaxpy.c b/interface/zaxpy.c
+index 0e168606d..6250b9220 100644
+--- a/interface/zaxpy.c
++++ b/interface/zaxpy.c
+@@ -46,6 +46,9 @@
+ #else
+ #define MULTI_THREAD_MINIMAL  10000
+ #endif
++
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *ALPHA, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/zdot.c b/interface/zdot.c
+index af91b96d5..838d738f8 100644
+--- a/interface/zdot.c
++++ b/interface/zdot.c
+@@ -52,6 +52,8 @@
+ #endif
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ #ifdef RETURN_BY_STRUCT
+diff --git a/interface/zgbmv.c b/interface/zgbmv.c
+index 5128b22e1..59eb24ae8 100644
+--- a/interface/zgbmv.c
++++ b/interface/zgbmv.c
+@@ -80,6 +80,8 @@ static int (*gbmv_thread[])(BLASLONG, BLASLONG, BLASLONG, BLASLONG, FLOAT *,
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *TRANS, blasint *M, blasint *N,
+diff --git a/interface/zgeadd.c b/interface/zgeadd.c
+index de71f27b8..cce09f255 100644
+--- a/interface/zgeadd.c
++++ b/interface/zgeadd.c
+@@ -48,6 +48,8 @@
+ #define ERROR_NAME "CGEADD "
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *M, blasint *N, FLOAT *ALPHA, FLOAT *a, blasint *LDA,
+diff --git a/interface/zgemv.c b/interface/zgemv.c
+index 3438575b9..64932f4a3 100644
+--- a/interface/zgemv.c
++++ b/interface/zgemv.c
+@@ -62,6 +62,8 @@ static int (*gemv_thread[])(BLASLONG, BLASLONG, FLOAT *, FLOAT *, BLASLONG,  FLO
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *TRANS, blasint *M, blasint *N,
+diff --git a/interface/zger.c b/interface/zger.c
+index 1360c5873..97adb05bd 100644
+--- a/interface/zger.c
++++ b/interface/zger.c
+@@ -101,6 +101,8 @@
+ #endif
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *M, blasint *N, FLOAT *Alpha,
+diff --git a/interface/zhbmv.c b/interface/zhbmv.c
+index 656f137c6..0a61d9338 100644
+--- a/interface/zhbmv.c
++++ b/interface/zhbmv.c
+@@ -73,6 +73,8 @@ static  int (*hbmv_thread[])(BLASLONG, BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLO
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, blasint *K, FLOAT  *ALPHA, FLOAT *a, blasint *LDA,
+diff --git a/interface/zhemv.c b/interface/zhemv.c
+index 9c31f31d9..14c155780 100644
+--- a/interface/zhemv.c
++++ b/interface/zhemv.c
+@@ -55,6 +55,8 @@
+ #define ERROR_NAME "CHEMV "
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA, FLOAT *a, blasint *LDA,
+diff --git a/interface/zher.c b/interface/zher.c
+index 49b1cec03..501a6c18f 100644
+--- a/interface/zher.c
++++ b/interface/zher.c
+@@ -73,6 +73,8 @@ static int (*her_thread[])(BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT *, BLASLONG
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/zher2.c b/interface/zher2.c
+index eba4c4f41..44444e3a9 100644
+--- a/interface/zher2.c
++++ b/interface/zher2.c
+@@ -73,6 +73,8 @@ static int (*her2_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, BLASL
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/zhpmv.c b/interface/zhpmv.c
+index ff49716b5..0de9a4107 100644
+--- a/interface/zhpmv.c
++++ b/interface/zhpmv.c
+@@ -73,6 +73,8 @@ static  int (*hpmv_thread[])(BLASLONG, FLOAT *, FLOAT *, FLOAT *, BLASLONG, FLOA
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA, FLOAT *a,
+diff --git a/interface/zhpr.c b/interface/zhpr.c
+index 34700549e..b5fc02245 100644
+--- a/interface/zhpr.c
++++ b/interface/zhpr.c
+@@ -73,6 +73,8 @@ static int (*hpr_thread[])(BLASLONG, FLOAT, FLOAT *, BLASLONG, FLOAT *, FLOAT *,
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/zhpr2.c b/interface/zhpr2.c
+index 1cbaaa062..9f0d9a04a 100644
+--- a/interface/zhpr2.c
++++ b/interface/zhpr2.c
+@@ -73,6 +73,8 @@ static int (*hpr2_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, BLASL
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+diff --git a/interface/zimatcopy.c b/interface/zimatcopy.c
+index b879c9ac2..5bad04a14 100644
+--- a/interface/zimatcopy.c
++++ b/interface/zimatcopy.c
+@@ -52,6 +52,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ #define NEW_IMATCOPY 
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ void NAME( char* ORDER, char* TRANS, blasint *rows, blasint *cols, FLOAT *alpha, FLOAT *a, blasint *lda, blasint *ldb)
+ {
+diff --git a/interface/zomatcopy.c b/interface/zomatcopy.c
+index 7121711d8..bc7b78a47 100644
+--- a/interface/zomatcopy.c
++++ b/interface/zomatcopy.c
+@@ -49,6 +49,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #define BlasTransConj    2
+ #define BlasConj         3
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ void NAME( char* ORDER, char* TRANS, blasint *rows, blasint *cols, FLOAT *alpha, FLOAT *a, blasint *lda, FLOAT *b, blasint *ldb)
+ {
+diff --git a/interface/zrot.c b/interface/zrot.c
+index 228c5ee45..33e0cbbee 100644
+--- a/interface/zrot.c
++++ b/interface/zrot.c
+@@ -42,6 +42,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ void NAME(blasint *N, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY, FLOAT *C, FLOAT *S){
+   BLASLONG n    = *N;
+diff --git a/interface/zrotg.c b/interface/zrotg.c
+index 8acc3c9b2..c90fb2522 100644
+--- a/interface/zrotg.c
++++ b/interface/zrotg.c
+@@ -6,6 +6,7 @@
+ #endif
+ 
+ 
++__attribute__ ((visibility ("default")))
+ #ifndef CBLAS
+ void NAME(FLOAT *DA, FLOAT *DB, FLOAT *C, FLOAT *S){
+ 
+diff --git a/interface/zsbmv.c b/interface/zsbmv.c
+index cd5cefed9..c47c5f9c3 100644
+--- a/interface/zsbmv.c
++++ b/interface/zsbmv.c
+@@ -81,6 +81,7 @@ static  int (*sbmv_thread[])(BLASLONG, BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLO
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ void NAME(char *UPLO, blasint *N, blasint *K, FLOAT  *ALPHA, FLOAT *a, blasint *LDA,
+             FLOAT  *b, blasint *INCX, FLOAT *BETA, FLOAT *c, blasint *INCY){
+ 
+diff --git a/interface/zscal.c b/interface/zscal.c
+index 0e52d113b..956972acc 100644
+--- a/interface/zscal.c
++++ b/interface/zscal.c
+@@ -42,6 +42,8 @@
+ #include "functable.h"
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *ALPHA, FLOAT *x, blasint *INCX){
+diff --git a/interface/zspmv.c b/interface/zspmv.c
+index be11463c0..1e78f33b3 100644
+--- a/interface/zspmv.c
++++ b/interface/zspmv.c
+@@ -73,6 +73,8 @@ static  int (*spmv_thread[])(BLASLONG, FLOAT *, FLOAT *, FLOAT *, BLASLONG, FLOA
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA, FLOAT *a,
+             FLOAT  *b, blasint *INCX, FLOAT *BETA, FLOAT *c, blasint *INCY){
+ 
+diff --git a/interface/zspr.c b/interface/zspr.c
+index 574b59aa2..1d04c3d09 100644
+--- a/interface/zspr.c
++++ b/interface/zspr.c
+@@ -73,6 +73,7 @@ static int (*spr_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, FLOAT
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+ 	 FLOAT  *x, blasint *INCX, FLOAT *a){
+ 
+diff --git a/interface/zspr2.c b/interface/zspr2.c
+index 44c36d553..2f4415a7f 100644
+--- a/interface/zspr2.c
++++ b/interface/zspr2.c
+@@ -73,6 +73,7 @@ static int (*spr2_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, BLASL
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+ 	 FLOAT  *x, blasint *INCX, FLOAT *y, blasint *INCY, FLOAT *a){
+ 
+diff --git a/interface/zswap.c b/interface/zswap.c
+index 43971b73e..a18dc9baa 100644
+--- a/interface/zswap.c
++++ b/interface/zswap.c
+@@ -50,6 +50,8 @@
+ #undef SMP
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(blasint *N, FLOAT *x, blasint *INCX, FLOAT *y, blasint *INCY){
+diff --git a/interface/zsymv.c b/interface/zsymv.c
+index 1d6ff1f34..c1714cc01 100644
+--- a/interface/zsymv.c
++++ b/interface/zsymv.c
+@@ -51,6 +51,8 @@
+ #define ERROR_NAME "CSYMV "
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA, FLOAT *a, blasint *LDA,
+             FLOAT  *b, blasint *INCX, FLOAT *BETA, FLOAT *c, blasint *INCY){
+ 
+diff --git a/interface/zsyr.c b/interface/zsyr.c
+index 51cca84ee..4720b4f78 100644
+--- a/interface/zsyr.c
++++ b/interface/zsyr.c
+@@ -73,6 +73,7 @@ static int (*syr_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, BLASLO
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ 
+ #ifndef CBLAS
+ 
+diff --git a/interface/zsyr2.c b/interface/zsyr2.c
+index 7c81c2093..98d77a6b6 100644
+--- a/interface/zsyr2.c
++++ b/interface/zsyr2.c
+@@ -73,6 +73,7 @@ static int (*syr2_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, BLASL
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
+ void NAME(char *UPLO, blasint *N, FLOAT  *ALPHA,
+ 	 FLOAT  *x, blasint *INCX, FLOAT *y, blasint *INCY, FLOAT *a, blasint *LDA){
+ 
+diff --git a/interface/ztbmv.c b/interface/ztbmv.c
+index d56620c5b..69bc7522c 100644
+--- a/interface/ztbmv.c
++++ b/interface/ztbmv.c
+@@ -91,6 +91,8 @@ static int (*tbmv_thread[])(BLASLONG, BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLAS
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/ztbsv.c b/interface/ztbsv.c
+index 7e144ce75..1badcb3cf 100644
+--- a/interface/ztbsv.c
++++ b/interface/ztbsv.c
+@@ -70,6 +70,8 @@ static int (*tbsv[])(BLASLONG, BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLASLONG, v
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/ztpmv.c b/interface/ztpmv.c
+index 3791d1602..a973e37a7 100644
+--- a/interface/ztpmv.c
++++ b/interface/ztpmv.c
+@@ -91,6 +91,8 @@ static int (*tpmv_thread[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, FLOAT *, int)
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/ztpsv.c b/interface/ztpsv.c
+index fa706b565..32028a20b 100644
+--- a/interface/ztpsv.c
++++ b/interface/ztpsv.c
+@@ -70,6 +70,8 @@ static int (*tpsv[])(BLASLONG, FLOAT *, FLOAT *, BLASLONG, void *) = {
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/ztrmv.c b/interface/ztrmv.c
+index 4c47e9e91..dc16ec8cc 100644
+--- a/interface/ztrmv.c
++++ b/interface/ztrmv.c
+@@ -91,6 +91,8 @@ static int (*trmv_thread[])(BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLASLONG, FLOA
+ };
+ #endif
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/ztrsv.c b/interface/ztrsv.c
+index cbb7bba13..bf5d0fa4c 100644
+--- a/interface/ztrsv.c
++++ b/interface/ztrsv.c
+@@ -70,6 +70,8 @@ static int (*trsv[])(BLASLONG, FLOAT *, BLASLONG, FLOAT *, BLASLONG, void *) = {
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
++
+ #ifndef CBLAS
+ 
+ void NAME(char *UPLO, char *TRANS, char *DIAG,
+diff --git a/interface/lapack/laswp.c b/interface/lapack/laswp.c
+index 6544dbc5b..f7835abfb 100644
+--- a/interface/lapack/laswp.c
++++ b/interface/lapack/laswp.c
+@@ -52,6 +52,7 @@ static int (*laswp[])(BLASLONG, BLASLONG, BLASLONG, FLOAT, FLOAT *, BLASLONG, FL
+ #endif
+ };
+ 
++__attribute__ ((visibility ("default")))
+ int NAME(blasint *N, FLOAT *a, blasint *LDA, blasint *K1, blasint *K2, blasint *ipiv, blasint *INCX){
+ 
+   blasint n    = *N;
