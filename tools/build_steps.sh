@@ -195,14 +195,14 @@ function build_lib {
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=hidden -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-            USE_OPENMP=0 NUM_THREADS=64 NO_LAPACKE=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=hidden -Wno-uninitialized" \
         make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
-            USE_OPENMP=0 NUM_THREADS=64 NO_LAPACKE=1 \
+            USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     fi
