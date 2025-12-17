@@ -13,8 +13,7 @@ mkdir -p local/openblas
 mkdir -p dist
 $PYTHON -m pip install wheel auditwheel
 
-# This will fail if there is more than one file in libs
-tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas*.tar.gz
+tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas.tar.gz
 
 # do not package the static libs and symlinks, only take the shared object
 find local/scipy_openblas64/lib -maxdepth 1 -type l -delete

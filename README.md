@@ -20,8 +20,8 @@
 
 # OpenBLAS library build process
 
-First, tarballs are built using `do_build_lib` in `tools/build_steps.sh` (on
-posix in a docker and drectly on macos) or `build_openblas.sh` on windows.
+First, tarballs are built using `build_lib` in `tools/build_steps.sh` (on
+posix in a docker and drectly on macos) or `tools/build_steps_windows.sh` on windows.
 
 Then the shared object and header files from the tarball are used to build the
 wheel via `tools/build_wheel.sh`, and the wheels uploaded to

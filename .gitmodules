@@ -1,6 +1,3 @@
 [submodule "OpenBLAS"]
 	path = OpenBLAS
 	url = https://github.com/xianyi/OpenBLAS.git
-[submodule "gfortran-install"]
-	path = gfortran-install
-	url = https://github.com/MacPython/gfortran-install.git

@@ -8,11 +8,6 @@
 :: If INTERFACE64 environment variable is 1, then if_bits defaults to 64
 :: Expects these binaries on the PATH:
 ::   clang-cl, flang-new, cmake, perl
-:: Uses environment variable:
-::   OPENBLAS_COMMIT  (unspec -> current submodule commit, if contains
-::     Windows on ARM build fixes (see below), otherwise earliest commit
-::     with those fixes).
-
 :: First commit containing WoA build fixes.
 :: Minimum OpenBLAS commit to build; we'll update to this if commit not
 :: present.
@@ -63,13 +58,11 @@ if "%if_bits%"=="64" (
 echo Cloning OpenBLAS repository with submodules...
 git submodule update --init --recursive OpenBLAS
 if errorlevel 1 exit /b 1
+set /p OPENBLAS_COMMIT=<openblas_commit.txt
  
 :: Enter OpenBLAS directory and checkout buildable commit
 cd OpenBLAS
-if defined OPENBLAS_COMMIT (
-    echo Checking out OpenBLAS commit %OPENBLAS_COMMIT%
-    git checkout %OPENBLAS_COMMIT%
-)
+git checkout %OPENBLAS_COMMIT%
 git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
 if errorlevel 1 (
     echo OpenBLAS commit does not contain WoA build fixes.
