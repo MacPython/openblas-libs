@@ -67,10 +67,13 @@ def get_pkg_config(use_preloading=False, use_prefix=False):
     If use_preloading is True then on posix the ``Libs:`` directive will not add
     ``f"-L{get_library()}" so that at runtime this module must be imported before
     the target module
+
+    If use_prefix is True, then `pcfiledir` will be used and the file should be
+    stored in `dirname(__file__)/lib/pkgconfig` for use with pkgconf-pypi
     """
-    machine = platform.machine().lower()
     extralib = ""
     if sys.platform == "win32":
+        machine = platform.machine().lower()
         if machine != "arm64":
             extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
         libs_flags = f"-L${{libdir}} -l{get_library()}"

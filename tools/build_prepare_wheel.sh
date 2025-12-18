@@ -49,6 +49,11 @@ else
     cat tools/LICENSE_linux.txt >> LICENSE.txt
 fi
 
+if [ "$(uname)" == "Darwin" -a "${PLAT}" == "x86_64" ]; then
+    local PYTHON="arch -x86_64 python3"
+else
+    local PYTHON=python3
+fi
 if [ "${INTERFACE64}" != "1" ]; then
     # rewrite the name of the project to scipy-openblas32
     # this is a hack, but apparently there is no other way to change the name
@@ -63,9 +68,9 @@ if [ "${INTERFACE64}" != "1" ]; then
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__init__.py
     rm local/scipy_openblas32/*.bak
-    PYTHONPATH=$PWD/local python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
+    PYTHONPATH=$PWD/local $PYTHON -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
 else
-    PYTHONPATH=$PWD/local python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
+    PYTHONPATH=$PWD/local $PYTHON -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
 fi
 
 rm -rf dist/*
