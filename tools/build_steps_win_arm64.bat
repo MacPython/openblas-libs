@@ -129,7 +129,12 @@ if "%if_bits%"=="32" (
     powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
     powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
     powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
-    cd ..
+    mkdir scipy_openblas32\lib\pkgconfig
+    python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
+) else (
+    cd local
+    mkdir scipy_openblas64\lib\pkgconfig
+    python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
 )
 
 :: Prepare destination directory
