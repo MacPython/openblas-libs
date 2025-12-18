@@ -73,4 +73,4 @@ unset -f popd
 source build-openblas.sh
 
 # Build wheel
-source tools/build_prepare.sh
+source tools/build_prepare_wheel.sh

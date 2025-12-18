@@ -24,7 +24,7 @@ First, tarballs are built using `build_lib` in `tools/build_steps.sh` (on
 posix in a docker and drectly on macos) or `tools/build_steps_windows.sh` on windows.
 
 Then the shared object and header files from the tarball are used to build the
-wheel via `tools/build_wheel.sh`, and the wheels uploaded to
+wheel via `tools/build_prepare_wheel.sh` and `pip build wheel`, and the wheels uploaded to
 https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas32 and
 https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas64 via
 `tools/upload_to_anaconda_staging.sh`. For a release, the wheels are uploaded

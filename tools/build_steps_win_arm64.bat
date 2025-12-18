@@ -123,10 +123,18 @@ if "%if_bits%"=="32" (
     cd ../..
     set out_pyproject=pyproject_64_32.toml
     powershell -Command "(Get-Content 'pyproject.toml') -replace 'openblas64', 'openblas32' | Set-Content !out_pyproject!"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__main__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
+    cd local
+    move scipy_openblas64 scipy_openblas32
+    powershell -Command "(Get-Content 'scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__main__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
+    mkdir scipy_openblas32\lib\pkgconfig
+    python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
+) else (
+    cd local
+    mkdir scipy_openblas64\lib\pkgconfig
+    python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
 )
 
 :: Prepare destination directory
@@ -208,5 +216,10 @@ echo Installing wheel: %WHEEL_FILE%
 pip install "%WHEEL_FILE%"
 if errorlevel 1 exit /b 1
  
+echo Testing
+python -m pip install pkgconf
+python -m pkgconf scipy-openblas --cflags
+if errorlevel 1 exit /b 1
+
 echo Done.
 exit /b 0
