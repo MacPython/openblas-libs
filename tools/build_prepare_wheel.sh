@@ -50,9 +50,9 @@ else
 fi
 
 if [ "$(uname)" == "Darwin" -a "${PLAT}" == "x86_64" ]; then
-    local PYTHON="arch -x86_64 python3"
+    PYTHON="arch -x86_64 python3"
 else
-    local PYTHON=python3
+    PYTHON=python3
 fi
 if [ "${INTERFACE64}" != "1" ]; then
     # rewrite the name of the project to scipy-openblas32
