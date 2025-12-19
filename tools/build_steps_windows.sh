@@ -14,6 +14,7 @@
 #                This gives the default value if if_bits not specified above).
 #  START_DIR  (directory containing OpenBLAS source, unspec -> .. from here)
 #  LDFLAGS  (example: "-lucrt -static -static-libgcc")
+#  PLAT (x86_64 or arm64)
 #
 # Expects at leasts these binaries on the PATH:
 # realpath, cygpath, zip, gcc, make, ar, dlltool
@@ -69,6 +70,11 @@ else
     vc_arch="i386"
     plat_tag="win32"
     dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
+fi
+if [ "$PLAT" == "arm64" ]; then
+    CC=clangcl
+    FC=flang-new
+    extra="-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier"
 fi
 cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"

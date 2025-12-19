@@ -20,22 +20,32 @@ jobs:
   build:
     strategy:
       matrix:
-        plat: ['x64', 'x86']
-        INTERFACE64: ['1', '0']
-        os: [windows-latest]
-        exclude:
-          - plat: x86
-            INTERFACE64: '1'
+        include:
+          - { os: windows-latest, PLAT: x86, INTERFACE64: '0'}
+          - { os: windows-latest, PLAT: x64, INTERFACE64: '0'}
+          - { os: windows-latest, PLAT: x64, INTERFACE64: '1'}
+          - { os: windows-11-arm, PLAT: arm64, INTERFACE64: '0'}
+          - { os: windows-11-arm, PLAT: arm64, INTERFACE64: '1'}
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
     timeout-minutes: 90
     steps:
     - uses: actions/checkout@v4.1.1
+
     - name: install-rtools
+      if: matrix.os == 'windows-latest'
       run: |
         # rtools 42+ does not support 32 bits builds.
         choco install -y rtools --no-progress --force --version=4.0.0.20220206
+
+    - name: Download and install LLVM installer
+      if: matrix.os == 'windows-11-arm'
+      run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
 
     - name: Set env variables
       run: |
@@ -56,6 +66,9 @@ jobs:
           echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
           echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         }
+        if ( "${{ matrix.plat }}" -eq "arm64") {
+          echo "PLAT=arm64" >> $env:GITHUB_ENV
+        }
         if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
           echo "INTERFACE64=1" >> $env:GITHUB_ENV
         }
@@ -69,6 +82,11 @@ jobs:
 
     - name: Build
       run: |
+        if ( "${{ matrix.plat }}" -eq "arm64") {
+            echo Setting up ARM64 Developer Command Prompt
+            CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
+            PATH=C:\Program Files\LLVM\bin;%PATH%
+        }
         git submodule update --init --recursive
         & $env:BASH_PATH -lc tools/build_steps_windows.sh
 
