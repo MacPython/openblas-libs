@@ -214,6 +214,7 @@ jobs:
           cp for_test\test*.exe builds
 
     - name: prepare wheel
+      if: ${{ matrix.os == 'windows-latest' }}
       run: |
         ./tools/build_wheel_prepare_for_win.sh
 
