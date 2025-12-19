@@ -21,31 +21,40 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, PLAT: i686, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: i686, ARCH: i686, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: x86_64, ARCH: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-latest, PLAT: x86_64, ARCH: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: macos-14, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
-          - { os: macos-14, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+          - { os: macos-14, PLAT: x86_64, ARCh: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-14, PLAT: x86_64, ARCh: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
 
-          - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
-          - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+          - { os: macos-latest, PLAT: arm64, ARCH: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          - { os: macos-latest, PLAT: arm64, ARCH: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
 
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-latest, PLAT: x86_64, ARCH: x86_64,  INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-latest, PLAT: x86_64, ARCH: x86_64,  INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
 
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, ARCH: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, ARCH: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, ARCH: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          - { os: ubuntu-24.04-arm, PLAT: aarch64, ARCH: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
 
-          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: ppc64le, ARCH: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: ppc64le, ARCH: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
-          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: s390x, ARCH: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: s390x, ARCH: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+
+
+          - { os: windows-latest, PLAT: amd64, PYTHON_PLAT:  x64, ARCH: AMD64, INTERFACE64: '1', MB_ML_LIBC: win}
+          - { os: windows-latest, PLAT: amd64, PYTHON_PLAT:  x64, ARCH: AMD64, INTERFACE64: '0', MB_ML_LIBC: win}
+          - { os: windows-latest, PLAT: x86, PYTHON_PLAT:  x86, ARCH: x86, INTERFACE64: '0', MB_ML_LIBC: win}
+
+          - { os: windows-11-arm, PLAT: arm64, ARCH: ARM64, INTERFACE64: '1', MB_ML_LIBC: win}
+          - { os: windows-11-arm, PLAT: arm64, ARCH: ARM64, INTERFACE64: '0', MB_ML_LIBC: win}
+
 
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
@@ -88,15 +97,159 @@ jobs:
     #   with:
     #     limit-access-to-actor: true
 
+    - name: install-rtools
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        # rtools 42+ does not support 32 bits builds.
+        choco install -y rtools --no-progress --force --version=4.0.0.20220206
+
+    - name: Set env variables
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        echo "START_DIR=$PWD" >> $GITHUB_ENV
+        # For interpretation of MSYSTEM, see:
+        # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
+        if [ "${{ matrix.plat }}" = "x86" ]; then
+          echo "PLAT=i686" >> $GITHUB_ENV
+          echo "WHEEL_PLAT=win32" >> $GITHUB_ENV
+          echo "MSYSTEM=MINGW32" >> $GITHUB_ENV
+          # No ucrt on 32-bits, so use _snprintf_c instead
+          echo "LDFLAGS=-static -static-libgcc -Wl,--defsym,_quadmath_snprintf=__snprintf_c" >> $GITHUB_ENV
+          echo "BUILD_BITS=32" >> $GITHUB_ENV
+        else
+          echo "PLAT=x86_64" >> $GITHUB_ENV
+          echo "WHEEL_PLAT=win_amd64" >> $GITHUB_ENV
+          echo "MSYSTEM=UCRT64" >> $GITHUB_ENV
+          echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $GITHUB_ENV
+          echo "BUILD_BITS=64" >> $GITHUB_ENV
+        fi
+        if [ ${{ matrix.INTERFACE64 }} = "1" ]; then
+          echo "INTERFACE64=1" >> $GITHUB_ENV
+        fi
+        CIBW="${{ github.workspace }}/.openblas"
+        CIBW="${CIBW//\\//}"
+        echo "CIBW_ENVIRONMENT_WINDOWS=PKG_CONFIG_PATH=$CIBW" >> $GITHUB_ENV
+
+    - name: Debug
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        echo CIBW_ENVIRONMENT_WINDOWS=$CIBW_ENVIRONMENT_WINDOWS
+
+    - name: Setup visual studio
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Download, install 7zip.
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      shell: pwsh
+      run: |
+        Invoke-WebRequest https://www.7-zip.org/a/7z2409-arm64.exe -UseBasicParsing -OutFile 7z_arm.exe
+        Start-Process -FilePath ".\7z_arm.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\7-Zip" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Download and install LLVM installer
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      shell: pwsh
+      run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.5/LLVM-19.1.5-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Update CMake for WoA
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        pip install cmake
+        which cmake
+    - name: Set env variables
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        if [ "${{ matrix.INTERFACE64 }}" = "1" ]; then
+          echo "INTERFACE_BITS=64" >> $GITHUB_ENV
+        else
+          echo "INTERFACE_BITS=32" >> $GITHUB_ENV
+        fi
+
+
+    # - name: Setup tmate session
+    #   if: ${{ failure() }}
+    #   uses: mxschmitt/action-tmate@v3
+    #   with:
+    #     limit-access-to-actor: true
+  
+    - name: Build OpenBLAS for Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      shell: pwsh
+      env:
+          OPENBLAS_ROOT: "c:\\opt"
+          BASH_PATH: "c:/rtools40/usr/bin/bash.exe"
+          CHERE_INVOKING: "yes"
+      run: |
+        & $env:BASH_PATH -lc ./tools/build_steps_windows.sh
+
+    - name: Set up Python
+      if: ${{ matrix.os == 'windows-latest' }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9
+        architecture: ${{ matrix.PYTHON_PLAT }}
+
+    - name: Test OpenBLAS for Windows
+      if: ${{ matrix.os == 'windows-latest' }}
+      shell: pwsh
+      env: 
+         OPENBLAS_ROOT: "c:\\opt"
+         BASH_PATH: "c:/rtools40/usr/bin/bash.exe"
+         CHERE_INVOKING: "yes"
+      run: |
+          & $env:BASH_PATH -lc tools/build_gfortran.sh
+          
+          
+          # Test
+          echo "Static test"
+          .\for_test\test.exe
+          echo "Dynamic test"
+          .\for_test\test_dyn.exe
+
+          # Copy
+          cp for_test\test*.exe builds
+
+    - name: prepare wheel
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        ./tools/build_wheel_prepare_for_win.sh
+
+    - name: Set up Python
+      if: ${{ matrix.os == 'windows-latest' }}
+      uses: actions/setup-python@v5
+      with:
+          python-version: 3.9
+          architecture: ${{ matrix.PYTHON_PLAT }}
+
+    - name: Build OpenBLAS for Windows On ARM
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+          export BASH_PATH="C:/Program Files/Git/bin/bash.exe"
+          ./tools/build_steps_win_arm64.bat 64 $INTERFACE_BITS
+
+    - name: Set CIBW_BUILD
+      run: |
+        if [[ "${{ matrix.os }}" == "windows-latest" && "${{matrix.PLAT}}" == "x86" ]]; then
+          echo "CIBW_BUILD=cp39-${{ matrix.MB_ML_LIBC }}32" >> $GITHUB_ENV
+        else
+          echo "CIBW_BUILD=cp39-${{ matrix.MB_ML_LIBC }}_${{ matrix.PLAT }}" >> $GITHUB_ENV
+        fi
+
+
+
+
     - name: Build and Test wheels
       uses: pypa/cibuildwheel@v3.3.0
       timeout-minutes: 60
       with:
         output-dir: dist
       env:
-        CIBW_ARCHS: ${{matrix.PLAT}}
+        CIBW_ARCHS:  ${{matrix.ARCH}}
         CIBW_BUILD_VERBOSITY: 1
-        CIBW_BUILD:  "cp39-${{ matrix.MB_ML_LIBC }}_${{matrix.PLAT}}"
 
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
@@ -114,14 +267,32 @@ jobs:
         name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
         path: dist/scipy_openblas*.whl
 
+    - name: Install Anaconda client
+      if: ${{ matrix.os == 'windows-11-arm' }}
+      run: |
+        pip install anaconda-client
 
     - uses: conda-incubator/setup-miniconda@v3.2.0
+      if: ${{ matrix.os != 'windows-latest' && matrix.os != 'windows-11-arm' }}
       with:
         channels: conda-forge
         channel-priority: true
         activate-environment: upload
         miniforge-version: latest
         conda-remove-defaults: "true"
+
+    - uses: conda-incubator/setup-miniconda@v3.1.1
+      if: ${{ matrix.os == 'windows-latest' }}
+      with:
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: upload
+        miniforge-version: latest
+
+    - name: install anaconda-client
+      if: ${{ matrix.os != 'windows-11-arm' }}
+      shell: pwsh
+      run: conda install -y anaconda-client
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
@@ -130,6 +301,5 @@ jobs:
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        conda install -y anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels
