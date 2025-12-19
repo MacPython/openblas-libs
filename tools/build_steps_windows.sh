@@ -36,8 +36,6 @@ fi
 
 echo "Building from $our_wd, to $openblas_root"
 echo "Binaries are $build_bits bit, interface is $if_bits bit"
-echo "Using gcc at $(which gcc), --version:"
-gcc --version
 
 # Make output directory for build artifacts
 builds_dir="$our_wd/builds"
@@ -72,12 +70,23 @@ else
     dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
 fi
 if [ "$PLAT" == "arm64" ]; then
-    CC=clangcl
+    CC=clang-cl
     FC=flang-new
     extra="-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier"
+elif [ "$PLAT" == "x86_64" ]; then
+    CC=clang-cl
+    FC=flang-new
+else
+    CC=gcc
+    FC=gfortran
 fi
 cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
+
+echo "using C compiler $(which $CC), --version:"
+$CC --version
+echo "using F compiler $(which $FC), --version:"
+$FC --version
 
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
