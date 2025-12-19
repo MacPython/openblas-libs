@@ -81,17 +81,19 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
+      shell: bash
       run: |
         git submodule update --init --recursive
-        & $env:BASH_PATH -lc tools/build_steps_windows.sh
+        bash -lc tools/build_steps_windows.sh
 
     - name: Test
+      shell: bash
       run: |
-        & $env:BASH_PATH -lc tools/build_gfortran.sh
+        bash -lc tools/build_gfortran.sh
         echo "Static test"
-        .\for_test\test.exe
+        ./for_test/test.exe
         echo "Dynamic test"
-        .\for_test\test_dyn.exe
+        ./for_test/test_dyn.exe
 
     - name: Copy
       run: |
