@@ -41,9 +41,6 @@ install_requires = "importlib-metadata ~= 1.0 ; python_version < '3.8'"
 scipy_openblas64 = ["lib/*", "include/*", "lib/pkgconfig/*", "lib/cmake/openblas/*"]
 
 [tool.cibuildwheel]
-before-build = "bash ci-before-build.sh"
-repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
-test-command = "cd {package} && bash ci-test.sh"
 environment-pass = [
   "OPENBLAS_COMMIT",
   "NIGHTLY",
@@ -55,5 +52,21 @@ environment-pass = [
   "OS-NAME",
   "RUNNER_ARCH",
 ]
+
 [tool.cibuildwheel.linux]
 environment = { CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld" }
+before-build = "bash ci-before-build.sh"
+repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
+test-command = "cd {package} && bash ci-test.sh "
+archs = ["x86_64", "aarch64", "i686", "ppc64le", "s390x"]
+
+[tool.cibuildwheel.macos]
+before-build = "bash ci-before-build.sh"
+repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
+test-command = "cd {package} && bash ci-test.sh"
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = "bash tools\\repair_for_win.sh {dest_dir} {wheel}"
+test-command = "bash {project}\\tools\\test_for_win.sh"
+archs = ["AMD64", "x86", "ARM64"]

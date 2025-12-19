@@ -174,39 +174,7 @@ cd ../..
 :: Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel...
 python -c "import build" 2>NUL || pip install build
-if "%if_bits%"=="64" (
-    python -m build
-    if errorlevel 1 exit /b 1
-) else (
+if "%if_bits%"=="32" (
     move /Y pyproject.toml pyproject.toml.bak
     move /Y %out_pyproject% pyproject.toml
-    python -m build
-    if errorlevel 1 exit /b 1
-    move /Y pyproject.toml.bak pyproject.toml
 )
-if "%if_bits%"=="32" (
-    move /Y "%CD%\ob64_backup" "%ob_64%"
-)
-
-:: Rename the wheel
-for %%f in (dist\*any.whl) do (
-    set WHEEL_FILE=dist\%%f
-    set "filename=%%~nxf"
-    set "newname=!filename:any.whl=win_arm64.whl!"
-    ren "dist\!filename!" "!newname!"
-)
-
-:: Locate the built wheel
-for /f %%f in ('dir /b dist\scipy_openblas*.whl 2^>nul') do set WHEEL_FILE=dist\%%f
-
-if not defined WHEEL_FILE (
-    echo Error: No wheel file found in dist folder.
-    exit /b 1
-)
- 
-echo Installing wheel: %WHEEL_FILE%
-pip install "%WHEEL_FILE%"
-if errorlevel 1 exit /b 1
- 
-echo Done.
-exit /b 0
