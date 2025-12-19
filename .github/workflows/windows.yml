@@ -81,16 +81,9 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
-      shell: cmd
       run: |
-        if "${{ matrix.plat }}" == "arm64" (
-            echo Setting up ARM64 Developer Command Prompt
-            CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
-            if errorlevel 1 exit /b 1
-            PATH=C:\Program Files\LLVM\bin;%PATH%
-        )
         git submodule update --init --recursive
-        %BASH_PATH% -lc tools/build_steps_windows.sh
+        & $env:BASH_PATH -lc tools/build_steps_windows.sh
 
     - name: Test
       run: |
