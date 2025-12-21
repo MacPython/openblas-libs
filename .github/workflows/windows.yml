@@ -32,19 +32,38 @@ jobs:
     steps:
     - uses: actions/checkout@v4.1.1
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+        architecture: ${{ matrix.plat }}
 
-    - uses: conda-incubator/setup-miniconda@v3.1.1
+    - name: Setup conda
+      # No conda for arm64
+      if: matrix.os == 'windows-latest'
+      uses: conda-incubator/setup-miniconda@v3.1.1
       with:
         channels: conda-forge
         channel-priority: true
         activate-environment: openblas
         miniforge-version: latest
 
-    - name: install compilers and python from conda
+    - name: Install compilers and python from conda
+      # No conda for arm64
+      if: matrix.os == 'windows-latest'
       shell: bash -el {0}
-      run: |
-        conda install compilers python==3.11 cmake ninja
+      run: conda install compilers python==3.11 cmake ninja anaconda-client
 
+    - name: Download and install LLVM (arm64) and other tools
+      if: matrix.os == 'windows-11-arm'
+      shell: pwsh
+      run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
+        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
+        pip install anaconda-client
+        python -m pip install cmake ninja
 
     - name: Set env variables
       run: |
@@ -80,8 +99,14 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
-      shell: bash -el {0}
-      run: ./tools/build_steps_windows.sh
+      shell: cmd
+      run: |
+        if  "${{ matrix.plat }}" == "arm64" (
+          rem Use a generic MSVC, we only need the MT tool
+          CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
+          set PATH=C:\Program Files\LLVM\bin;%PATH%
+        )
+        C:\Program Files\Git\bin\bash.exe -elc tools/build_steps_windows.sh
 
     - name: Test
       shell: bash
@@ -145,12 +170,6 @@ jobs:
             for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
         fi
 
-    - name: Set up different Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.13
-        architecture: ${{ matrix.plat }}
-
     - uses: actions/upload-artifact@v4.3.0
       with:
         name: wheels-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
@@ -173,13 +192,6 @@ jobs:
         python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
         python -m pip install pkgconf
         python -m pkgconf scipy-openblas --cflags
-
-    - uses: conda-incubator/setup-miniconda@v3.1.1
-      with:
-        channels: conda-forge
-        channel-priority: true
-        activate-environment: upload
-        miniforge-version: latest
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
