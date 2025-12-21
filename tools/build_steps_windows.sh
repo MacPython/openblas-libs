@@ -11,22 +11,16 @@
 #  PLAT (x86_64 or arm64)
 #
 # Expects at leasts these binaries on the PATH:
-# zip, gcc/clang-cl, cmake
+# zip, gcc/clang-cl, cmake, ninja
 
 set -xe
 
-# Convert to Unix-style path
 build_bits="${BUILD_BITS:-64}}"
 if [ "$INTERFACE64" == "1" ]; then if_default=64; else if_default=32; fi
 if_bits=${2:-${if_default}}
 echo "Binaries are $build_bits bit, interface is $if_bits bit"
 
-# Make output directory for build artifacts
-builds_dir="$our_wd/builds"
-rm -rf $builds_dir
-mkdir $builds_dir
-
-cd "${our_wd}/OpenBLAS"
+cd OpenBLAS
 git submodule update --init --recursive
 
 
