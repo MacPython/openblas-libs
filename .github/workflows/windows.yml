@@ -10,7 +10,6 @@ on:
   workflow_dispatch: null
 
 env:
-  OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
   CHERE_INVOKING: "yes"
@@ -33,12 +32,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4.1.1
 
-    - name: install-rtools
-      if: matrix.os == 'windows-latest'
-      run: |
-        # rtools 42+ does not support 32 bits builds.
-        choco install -y rtools --no-progress --force --version=4.0.0.20220206
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -49,15 +42,20 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: pwsh
       run: |
-        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-win64.exe -UseBasicParsing -OutFile LLVM-win64.exe
-        Start-Process -FilePath ".\LLVM-win64.exe" -ArgumentList "/S" -Wait
+        if ( "${{ matrix.plat }}" -eq "x86") {
+          Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-win64.exe -UseBasicParsing -OutFile LLVM-win64.exe
+          Start-Process -FilePath ".\LLVM-win64.exe" -ArgumentList "/S" -Wait
+        } else {
+          Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-win32.exe -UseBasicParsing -OutFile LLVM-win32.exe
+          Start-Process -FilePath ".\LLVM-win32.exe" -ArgumentList "/S" -Wait
+        }
         echo "C:\Program Files\LLVM\bin;$env:GITHUB_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
     - name: Download and install LLVM (arm64)
       if: matrix.os == 'windows-11-arm'
       shell: pwsh
       run: |
-        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
         Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
         echo "C:\Program Files\LLVM\bin;$env:GITHUB_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
