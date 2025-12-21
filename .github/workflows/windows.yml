@@ -32,34 +32,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4.1.1
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+
+    - uses: conda-incubator/setup-miniconda@v3.1.1
       with:
-        python-version: 3.11
-        architecture: ${{ matrix.plat }}
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: openblas
+        miniforge-version: latest
 
-    - name: install LLVM (x86_64)
-      if: matrix.os == 'windows-latest'
-      shell: pwsh
+    - name: install compilers and python from conda
+      shell: bash -el {0}
       run: |
-        if ( "${{ matrix.plat }}" -eq "x86") {
-          Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-win64.exe -UseBasicParsing -OutFile LLVM-win64.exe
-          Start-Process -FilePath ".\LLVM-win64.exe" -ArgumentList "/S" -Wait
-        } else {
-          Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-win32.exe -UseBasicParsing -OutFile LLVM-win32.exe
-          Start-Process -FilePath ".\LLVM-win32.exe" -ArgumentList "/S" -Wait
-        }
+        conda install compilers python==3.11 cmake ninja
 
-    - name: Download and install LLVM (arm64)
-      if: matrix.os == 'windows-11-arm'
-      shell: pwsh
-      run: |
-        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
-        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
-
-    - name: Install CMake, ninja
-      run: |
-        python -m pip install cmake ninja
 
     - name: Set env variables
       run: |
@@ -95,18 +80,8 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
-      shell: cmd
-      run: |
-        rem Use a generic MSVC, we only need the MT tool
-        if  "${{ matrix.plat }}" == "arm64" (
-          CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
-        ) else (
-          CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        )
-        set GITHUB_PATH="C:\Program Files\LLVM\bin;%GITHUB_PATH%"
-        set PATH=C:\Program Files\LLVM\bin;%PATH%
-        git submodule update --init --recursive
-        bash -lc tools/build_steps_windows.sh
+      shell: bash -el {0}
+      run: ./tools/build_steps_windows.sh
 
     - name: Test
       shell: bash

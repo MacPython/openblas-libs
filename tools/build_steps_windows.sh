@@ -10,8 +10,8 @@
 #  LDFLAGS  (example: "-lucrt -static -static-libgcc")
 #  PLAT (x86_64 or arm64)
 #
-# Expects at leasts these binaries on the PATH:
-# zip, gcc/clang-cl, cmake, ninja
+# Expects at leasts these binaries installed from conda-forge
+# zip, clang-cl, flang-new cmake, ninja
 
 set -xe
 
@@ -56,13 +56,10 @@ if [ "$PLAT" == "arm64" ]; then
     target=ARMV8
     # This is quite minimal, may need to add NOEVERSEN1 and more?
     dynamic_list="ARMV8 CORTEXA57 NEOVERSEV1 THUNDERX"
-elif [ "$PLAT" == "x86_64" ]; then
-    CC=clang-cl
-    FC=flang-new
-else
-    CC=gcc
-    FC=gfortran
 fi
+
+CC=clang-cl
+FC=flang-new
 cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
 
