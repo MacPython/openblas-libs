@@ -49,7 +49,6 @@ jobs:
           Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-win32.exe -UseBasicParsing -OutFile LLVM-win32.exe
           Start-Process -FilePath ".\LLVM-win32.exe" -ArgumentList "/S" -Wait
         }
-        echo "C:\Program Files\LLVM\bin;$env:GITHUB_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
     - name: Download and install LLVM (arm64)
       if: matrix.os == 'windows-11-arm'
@@ -57,7 +56,6 @@ jobs:
       run: |
         Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
         Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
-        echo "C:\Program Files\LLVM\bin;$env:GITHUB_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
     - name: Install CMake, ninja
       run: |
@@ -97,8 +95,16 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
-      shell: bash
+      shell: cmd
       run: |
+        rem Use a generic MSVC, we only need the MT tool
+        if  "${{ matrix.plat }}" == "arm64" (
+          CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
+        ) else (
+          CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        )
+        set GITHUB_PATH="C:\Program Files\LLVM\bin;%GITHUB_PATH%"
+        set PATH=C:\Program Files\LLVM\bin;%PATH%
         git submodule update --init --recursive
         bash -lc tools/build_steps_windows.sh
 
@@ -167,7 +173,7 @@ jobs:
     - name: Set up different Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.11
+        python-version: 3.13
         architecture: ${{ matrix.plat }}
 
     - uses: actions/upload-artifact@v4.3.0
