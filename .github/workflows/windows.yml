@@ -39,20 +39,31 @@ jobs:
         # rtools 42+ does not support 32 bits builds.
         choco install -y rtools --no-progress --force --version=4.0.0.20220206
 
-    - name: Download and install LLVM installer
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+        architecture: ${{ matrix.plat }}
+
+    - name: install LLVM (x86_64)
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
         Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-win64.exe -UseBasicParsing -OutFile LLVM-win64.exe
         Start-Process -FilePath ".\LLVM-win64.exe" -ArgumentList "/S" -Wait
         echo "C:\Program Files\LLVM\bin;$env:GITHUB_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
-    - name: Download and install LLVM installer
+    - name: Download and install LLVM (arm64)
       if: matrix.os == 'windows-11-arm'
+      shell: pwsh
       run: |
         Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
         Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
         echo "C:\Program Files\LLVM\bin;$env:GITHUB_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 
+    - name: Install CMake, ninja
+      run: |
+        python -m pip install cmake ninja
 
     - name: Set env variables
       run: |
@@ -105,13 +116,6 @@ jobs:
     - name: Copy
       run: |
         cp for_test\test*.exe builds
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
-        architecture: ${{ matrix.plat }}
-
 
     - name: Build wheel
       shell: bash
