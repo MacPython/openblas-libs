@@ -1,0 +1,12 @@
+diff --git a/kernel/Makefile.LA b/kernel/Makefile.LA
+index 88342718c..3b1939d26 100644
+--- a/kernel/Makefile.LA
++++ b/kernel/Makefile.LA
+@@ -49,3 +49,7 @@ $(KDIR)zlaswp_ncopy$(TSUFFIX).$(SUFFIX) $(KDIR)zlaswp_ncopy$(TSUFFIX).$(PSUFFIX)
+ $(KDIR)xlaswp_ncopy$(TSUFFIX).$(SUFFIX) $(KDIR)xlaswp_ncopy$(TSUFFIX).$(PSUFFIX) : generic/zlaswp_ncopy_$(XGEMM_UNROLL_N).c
+ 	$(CC) -c $(CFLAGS) $< -o $@
+ 
++LSAME_KERNEL = ../generic/lsame.c
++SCABS_KERNEL = ../generic/cabs.c
++DCABS_KERNEL = ../generic/cabs.c
++QCABS_KERNEL = ../generic/cabs.c

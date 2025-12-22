@@ -20,7 +20,7 @@ else
     echo got nothing
     exit -1
 fi
-export OPENBLAS_COMMIT="v0.3.30-349-gf6df9beb"
+export OPENBLAS_COMMIT="v0.3.30-359-g29fab2b9"
 
 # export MB_ML_LIBC=musllinux
 # export MB_ML_VER=_1_2
@@ -30,4 +30,4 @@ export BUILD_PREFIX=/tmp/openblas
 mkdir -p $BUILD_PREFIX
 
 ROOT_DIR=$(dirname $(dirname $0))
-bash ${ROOT_DIR}/build-openblas.sh
+${ROOT_DIR}/build-openblas.sh

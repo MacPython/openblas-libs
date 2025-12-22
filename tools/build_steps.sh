@@ -93,6 +93,8 @@ function patch_source {
         echo applying patch $f
         git apply ../patches/$f
     done
+    # local version=$(git describe --tags --abbrev=8 | sed -e "s/^v//" | sed -e "s/\\./-/g")
+    # sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
 }
 
 function build_lib {
@@ -191,15 +193,15 @@ function build_lib {
         echo "QEMU has a race condition preventing fork tests to work as expected"
     fi
     if [ -n "$dynamic_list" ]; then
-        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        CFLAGS="$CFLAGS -fvisibility=hidden -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
-        CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        CFLAGS="$CFLAGS -fvisibility=hidden -Wno-uninitialized" \
+        make BUFFERSIZE=20 DYNAMIC_ARCH=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
@@ -228,3 +230,4 @@ function build_lib {
         $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
         $BUILD_PREFIX/lib/cmake/openblas
 }
+
