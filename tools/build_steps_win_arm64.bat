@@ -118,20 +118,23 @@ if errorlevel 1 exit /b 1
  
 echo Build complete. Returning to Batch.
 
+cd ../..
 if "%if_bits%"=="32" (
     echo Rewrite to scipy_openblas32
-    cd ../..
     set out_pyproject=pyproject_64_32.toml
     powershell -Command "(Get-Content 'pyproject.toml') -replace 'openblas64', 'openblas32' | Set-Content !out_pyproject!"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__main__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'local\scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
+    cd local
+    move scipy_openblas64 scipy_openblas32
+    powershell -Command "(Get-Content 'scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__main__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
+    cd ..
 )
 
 :: Prepare destination directory
 cd OpenBLAS/build
-echo Preparing destination directory at %DEST_DIR%...
+echo Preparing destination directory at %DEST_DIR%
 if not exist "%DEST_DIR%\lib\cmake\OpenBLAS" mkdir "%DEST_DIR%\lib\cmake\OpenBLAS"
 if not exist "%DEST_DIR%\include" mkdir "%DEST_DIR%\include"
  
@@ -167,12 +170,34 @@ if exist openblas_config.h copy /Y openblas_config.h "%DEST_DIR%\include\"
 echo Copying LAPACKE header files...
 xcopy /Y "..\lapack-netlib\lapacke\include\*.h" "%DEST_DIR%\include\"
 if errorlevel 1 exit /b 1
- 
+
+echo Create pkgconfig scipy-openblas.pc
+cd ../../local
+if errorlevel 1 (
+    echo Current directory %CD%, cannot cd ../../local
+    exit /b 1
+)
+if "%if_bits%"=="32" (
+    mkdir scipy_openblas32\lib\pkgconfig
+    python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
+) else (
+    mkdir scipy_openblas64\lib\pkgconfig
+    python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
+)
+if errorlevel 1 (
+    echo could not construct scipy-openblas.pc
+    exit /b 1
+)
+
 :: Move back to the root directory
-cd ../..
+cd ..
+if errorlevel 1 (
+    echo Current directory %CD%, cannot cd ..
+    exit /b 1
+)
  
 :: Build the Wheel & Install It
-echo Running 'python -m build' to build the wheel...
+echo Running 'python -m build' to build the wheel in %CD%
 python -c "import build" 2>NUL || pip install build
 if "%if_bits%"=="64" (
     python -m build
@@ -208,5 +233,10 @@ echo Installing wheel: %WHEEL_FILE%
 pip install "%WHEEL_FILE%"
 if errorlevel 1 exit /b 1
  
+echo Testing
+python -m pip install pkgconf
+python -m pkgconf scipy-openblas --cflags
+if errorlevel 1 exit /b 1
+
 echo Done.
 exit /b 0

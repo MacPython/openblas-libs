@@ -11,7 +11,6 @@ PYTHON=${PYTHON:-python3.9}
 
 mkdir -p local/openblas
 mkdir -p dist
-$PYTHON -m pip install wheel auditwheel
 
 tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas.tar.gz
 
@@ -40,6 +39,7 @@ if [ $(uname) == "Darwin" ]; then
 fi
 
 rm -rf local/scipy_openblas64/lib/pkgconfig
+mkdir local/scipy_openblas64/lib/pkgconfig
 echo "" >> LICENSE.txt
 echo "----" >> LICENSE.txt
 echo "" >> LICENSE.txt
@@ -49,6 +49,11 @@ else
     cat tools/LICENSE_linux.txt >> LICENSE.txt
 fi
 
+if [ "$(uname)" == "Darwin" -a "${PLAT}" == "x86_64" ]; then
+    PYTHON="arch -x86_64 python3"
+else
+    PYTHON=python3
+fi
 if [ "${INTERFACE64}" != "1" ]; then
     # rewrite the name of the project to scipy-openblas32
     # this is a hack, but apparently there is no other way to change the name
@@ -63,6 +68,9 @@ if [ "${INTERFACE64}" != "1" ]; then
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__init__.py
     rm local/scipy_openblas32/*.bak
+    PYTHONPATH=$PWD/local $PYTHON -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
+else
+    PYTHONPATH=$PWD/local $PYTHON -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
 fi
 
 rm -rf dist/*

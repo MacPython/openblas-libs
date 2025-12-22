@@ -20,3 +20,6 @@ else
   # $PYTHON -m pip install --no-index --find-links /tmp/cibuildwheel/repaired_wheel scipy_openblas64
   $PYTHON -m scipy_openblas64
 fi
+
+$PYTHON -m pip install pkgconf
+$PYTHON -m pkgconf scipy-openblas --cflags

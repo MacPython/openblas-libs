@@ -60,17 +60,20 @@ def get_library(fullname=False):
             # remove the leading lib from libscipy_openblas*
             return os.path.splitext(libs[0])[0][3:]
 
-def get_pkg_config(use_preloading=False):
+def get_pkg_config(use_preloading=False, use_prefix=False):
     """Return a multi-line string that, when saved to a file, can be used with
     pkg-config for build systems like meson
 
     If use_preloading is True then on posix the ``Libs:`` directive will not add
     ``f"-L{get_library()}" so that at runtime this module must be imported before
     the target module
+
+    If use_prefix is True, then `pcfiledir` will be used and the file should be
+    stored in `dirname(__file__)/lib/pkgconfig` for use with pkgconf-pypi
     """
-    machine = platform.machine().lower()
     extralib = ""
     if sys.platform == "win32":
+        machine = platform.machine().lower()
         if machine != "arm64":
             extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
         libs_flags = f"-L${{libdir}} -l{get_library()}"
@@ -81,9 +84,16 @@ def get_pkg_config(use_preloading=False):
         else:
             libs_flags = f"${{libdir}}/{get_library(fullname=True)} -Wl,-rpath,${{libdir}}"
     cflags = "-DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_ -DHAVE_BLAS_ILP64 -DOPENBLAS_ILP64_NAMING_SCHEME"
+    if use_prefix:
+        libdir = "${pcfiledir}/../../lib"
+        incdir = "${pcfiledir}/../../include"
+    else:
+        # Don't use `$prefix` since the file may be located outside the package tree
+        libdir = get_lib_dir()
+        incdir = get_include_dir()
     return dedent(f"""\
-        libdir={get_lib_dir()}
-        includedir={get_include_dir()}
+        libdir={libdir}
+        includedir={incdir}
         openblas_config= {get_openblas_config()}
         version={get_openblas_config().split(" ")[1]}
         extralib={extralib}

@@ -115,6 +115,7 @@ jobs:
         fi
         sed -e "s/bin/lib/" -i local/scipy_openblas64/lib/cmake/openblas/OpenBLASConfig.cmake
         sed -e "s/dll/lib/" -i local/scipy_openblas64/lib/cmake/openblas/OpenBLASConfig.cmake
+        mkdir  local/scipy_openblas64/lib/pkgconfig
         if [[ "${INTERFACE64}" != "1" ]]; then
             mv local/scipy_openblas64 local/scipy_openblas32
             # rewrite the name of the project to scipy-openblas32
@@ -125,6 +126,9 @@ jobs:
             sed -e "s/cflags =.*/cflags = '-DBLAS_SYMBOL_PREFIX=scipy_'/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
+            PYTHONPATH=$PWD/local python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
+        else
+            PYTHONPATH=$PWD/local python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
         fi
         echo "" >> LICENSE.txt
         echo "----" >> LICENSE.txt
@@ -153,6 +157,8 @@ jobs:
         python -m pip install --no-index --find-links dist scipy_openblas64
         python -m scipy_openblas64
         python -c "import scipy_openblas64; print(scipy_openblas64.get_pkg_config())"
+        python -m pip install pkgconf
+        python -m pkgconf scipy-openblas --cflags
 
     - name: Test 32-bit interface wheel
       if: matrix.INTERFACE64 != '1'
@@ -160,6 +166,8 @@ jobs:
         python -m pip install --no-index --find-links dist scipy_openblas32
         python -m scipy_openblas32
         python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
+        python -m pip install pkgconf
+        python -m pkgconf scipy-openblas --cflags
 
     - uses: conda-incubator/setup-miniconda@v3.1.1
       with:
