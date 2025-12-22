@@ -34,13 +34,8 @@ from bs4 import BeautifulSoup
 __version__ = "0.1"
 
 # Edit these for other projects.
-URL = "https://anaconda.org/scientific-python-nightly-wheels"
-
-# Name endings of the files to download.
-WHL = r"-.*\.whl$"
-ZIP = r"\.zip$"
-GZIP = r"\.tar\.gz$"
-SUFFIX = rf"({WHL}|{GZIP}|{ZIP})"
+SIMPLE_INDEX = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"
+BASE = "https://pypi.anaconda.org"
 
 
 def get_wheel_names(package, version):
@@ -56,11 +51,12 @@ def get_wheel_names(package, version):
 
     """
     http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED")
-    tmpl = re.compile(rf"^.*{package.replace('-', '_')}-{version}{SUFFIX}")
-    index_url = f"{URL}/{package}/files"
+    index_url = f"{SIMPLE_INDEX}/{package}"
+    print(f"looking in {index_url}")
     index_html = http.request("GET", index_url)
     soup = BeautifulSoup(index_html.data, "html.parser")
-    return soup.find_all(string=tmpl)
+    breakpoint()
+    return [xxx['href'] for xxx in soup.find_all('a', href=True) if version in str(xxx)]
 
 
 def download_wheels(package, version, wheelhouse, test=False):
@@ -83,8 +79,9 @@ def download_wheels(package, version, wheelhouse, test=False):
     wheel_names = get_wheel_names(package, version)
 
     for i, wheel_name in enumerate(wheel_names):
-        wheel_url = f"{URL}/{package}/{version}/download/{wheel_name}"
-        wheel_path = os.path.join(wheelhouse, wheel_name)
+        wheel_url = f"{BASE}/{wheel_name}"
+        wheel_file = wheel_name.split('/')[-1]
+        wheel_path = os.path.join(wheelhouse, wheel_file)
         with open(wheel_path, "wb") as f:
             with http.request("GET", wheel_url, preload_content=False,) as r:
                 info = r.info()
@@ -93,7 +90,7 @@ def download_wheels(package, version, wheelhouse, test=False):
                     length = 'unknown size'
                 else:
                     length = f"{(length / 1024 / 1024):.2f}MB"
-                print(f"{i + 1:<4}{wheel_name} {length}")
+                print(f"{i + 1:<4}{wheel_file} {length}")
                 if not test:
                     shutil.copyfileobj(r, f)
     print(f"\nTotal files downloaded: {len(wheel_names)}")
