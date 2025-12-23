@@ -67,7 +67,7 @@ echo "using C compiler $(which $CC), --version:"
 $CC --version
 echo "using F compiler $(which $FC), --version:"
 $FC --version
-LLVM=$(cygpath -ms "$(which llvm-mt.exe)")
+LLVM=$(cygpath -ws "$(which llvm-mt.exe)")
 echo using MT compiler $(which llvm-mt.exe), converted to $LLVM
 
 # Set suffixed-ILP64 flags
