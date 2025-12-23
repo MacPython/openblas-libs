@@ -68,8 +68,8 @@ $CC --version
 echo "using F compiler $(which $FC), --version:"
 $FC --version
 mkdir -p /c/temp
-cp "$(which llvm-mt.exe)" /c/temp
-/c/temp/llvm-mt.exe /?
+cp "$(which llvm-mt.exe)" /c/temp/my-mt.exe
+/c/temp/my-mt.exe /?
 
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
@@ -108,7 +108,7 @@ cmake .. -G Ninja \
  -DCMAKE_Fortran_COMPILER=$FC \
  -DBUILD_SHARED_LIBS=ON \
  -DCMAKE_SYSTEM_PROCESSOR=$march \
- -DCMAKE_MT=C:\\temp\\llvm-mt.exe \
+ -DCMAKE_MT=C:\\temp\\my-mt.exe \
  -DCMAKE_SYSTEM_NAME=Windows \
  -DSYMBOLPREFIX="scipy_" \
  -DLIBNAMEPREFIX="scipy_" \
