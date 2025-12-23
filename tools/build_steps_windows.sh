@@ -67,8 +67,8 @@ echo "using C compiler $(which $CC), --version:"
 $CC --version
 echo "using F compiler $(which $FC), --version:"
 $FC --version
-echo "using MT compiler $(which llvm-mt.exe), --version:"
-LLVM=$(which llvm-mt.exe)
+LLVM=$(cygpath -w $(which llvm-mt.exe))
+echo "using MT compiler $(which llvm-mt.exe), converted to $LLVM"
 
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
