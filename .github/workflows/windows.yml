@@ -38,16 +38,6 @@ jobs:
         python-version: 3.11
         architecture: ${{ matrix.plat }}
 
-    - name: Download and install LLVM (arm64) and other tools
-      shell: pwsh
-      run: |
-        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
-        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
-        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
-        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
-        pip install anaconda-client
-        python -m pip install cmake ninja
-
     - name: Setup conda
       # No conda for arm64
       if: matrix.os == 'windows-latest'
@@ -59,10 +49,21 @@ jobs:
         miniforge-version: latest
 
     - name: Install compilers and python from conda
-      # No conda for arm64, but no flang-new for x86
+      # No conda for arm64
       if: matrix.os == 'windows-latest'
       shell: bash -el {0}
       run: conda install compilers python==3.11 cmake ninja anaconda-client
+
+    - name: Download and install LLVM (arm64) and other tools
+      if: matrix.os == 'windows-11-arm'
+      shell: pwsh
+      run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
+        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
+        pip install anaconda-client
+        python -m pip install cmake ninja
 
     - name: Set env variables
       run: |
