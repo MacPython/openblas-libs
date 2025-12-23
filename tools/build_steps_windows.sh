@@ -107,7 +107,7 @@ cmake .. -G Ninja \
  -DCMAKE_Fortran_COMPILER=$FC \
  -DBUILD_SHARED_LIBS=ON \
  -DCMAKE_SYSTEM_PROCESSOR=$march \
- -DCMAKE_MT="C:\\Program Files\\LLVM\\llvm-mt.exe" \
+ -DCMAKE_MT=C:\\PROGRA~1\\LLVM\\llvm-mt.exe \
  -DCMAKE_SYSTEM_NAME=Windows \
  -DSYMBOLPREFIX="scipy_" \
  -DLIBNAMEPREFIX="scipy_" \
