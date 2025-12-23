@@ -67,8 +67,6 @@ echo "using C compiler $(which $CC), --version:"
 $CC --version
 echo "using F compiler $(which $FC), --version:"
 $FC --version
-LLVM=$(cygpath -ws "$(which llvm-mt.exe)")
-echo using MT compiler $(which llvm-mt.exe), converted to $LLVM
 
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
@@ -107,7 +105,7 @@ cmake .. -G Ninja \
  -DCMAKE_Fortran_COMPILER=$FC \
  -DBUILD_SHARED_LIBS=ON \
  -DCMAKE_SYSTEM_PROCESSOR=$march \
- -DCMAKE_MT=C:\\PROGRA~1\\LLVM\\llvm-mt.exe \
+ -DCMAKE_MT=C:\\PROGRA~1\\LLVM\\bin\\llvm-mt.exe \
  -DCMAKE_SYSTEM_NAME=Windows \
  -DSYMBOLPREFIX="scipy_" \
  -DLIBNAMEPREFIX="scipy_" \
