@@ -10,7 +10,6 @@ on:
   workflow_dispatch: null
 
 env:
-  OPENBLAS_ROOT: "c:\\opt"
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
   CHERE_INVOKING: "yes"
@@ -20,22 +19,51 @@ jobs:
   build:
     strategy:
       matrix:
-        plat: ['x64', 'x86']
-        INTERFACE64: ['1', '0']
-        os: [windows-latest]
-        exclude:
-          - plat: x86
-            INTERFACE64: '1'
+        include:
+          - { os: windows-latest, PLAT: x86, INTERFACE64: '0'}
+          - { os: windows-latest, PLAT: x64, INTERFACE64: '0'}
+          - { os: windows-latest, PLAT: x64, INTERFACE64: '1'}
+          - { os: windows-11-arm, PLAT: arm64, INTERFACE64: '0'}
+          - { os: windows-11-arm, PLAT: arm64, INTERFACE64: '1'}
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
     timeout-minutes: 90
     steps:
     - uses: actions/checkout@v4.1.1
-    - name: install-rtools
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+        architecture: ${{ matrix.plat }}
+
+    - name: Setup conda
+      # No conda for arm64
+      if: matrix.os == 'windows-latest'
+      uses: conda-incubator/setup-miniconda@v3.1.1
+      with:
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: openblas
+        miniforge-version: latest
+
+    - name: Install compilers and python from conda
+      # No conda for arm64
+      if: matrix.os == 'windows-latest'
+      shell: bash -el {0}
+      run: conda install compilers python==3.11 cmake ninja anaconda-client
+
+    - name: Download and install LLVM (arm64) and other tools
+      if: matrix.os == 'windows-11-arm'
+      shell: pwsh
       run: |
-        # rtools 42+ does not support 32 bits builds.
-        choco install -y rtools --no-progress --force --version=4.0.0.20220206
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.0/LLVM-21.1.0-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
+        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
+        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
+        pip install anaconda-client
+        python -m pip install cmake ninja
 
     - name: Set env variables
       run: |
@@ -56,6 +84,9 @@ jobs:
           echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
           echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         }
+        if ( "${{ matrix.plat }}" -eq "arm64") {
+          echo "PLAT=arm64" >> $env:GITHUB_ENV
+        }
         if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
           echo "INTERFACE64=1" >> $env:GITHUB_ENV
         }
@@ -68,28 +99,21 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
-      run: |
-        git submodule update --init --recursive
-        & $env:BASH_PATH -lc tools/build_steps_windows.sh
+      shell: bash -el {0}
+      run: tools/build_steps_windows.sh
 
     - name: Test
+      shell: bash
       run: |
-        & $env:BASH_PATH -lc tools/build_gfortran.sh
+        bash -lc tools/build_gfortran.sh
         echo "Static test"
-        .\for_test\test.exe
+        ./for_test/test.exe
         echo "Dynamic test"
-        .\for_test\test_dyn.exe
+        ./for_test/test_dyn.exe
 
     - name: Copy
       run: |
         cp for_test\test*.exe builds
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
-        architecture: ${{ matrix.plat }}
-
 
     - name: Build wheel
       shell: bash
@@ -97,7 +121,7 @@ jobs:
         set -xeo pipefail
         python -m pip install wheel
         # This will fail if there is more than one file in libs
-        unzip -d local/scipy_openblas64 builds/openblas*.zip
+        unzip -d local/scipy_openblas64 builds/openblas.zip
         if [[ -d local/scipy_openblas64/64 ]]; then
             mv local/scipy_openblas64/64/* local/scipy_openblas64
         else
@@ -140,12 +164,6 @@ jobs:
             for f in dist/*.whl; do mv $f "${f/%any.whl/$WHEEL_PLAT.whl}"; done
         fi
 
-    - name: Set up different Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-        architecture: ${{ matrix.plat }}
-
     - uses: actions/upload-artifact@v4.3.0
       with:
         name: wheels-${{matrix.plat }}-${{ matrix.INTERFACE64 }}
@@ -168,13 +186,6 @@ jobs:
         python -c "import scipy_openblas32; print(scipy_openblas32.get_pkg_config())"
         python -m pip install pkgconf
         python -m pkgconf scipy-openblas --cflags
-
-    - uses: conda-incubator/setup-miniconda@v3.1.1
-      with:
-        channels: conda-forge
-        channel-priority: true
-        activate-environment: upload
-        miniforge-version: latest
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why

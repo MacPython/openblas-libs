@@ -1,49 +1,26 @@
 #!/bin/bash
 # Build script for OpenBLAS on Windows
 #
-# Usage: build_steps_windows.sh [openblas_root [build_bits [if_bits]]]
+# Uses the environment variables
 #
-# e.g build_steps_windows.sh c:\\opt 64 32
-#
-# Uses the optional environment variables.  We always prefer command line argument
-# values above to environment variable values:
-#
-#  OPENBLAS_ROOT  (default directory root for binaries, unspecified -> c:\opt).
 #  BUILD_BITS  (default binary architecture, 32 or 64, unspec -> 64).
 #  INTERFACE64  (1 for 64-bit interface, anything else or undefined for 32,
 #                This gives the default value if if_bits not specified above).
 #  START_DIR  (directory containing OpenBLAS source, unspec -> .. from here)
 #  LDFLAGS  (example: "-lucrt -static -static-libgcc")
+#  PLAT (x86_64 or arm64)
 #
-# Expects at leasts these binaries on the PATH:
-# realpath, cygpath, zip, gcc, make, ar, dlltool
-# usually as part of an msys installation.
+# Expects at leasts these binaries installed from conda-forge
+# zip, clang-cl, flang-new cmake, ninja
 
 set -xe
 
-# Convert to Unix-style path
-openblas_root="$(cygpath ${1:-${OPENBLAS_ROOT:-c:\\opt}})"
-build_bits="${2:-${BUILD_BITS:-64}}"
+build_bits="${BUILD_BITS:-64}}"
 if [ "$INTERFACE64" == "1" ]; then if_default=64; else if_default=32; fi
-if_bits=${3:-${if_default}}
-# Our directory for later copying
-if [ -z "$START_DIR" ]; then
-    our_wd="$(realpath $(dirname "${BASH_SOURCE[0]}")/..)"
-else
-    our_wd=$(cygpath "$START_DIR")
-fi
-
-echo "Building from $our_wd, to $openblas_root"
+if_bits=${2:-${if_default}}
 echo "Binaries are $build_bits bit, interface is $if_bits bit"
-echo "Using gcc at $(which gcc), --version:"
-gcc --version
 
-# Make output directory for build artifacts
-builds_dir="$our_wd/builds"
-rm -rf $builds_dir
-mkdir $builds_dir
-
-cd "${our_wd}/OpenBLAS"
+cd OpenBLAS
 git submodule update --init --recursive
 
 
@@ -52,7 +29,6 @@ git fetch origin
 git checkout $(cat ../openblas_commit.txt)
 git clean -fxd
 git reset --hard
-rm -rf $openblas_root/$build_bits
 
 # Set architecture flags
 if [ "$build_bits" == 64 ]; then
@@ -62,6 +38,7 @@ if [ "$build_bits" == 64 ]; then
     vc_arch="X64"
     plat_tag="win_amd64"
     dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
+    target=PRESCOTT
 else
     march=pentium4
     extra="-mfpmath=sse -msse2"
@@ -69,14 +46,32 @@ else
     vc_arch="i386"
     plat_tag="win32"
     dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
+    target=PRESCOTT
 fi
+if [ "$PLAT" == "arm64" ]; then
+    CC=clang-cl
+    FC=flang-new
+    extra="-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier"
+    march=arm64
+    target=ARMV8
+    # This is quite minimal, may need to add NOEVERSEN1 and more?
+    dynamic_list="ARMV8 CORTEXA57 NEOVERSEV1 THUNDERX"
+fi
+
+CC=clang-cl
+FC=flang-new
 cflags="-O2 -march=$march -mtune=generic $extra"
 fflags="$fextra $cflags -frecursive -ffpe-summary=invalid,zero"
+
+echo "using C compiler $(which $CC), --version:"
+$CC --version
+echo "using F compiler $(which $FC), --version:"
+$FC --version
 
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
     LIBNAMESUFFIX="64_"
-    interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_"
+    interface_flags="-DINTERFACE64=1 -DSYMBOLSUFFIX=64_ -DLIBNAMESUFFIX=64_"
     # We override FCOMMON_OPT, so we need to set default integer manually
     fflags="$fflags -fdefault-integer-8"
 else
@@ -84,7 +79,7 @@ else
 fi
 # On windows, the LIBNAMEPREFIX is not needed, SYMBOLPREFIX is added to the lib
 # name LIBPREFIX in Makefile.system.
-interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
+interface_flags="$interface_flags -DSYMBOLPREFIX=scipy_ -DLIBNAMEPREFIX=scipy_ -DFIXED_LIBNAME=1"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
@@ -94,17 +89,34 @@ OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 # with libquadmath
 patch -p1 < ../patches-windows/openblas-make-libs.patch
 
+mkdir build
+cd build
+cp "$(which llvm-mt.exe)" /llvm-mt.exe
+
 # Build OpenBLAS
-CFLAGS="$CFLAGS -fvisibility=protected -fno-ident" \
-make BINARY=$build_bits DYNAMIC_ARCH=1 USE_THREAD=1 USE_OPENMP=0 \
-     NUM_THREADS=24 NO_WARMUP=1 NO_AFFINITY=1 CONSISTENT_FPCSR=1 \
-     BUILD_LAPACK_DEPRECATED=1 TARGET=PRESCOTT BUFFERSIZE=20 \
-     LDFLAGS="$LDFLAGS" \
-     DYNAMIC_LIST="$dynamic_list" \
-     COMMON_OPT="$cflags" \
-     FCOMMON_OPT="$fflags" \
-     MAX_STACK_ALLOC=2048 \
-     $interface_flags
+CFLAGS=$cflags
+cmake .. -G Ninja \
+ -DCMAKE_BUILD_TYPE=Release \
+ -DTARGET=$target \
+ -DYNAMIC_ARCH=1 \
+ -DYNAMIC_LIST="$dynamic_list" \
+ -DBINARY=$build_bits \
+ -DBUFFERSIZE=20 \
+ -DCMAKE_C_COMPILER=$CC \
+ -DCMAKE_Fortran_COMPILER=$FC \
+ -DBUILD_SHARED_LIBS=ON \
+ -DCMAKE_SYSTEM_PROCESSOR=$march \
+ -DCMAKE_MT=D:/llvm-mt.exe \
+ -DCMAKE_SYSTEM_NAME=Windows \
+ -DSYMBOLPREFIX="scipy_" \
+ -DLIBNAMEPREFIX="scipy_" \
+ -DUSE_THREADS=1 \
+ -DNUM_THREADS=24 \
+  $interface_flags
+
+ninja -j 16
+
+cd ..
 
 # Make sure quadmath library is not statically linked in to the DLL by checking
 # the output.map generated by the linker when using `-Wl,-gc-sections -Wl,-s`
@@ -134,52 +146,14 @@ case $? in
 esac
 set -e
 
-make PREFIX=$openblas_root/$build_bits $interface_flags install
-DLL_BASENAME=libscipy_openblas${LIBNAMESUFFIX}
-cp -f *.dll.a $openblas_root/$build_bits/lib/${DLL_BASENAME}.dll.a
 
-# OpenBLAS does not build a symbol-suffixed static library on Windows:
-# do it ourselves. On 32-bit builds, the objcopy.def names need a '_' prefix
-static_libname=$(find . -maxdepth 1 -type f -name '*.a' \! -name '*.dll.a' | tail -1)
-make -C exports $interface_flags objcopy.def
-
-if [ "$build_bits" == "32" ]; then
-  sed -i "s/^/_/" exports/objcopy.def
-  sed -i "s/scipy_/_scipy_/" exports/objcopy.def
-else
-  echo not updating objcopy,def, buildbits=$build_bits
-fi
-echo "\nshow some of objcopy.def"
-head -10 exports/objcopy.def
-echo
-objcopy --redefine-syms exports/objcopy.def "${static_libname}" "${static_libname}.renamed"
-cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${static_libname}"
-cp -f "${static_libname}.renamed" "$openblas_root/$build_bits/lib/${DLL_BASENAME}.a"
-
-cd $openblas_root
-# Copy library link file for custom name
-pushd $build_bits/lib
-cp ${our_wd}/OpenBLAS/exports/${DLL_BASENAME}.def ${DLL_BASENAME}.def
-# At least for the mingwpy wheel, we have to use the VC tools to build the
-# export library. Maybe fixed in later binutils by patch referred to in
-# https://sourceware.org/ml/binutils/2016-02/msg00002.html
-# "lib.exe" /machine:${vc_arch} /def:${DLL_BASENAME}.def
-# Maybe this will now work (after 2016 patch above).
-dlltool --input-def ${DLL_BASENAME}.def \
-    --output-exp ${DLL_BASENAME}.exp \
-    --dllname ${DLL_BASENAME}.dll \
-    --output-lib ${DLL_BASENAME}.lib
-# Replace the DLL name with the generated name.
-sed -i "s/ -lopenblas.*$/ -l${DLL_BASENAME:3}/g" pkgconfig/openblas*.pc
 mv pkgconfig/*.pc pkgconfig/scipy-openblas.pc
 if [ "$if_bits" == "64" ]; then
     sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i pkgconfig/scipy-openblas.pc
 else
     sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_/" -i pkgconfig/scipy-openblas.pc
 fi
-popd
-ls $openblas_root/$build_bits/lib
+ls build/lib
 
-zip_name="openblas${LIBNAMESUFFIX}-${OPENBLAS_VERSION}-${plat_tag}-${GCC_TAG}.zip"
-zip -r $zip_name $build_bits
-cp $zip_name ${builds_dir}
+zip_name="openblas.zip"
+zip -r $zip_name build
