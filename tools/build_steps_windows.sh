@@ -91,7 +91,7 @@ patch -p1 < ../patches-windows/openblas-make-libs.patch
 
 mkdir build
 cd build
-cp "$(which llvm-mt.exe)" ./my-mt.exe
+cp "$(which llvm-mt.exe)" ./llvm-mt.exe
 
 # Build OpenBLAS
 CFLAGS=$cflags
@@ -106,7 +106,7 @@ cmake .. -G Ninja \
  -DCMAKE_Fortran_COMPILER=$FC \
  -DBUILD_SHARED_LIBS=ON \
  -DCMAKE_SYSTEM_PROCESSOR=$march \
- -DCMAKE_MT=my-mt.exe \
+ -DCMAKE_MT=./llvm-mt.exe \
  -DCMAKE_SYSTEM_NAME=Windows \
  -DSYMBOLPREFIX="scipy_" \
  -DLIBNAMEPREFIX="scipy_" \
