@@ -67,11 +67,13 @@ echo "using C compiler $(which $CC), --version:"
 $CC --version
 echo "using F compiler $(which $FC), --version:"
 $FC --version
+echo "using MT compiler $(which llvm-mt.exe), --version:"
+llvm-mt.exe --version
 
 # Set suffixed-ILP64 flags
 if [ "$if_bits" == "64" ]; then
     LIBNAMESUFFIX="64_"
-    interface_flags="INTERFACE64=1 SYMBOLSUFFIX=64_ LIBNAMESUFFIX=64_"
+    interface_flags="-DINTERFACE64=1 -DSYMBOLSUFFIX=64_ -DLIBNAMESUFFIX=64_"
     # We override FCOMMON_OPT, so we need to set default integer manually
     fflags="$fflags -fdefault-integer-8"
 else
@@ -79,7 +81,7 @@ else
 fi
 # On windows, the LIBNAMEPREFIX is not needed, SYMBOLPREFIX is added to the lib
 # name LIBPREFIX in Makefile.system.
-interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
+interface_flags="$interface_flags -DSYMBOLPREFIX=scipy_ -DLIBNAMEPREFIX=scipy_ -DFIXED_LIBNAME=1"
 
 # Build name for output library from gcc version and OpenBLAS commit.
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
@@ -152,9 +154,7 @@ if [ "$if_bits" == "64" ]; then
 else
     sed -e "s/^Cflags.*/\0 -DBLAS_SYMBOL_PREFIX=scipy_/" -i pkgconfig/scipy-openblas.pc
 fi
-popd
-ls $openblas_root/$build_bits/lib
+ls build/lib
 
-zip_name="openblas${LIBNAMESUFFIX}-${OPENBLAS_VERSION}-${plat_tag}-${GCC_TAG}.zip"
-zip -r $zip_name $build_bits
-cp $zip_name ${builds_dir}
+zip_name="openblas.zip"
+zip -r $zip_name build

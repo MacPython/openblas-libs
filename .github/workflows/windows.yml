@@ -121,7 +121,7 @@ jobs:
         set -xeo pipefail
         python -m pip install wheel
         # This will fail if there is more than one file in libs
-        unzip -d local/scipy_openblas64 builds/openblas*.zip
+        unzip -d local/scipy_openblas64 builds/openblas.zip
         if [[ -d local/scipy_openblas64/64 ]]; then
             mv local/scipy_openblas64/64/* local/scipy_openblas64
         else
