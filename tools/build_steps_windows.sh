@@ -68,7 +68,7 @@ $CC --version
 echo "using F compiler $(which $FC), --version:"
 $FC --version
 mkdir -p /c/temp
-cp $(which llvm-mt.exe) /c/temp
+cp "$(which llvm-mt.exe)" /c/temp
 /c/temp/llvm-mt.exe /?
 
 # Set suffixed-ILP64 flags
