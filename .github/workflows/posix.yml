@@ -47,6 +47,9 @@ jobs:
           - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
           - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
+          - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '0', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
+          - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '1', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
+
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
@@ -73,7 +76,7 @@ jobs:
         xcode-version: '15.4'
 
     - name: Set up QEMU
-      if: matrix.PLAT == 'ppc64le' || matrix.PLAT == 's390x'
+      if: matrix.PLAT == 'ppc64le' || matrix.PLAT == 's390x' || matrix.PLAT == 'riscv64'
       uses: docker/setup-qemu-action@v3
       with:
         platforms: all
@@ -107,6 +110,7 @@ jobs:
         CIBW_MUSLLINUX_PPC64LE_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MANYLINUX_S390X_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MUSLLINUX_S390X_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
+        CIBW_MANYLINUX_RISCV64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
 
     - name: Upload wheels to artifacts
       uses: actions/upload-artifact@v4.3.0

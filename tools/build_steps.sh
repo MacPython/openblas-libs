@@ -68,7 +68,7 @@ function get_plat_tag {
     local mb_ml_ver=${MB_ML_VER:-1}
     local mb_ml_libc=${MB_ML_LIBC:-manylinux}
     case $plat in
-        i686|x86_64|arm64|universal2|intel|aarch64|s390x|ppc64le|loongarch64) ;;
+        i686|x86_64|arm64|universal2|intel|aarch64|s390x|ppc64le|loongarch64|riscv64) ;;
         *) echo Did not recognize plat $plat; return 1 ;;
     esac
     local uname=${2:-$(uname)}
@@ -153,6 +153,9 @@ function build_lib {
         Linux-loongarch64)
             local target="GENERIC"
             ;;
+        Linux-riscv64)
+            local target="GENERIC"
+            ;;
         *) echo "Strange plat value $plat"; exit 1 ;;
     esac
     case $interface64 in
@@ -185,7 +188,7 @@ function build_lib {
         echo "the utest samin/damin have been temporarily disabled."
         echo "QEMU does not support the 'lper' /'lpdr' instructions used"
     fi
-    if [ "$plat" == "loongarch64" ] || [ "$plat" == "ppc64le" ] || [ "$plat" == "s390x" ]; then
+    if [ "$plat" == "loongarch64" ] || [ "$plat" == "ppc64le" ] || [ "$plat" == "s390x" ] || [ "$plat" == "riscv64" ]; then
         sed -i 's/CTEST(fork, safety)/CTEST_SKIP(fork, safety)/g' ./utest/test_fork.c
         sed -i 's/CTEST(fork, safety_after_fork_in_parent)/CTEST_SKIP(fork, safety_after_fork_in_parent)/g' ./utest/test_post_fork.c
         echo "QEMU has a race condition preventing fork tests to work as expected"
