@@ -128,7 +128,7 @@ if "%if_bits%"=="32" (
     powershell -Command "(Get-Content 'scipy_openblas32\__main__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__main__.py' -Encoding utf8"
     powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas64', 'openblas32' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
     powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'openblas_get_config64_', 'openblas_get_config' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
-    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'local\scipy_openblas32\__init__.py' -Encoding utf8"
+    powershell -Command "(Get-Content 'scipy_openblas32\__init__.py') -replace 'cflags =.*', 'cflags = \"-DBLAS_SYMBOL_PREFIX=scipy_\"' | Out-File 'scipy_openblas32\__init__.py' -Encoding utf8"
     cd ..
 )
 
