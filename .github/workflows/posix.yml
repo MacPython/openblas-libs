@@ -132,7 +132,7 @@ jobs:
       # `-el {0}` is required.
       shell: bash -el {0}
       env:
-       ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
         conda install -y anaconda-client
         source tools/upload_to_anaconda_staging.sh
