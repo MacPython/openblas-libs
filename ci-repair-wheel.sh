@@ -21,14 +21,22 @@ else
     
     # Add an RPATH to libgfortran:
     # https://github.com/pypa/auditwheel/issues/451
-    if [ "$MB_ML_LIBC" == "musllinux" ]; then
-      apk add zip
-    else
-      yum install -y zip
-    fi
-    unzip $1/*.whl "*libgfortran*"
+    # Use zipfile since the manylinux images do not have `zip`
+    python3 -c "
+import re, sys, zipfile, pathlib
+whl = next(pathlib.Path(sys.argv[1]).glob('*.whl'))
+with zipfile.ZipFile(whl, 'a') as z:
+    members = [m for m in z.namelist() if re.search(r'libgfortran', m)]
+    z.extractall(members=members)
+    " "$1"
     patchelf --force-rpath --set-rpath '$ORIGIN' */lib/libgfortran*
-    zip $1/*.whl */lib/libgfortran*
+    python3 -c "
+import sys, zipfile, pathlib, glob
+whl = next(pathlib.Path(sys.argv[1]).glob('*.whl'))
+with zipfile.ZipFile(whl, 'a') as z:
+    for f in glob.glob('*/lib/libgfortran*'):
+        z.write(f)
+    " "$1"
     mkdir -p /output
     # copy libs/openblas*.tar.gz to dist/
     cp libs/openblas*.tar.gz /output/
