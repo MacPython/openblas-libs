@@ -14,14 +14,21 @@ on:
         options: [ "none", "testpypi", "pypi" ]
 
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+
 permissions:
   contents: read # to fetch code (actions/checkout)
 
 
 jobs:
   call-posix:
-    uses: andyfaff/openblas-libs/.github/workflows/posix.yml@pub
+    uses: ./.github/workflows/posix.yml
 
-    #  call-posix:
-    #    - name: Set up Flang and pkgconf for ARM64
-    #      uses: ./.github/posix.yml
+  call-windows:
+    uses: ./.github/workflows/windows.yml
+
+  call-windows-arm:
+    uses: ./.github/workflows/windows-arm.yml
