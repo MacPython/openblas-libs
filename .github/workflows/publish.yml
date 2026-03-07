@@ -27,8 +27,8 @@ jobs:
   call-posix:
     uses: ./.github/workflows/posix.yml
 
-  call-windows:
-    uses: ./.github/workflows/windows.yml
-
-  call-windows-arm:
-    uses: ./.github/workflows/windows-arm.yml
+  #  call-windows:
+  #    uses: ./.github/workflows/windows.yml
+  #
+  #  call-windows-arm:
+  #    uses: ./.github/workflows/windows-arm.yml
