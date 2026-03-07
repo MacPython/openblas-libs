@@ -27,3 +27,15 @@ jobs:
   #
   #  call-windows-arm:
   #    uses: ./.github/workflows/windows-arm.yml
+
+  download-wheeks:
+    runs-on: ubuntu-latest
+    needs: [call-posix]
+
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        run-id: ${{ needs.call-posix.outputs.run_id }}
+        pattern: wheels-*
+        merge-multiple: true
+        path: dist
+  
