@@ -19,7 +19,11 @@ permissions:
 
 
 jobs:
+  #  call-posix:
+  #    uses: MacPython/openblas-libs/.github/workflows/posix.yml
+  #    secrets:
+  #      personal_access_token: ${{ secrets.MY_TOKEN }}
+
   call-posix:
-    uses: MacPython/openblas-libs/rkflows/.github/workflows/posix.yml
-    secrets:
-      personal_access_token: ${{ secrets.MY_TOKEN }}
+    - name: Set up Flang and pkgconf for ARM64
+        uses: ./.github/posix.yml
