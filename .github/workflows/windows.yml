@@ -1,13 +1,14 @@
 name: Win
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches:
-      - main
-      - maintenance/**
-  workflow_dispatch: null
+#  push:
+#    branches: [ main ]
+#  pull_request:
+#    branches:
+#      - main
+#      - maintenance/**
+#  workflow_dispatch: null
+  workflow_call:
 
 env:
   OPENBLAS_ROOT: "c:\\opt"

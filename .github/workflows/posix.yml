@@ -1,15 +1,17 @@
 name: posix
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches:
-      - main
-      - maintenance/**
-  workflow_dispatch: null
-  schedule:
-    - cron: '0 0 * * 0'
+  #  push:
+  #    branches: [ main ]
+  #  pull_request:
+  #    branches:
+  #      - main
+  #      - maintenance/**
+  #  workflow_dispatch: null
+  #  schedule:
+  #    - cron: '0 0 * * 0'
+  workflow_call:
+
 
 jobs:
   build:
@@ -21,34 +23,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, PLAT: i686, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #          - { os: ubuntu-latest, PLAT: i686, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
 
           - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-
-          - { os: macos-14, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
-          - { os: macos-14, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
-
-          - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
-          - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
-
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
-          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
-
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
-          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
-
-          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-
-          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
-
-          - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '0', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
-          - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '1', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
+          #          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #
+          #          - { os: macos-14, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          #          - { os: macos-14, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+          #
+          #          - { os: macos-latest, PLAT: arm64, INTERFACE64: '0', MB_ML_LIBC: macosx}
+          #          - { os: macos-latest, PLAT: arm64, INTERFACE64: '1', MB_ML_LIBC: macosx}
+          #
+          #          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          #          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          #
+          #          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #
+          #          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '0', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          #          - { os: ubuntu-24.04-arm, PLAT: aarch64, INTERFACE64: '1', MB_ML_VER: '_1_2', MB_ML_LIBC: musllinux}
+          #
+          #          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #          - { os: ubuntu-24.04-arm, PLAT: ppc64le, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #
+          #          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '0', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #          - { os: ubuntu-24.04-arm, PLAT: s390x, INTERFACE64: '1', MB_ML_VER: '2014', MB_ML_LIBC: manylinux}
+          #
+          #          - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '0', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
+          #          - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '1', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
 
     env:
       NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
