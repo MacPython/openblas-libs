@@ -1,0 +1,25 @@
+name: Publish scipy_openblasN wheels
+
+on:
+  pull_request:
+    branches:
+      - main
+      - maintenance/**
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which PyPI environment to upload to, if any
+        required: true
+        type: choice
+        options: [ "none", "testpypi", "pypi" ]
+
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+
+jobs:
+  call-posix:
+    uses: MacPython/openblas-libs/rkflows/.github/workflows/posix.yml
+    secrets:
+      personal_access_token: ${{ secrets.MY_TOKEN }}
