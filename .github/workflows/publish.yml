@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   call-posix:
-    uses: MacPython/openblas-libs/.github/workflows/posix.yml@main
+    uses: andyfaff/openblas-libs/.github/workflows/posix.yml@pub
 
     #  call-posix:
     #    - name: Set up Flang and pkgconf for ARM64
