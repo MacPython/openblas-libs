@@ -1,12 +1,14 @@
 name: Windows-on-ARM
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches:
-      - main
-      - maintenance/**
+#  push:
+#    branches: [ main ]
+#  pull_request:
+#    branches:
+#      - main
+#      - maintenance/**
+  workflow_call:
+
 
 env:
   OPENBLAS_ROOT: "c:\\opt"
