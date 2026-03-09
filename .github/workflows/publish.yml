@@ -1,10 +1,6 @@
 name: Publish scipy_openblasN wheels
 
 on:
-  pull_request:
-    branches:
-      - main
-      - maintenance/**
   workflow_dispatch:
     inputs:
       environment:
