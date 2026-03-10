@@ -8,6 +8,7 @@ on:
       - main
       - maintenance/**
   workflow_dispatch: null
+  workflow_call:
 
 env:
   OPENBLAS_ROOT: "c:\\opt"
