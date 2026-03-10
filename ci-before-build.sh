@@ -52,7 +52,7 @@ if [[ "$NIGHTLY" = "true" ]]; then
 else
     export OPENBLAS_COMMIT=$(cat openblas_commit.txt)
 fi
-echo "creating wheel from $OPENBLAS_COMMIT" (NIGHTLY is $NIGHTLY)"
+echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
 if [ "$(uname)" != "Darwin" ]; then
   ./tools/install-static-clang.sh
