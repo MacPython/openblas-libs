@@ -11,6 +11,11 @@ on:
   schedule:
     - cron: '0 0 * * 0'
   workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        default: false
+        required: false
 
 
 jobs:
@@ -53,7 +58,7 @@ jobs:
           - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '1', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
 
     env:
-      NIGHTLY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+      NIGHTLY: ${{ inputs.publish == false && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}

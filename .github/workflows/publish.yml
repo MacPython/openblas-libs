@@ -19,6 +19,8 @@ jobs:
 # Workflows to build wheels
   call-posix:
     uses: ./.github/workflows/posix.yml
+    with:
+      publish: true
 
 
   call-windows:
