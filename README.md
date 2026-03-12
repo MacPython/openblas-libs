@@ -20,22 +20,26 @@
 
 # OpenBLAS library build process
 
-First, tarballs are built using `build_lib` in `tools/build_steps.sh` (on
+First, OpenBLAS is built using `build_lib` in `tools/build_steps.sh` (on
 posix in a docker and drectly on macos) or `tools/build_steps_windows.sh` on windows.
 
-Then the shared object and header files from the tarball are used to build the
-wheel via `tools/build_prepare_wheel.sh` and `pip build wheel`, and the wheels uploaded to
+Then the shared object and header files are used to build the
+wheel via `tools/build_prepare_wheel.sh` and `pip build wheel`.
+
+If the build is on the `main` branch, the wheels are uploaded to
 https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas32 and
 https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas64 via
-`tools/upload_to_anaconda_staging.sh`. For a release, the wheels are uploaded
-to PyPI by downloading them via tools/dowlnload-wheels.py and uploading via
-[twine](https://twine.readthedocs.io/en/stable/).
+`tools/upload_to_anaconda_staging.sh`.
 
+There are workflow triggers for repo admins. They can trigger a testpypi build
+or a pypi build with the publish workflow, which will upload the wheels using
+trusted publishing. In order to publish to PyPI, there must be a tag at the HEAD
+of the branch used to publish. Use annotated tags:
+```
+git tag -a v0.3.31.126.4 -m"fixed something"
+```
 The wheel is self-contained, it includes all needed gfortran support libraries.
 On windows, this is a single DLL. 
-
-The wheel supplies interfaces for building and using OpenBLAS in a python
-project like SciPy or NumPy:
 
 ## Buildtime
 
