@@ -87,16 +87,12 @@ jobs:
           attestations: true
 
   pypi-publish:
-    strategy:
-      matrix:
-        project: ["scipy-openblas32", "scipy-openblas64"]
-    name: Publish ${{ matrix.project }} to PyPI
+    name: Publish scipy-openblas to PyPI
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'pypi'
     needs: [call-posix, call-windows, call-windows-arm, check-version]
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/${{ matrix.project }}
     permissions:
       id-token: write  # mandatory for trusted publishing
     steps:
