@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: Which PyPI environment to upload to, if any
+        description: |
+          Which PyPI environment to upload to?
+          Be sure to push an annotated tag to 'main' before choosing 'pypi'
         required: true
         type: choice
         options: [ "none", "testpypi", "pypi" ]

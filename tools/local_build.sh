@@ -20,7 +20,9 @@ else
     echo got nothing
     exit -1
 fi
-export OPENBLAS_COMMIT="v0.3.30-349-gf6df9beb"
+export OPENBLAS_COMMIT=$(cat openblas_commit.txt)
+version=$(echo $OPENBLAS_COMMIT | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g").0
+sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
 
 # export MB_ML_LIBC=musllinux
 # export MB_ML_VER=_1_2
