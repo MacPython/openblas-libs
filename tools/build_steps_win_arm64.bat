@@ -1,16 +1,16 @@
-:: Build script for scipy_openblas wheel on Windows on ARM64
+REM Build script for scipy_openblas wheel on Windows on ARM64
 
-:: Usage: build_steps_win_arm64.bat [build_bits] [if_bits]
-:: e.g build_steps_win_arm64.bat 64 64
+REM Usage: build_steps_win_arm64.bat [build_bits] [if_bits]
+REM e.g build_steps_win_arm64.bat 64 64
 
-:: build_bits  (default binary architecture, 32 or 64, unspec -> 64).
-:: if_bits (default interface size, 32 or 64, unspec -> 32)
-:: If INTERFACE64 environment variable is 1, then if_bits defaults to 64
-:: Expects these binaries on the PATH:
-::   clang-cl, flang-new, cmake, perl
-:: First commit containing WoA build fixes.
-:: Minimum OpenBLAS commit to build; we'll update to this if commit not
-:: present.
+REM build_bits  (default binary architecture, 32 or 64, unspec -> 64).
+REM if_bits (default interface size, 32 or 64, unspec -> 32)
+REM If INTERFACE64 environment variable is 1, then if_bits defaults to 64
+REM Expects these binaries on the PATH:
+REM   clang-cl, flang-new, cmake, perl
+REM First commit containing WoA build fixes.
+REM Minimum OpenBLAS commit to build; we'll update to this if commit not
+REM present.
 set first_woa_buildable_commit="de2380e5a6149706a633322a16a0f66faa5591fc"
 
 @echo off
@@ -33,7 +33,7 @@ if "%2"=="" (
 )
 echo Building for %build_bits%-bit binary, %if_bits%-bit interface...
  
-:: Define destination directory
+REM Define destination directory
 pushd "%~dp0\.."
 set "ob_out_root=%CD%\local\scipy_openblas"
 set "ob_64=%ob_out_root%64"
@@ -54,13 +54,13 @@ if "%if_bits%"=="64" (
     )
 )
 
-:: Clone OpenBLAS
+REM Clone OpenBLAS
 echo Cloning OpenBLAS repository with submodules...
 git submodule update --init --recursive OpenBLAS
 if errorlevel 1 exit /b 1
 set /p OPENBLAS_COMMIT=<openblas_commit.txt
  
-:: Enter OpenBLAS directory and checkout buildable commit
+REM Enter OpenBLAS directory and checkout buildable commit
 cd OpenBLAS
 git checkout %OPENBLAS_COMMIT%
 git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
@@ -70,30 +70,38 @@ if errorlevel 1 (
     exit /b 2
 )
  
-:: Patch
+REM Patch
 for /r %%f in (..\patches\*) do git apply %%f
 if errorlevel 1 exit /b 1
 
-:: Set suffixed-ILP64 flags
+REM Patch VERSION
+REM version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
+REM sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
+
+for /f "tokens=3 delims= " %%v in ('findstr /b "version = " ..\pyproject.toml') do set version=%%v
+set version=%version:"=%
+powershell -Command "(Get-Content OpenBLAS/Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content Makefile.rule"
+
+REM Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
     set "interface_flags=-DINTERFACE64=1 -DSYMBOLSUFFIX=64_"
 ) else (
     set "interface_flags="
 )
 
-:: Create build directory and navigate to it
+REM Create build directory and navigate to it
 if exist build (rmdir /S /Q build || exit /b 1)
 mkdir build || exit /b 1 & cd build || exit /b 1
  
 echo Setting up ARM64 Developer Command Prompt and running CMake...
  
-:: Initialize VS ARM64 environment
+REM Initialize VS ARM64 environment
 CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
  
-:: Prefer LLVM flang
+REM Prefer LLVM flang
 PATH=C:\Program Files\LLVM\bin;%PATH%
 
-:: Run CMake and Ninja build
+REM Run CMake and Ninja build
 
 set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
 cmake .. -G Ninja ^
@@ -132,13 +140,13 @@ if "%if_bits%"=="32" (
     cd ..
 )
 
-:: Prepare destination directory
+REM Prepare destination directory
 cd OpenBLAS/build
 echo Preparing destination directory at %DEST_DIR%
 if not exist "%DEST_DIR%\lib\cmake\OpenBLAS" mkdir "%DEST_DIR%\lib\cmake\OpenBLAS"
 if not exist "%DEST_DIR%\include" mkdir "%DEST_DIR%\include"
  
-:: Move library files
+REM Move library files
 echo Moving library files...
 if exist lib\release (
     move /Y lib\release\*.dll "%DEST_DIR%\lib\"
@@ -154,19 +162,19 @@ if exist lib\release (
     exit /b 1
 )
  
-:: Copy CMake configuration files
+REM Copy CMake configuration files
 echo Copying CMake configuration files...
 if exist openblasconfig.cmake copy /Y openblasconfig.cmake "%DEST_DIR%\lib\cmake\openblas\"
 if exist openblasconfigversion.cmake copy /Y openblasconfigversion.cmake "%DEST_DIR%\lib\cmake\openblas\"
  
-:: Copy header files
+REM Copy header files
 echo Copying generated header files...
 if exist generated xcopy /E /Y generated "%DEST_DIR%\include\"
 if exist lapacke_mangling.h copy /Y lapacke_mangling.h "%DEST_DIR%\include\"
 if exist openblas_config.h copy /Y openblas_config.h "%DEST_DIR%\include\"
 
  
-:: Copy LAPACKE header files
+REM Copy LAPACKE header files
 echo Copying LAPACKE header files...
 xcopy /Y "..\lapack-netlib\lapacke\include\*.h" "%DEST_DIR%\include\"
 if errorlevel 1 exit /b 1
@@ -189,14 +197,14 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Move back to the root directory
+REM Move back to the root directory
 cd ..
 if errorlevel 1 (
     echo Current directory %CD%, cannot cd ..
     exit /b 1
 )
  
-:: Build the Wheel & Install It
+REM Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel in %CD%
 python -c "import build" 2>NUL || pip install build
 if "%if_bits%"=="64" (
@@ -213,7 +221,7 @@ if "%if_bits%"=="32" (
     move /Y "%CD%\ob64_backup" "%ob_64%"
 )
 
-:: Rename the wheel
+REM Rename the wheel
 for %%f in (dist\*any.whl) do (
     set WHEEL_FILE=dist\%%f
     set "filename=%%~nxf"
@@ -221,7 +229,7 @@ for %%f in (dist\*any.whl) do (
     ren "dist\!filename!" "!newname!"
 )
 
-:: Locate the built wheel
+REM Locate the built wheel
 for /f %%f in ('dir /b dist\scipy_openblas*.whl 2^>nul') do set WHEEL_FILE=dist\%%f
 
 if not defined WHEEL_FILE (

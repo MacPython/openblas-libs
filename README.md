@@ -34,12 +34,14 @@ https://anaconda.org/scientific=python-nightly-wheels/scipy_openblas64 via
 There are workflow triggers for repo admins. They can trigger a testpypi build
 or a pypi build with the publish workflow, which will upload the wheels using
 trusted publishing. In order to publish to PyPI, there must be a tag at the HEAD
-of the branch used to publish. Use annotated tags:
+of the branch used to publish. After merging a PR, be sure to update to main and
+use annotated tags:
 ```
+git checkout main; git pull
 git tag -a v0.3.31.126.4 -m"fixed something"
 ```
 The wheel is self-contained, it includes all needed gfortran support libraries.
-On windows, this is a single DLL. 
+On windows, this is a single DLL.
 
 ## Buildtime
 

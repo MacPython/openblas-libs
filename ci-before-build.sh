@@ -51,7 +51,9 @@ if [[ "$NIGHTLY" = "true" ]]; then
     sed -e "s/^version = .*/version = \"${version}\"/" -i.bak pyproject.toml
 else
     export OPENBLAS_COMMIT=$(cat openblas_commit.txt)
+    version=$(grep "^version =" pyproject.toml | sed 's/version = "//;s/"//')
 fi
+sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
 echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
 if [ "$(uname)" != "Darwin" ]; then
