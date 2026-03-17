@@ -95,8 +95,8 @@ OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 patch -p1 < ../patches-windows/openblas-make-libs.patch
 
 # Patch VERSION
-version=$(grep "^version =" pyproject.toml | sed 's/version = "//;s/"//')
-sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
+version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
+sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
 
 # Build OpenBLAS
 CFLAGS="$CFLAGS -fvisibility=protected -fno-ident" \

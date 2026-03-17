@@ -75,12 +75,12 @@ for /r %%f in (..\patches\*) do git apply %%f
 if errorlevel 1 exit /b 1
 
 REM Patch VERSION
-REM version=$(grep "^version =" pyproject.toml | sed 's/version = "//;s/"//')
-REM sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
+REM version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
+REM sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
 
-for /f "tokens=3 delims= " %%v in ('findstr /b "version = " pyproject.toml') do set version=%%v
+for /f "tokens=3 delims= " %%v in ('findstr /b "version = " ..\pyproject.toml') do set version=%%v
 set version=%version:"=%
-powershell -Command "(Get-Content OpenBLAS/Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content OpenBLAS/Makefile.rule"
+powershell -Command "(Get-Content OpenBLAS/Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content Makefile.rule"
 
 REM Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
