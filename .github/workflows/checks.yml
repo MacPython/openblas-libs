@@ -1,0 +1,35 @@
+name: Check Changelog
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check version differs from main
+        run: |
+          version=$(grep "^version = " pyproject.toml | sed 's/version = "//;s/"//')
+          main_version=$(git show origin/main:pyproject.toml | grep "^version = " | sed 's/version = "//;s/"//')
+          if [[ "$version" == "$main_version" ]]; then
+            echo "ERROR: pyproject.toml version ($version) is the same as main ($main_version)"
+            echo "Please bump the version before submitting a PR."
+            exit 1
+          fi
+          echo "Version check passed: $version (main is $main_version)"
+
+      - name: Check changelog has entry for version
+        run: |
+          version=$(grep "^version = " pyproject.toml | sed 's/version = "//;s/"//')
+          if ! grep -q "^### $version " CHANGELOG.md; then
+            echo "ERROR: CHANGELOG.md has no entry for $version"
+            echo "Please run tools/update_changelog.sh and edit the entry before submitting."
+            exit 1
+          fi
+          echo "Changelog check passed: found entry for $version"
