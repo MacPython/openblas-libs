@@ -20,7 +20,7 @@ if [ "${INTERFACE64}" != "1" ]; then
 else
   config_str=$($PYTHON -m scipy_openblas64)
 fi
-version=$($PYTHON -m pip list | grep scipy-openblas | sed 's/.*\s//')
+version=$($PYTHON -m pip list | grep scipy-openblas | sed 's/.*[[:space:]]//')
 if [[ "$config_str" != *"$version"* ]]; then
     echo "config_str version does not match the pyproject.toml"
     exit -1
