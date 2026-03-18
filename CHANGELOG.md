@@ -1,5 +1,8 @@
 ## OpenBLAS v0.3.31.159 (v0.3.31-159-g7a95460b)
 
+### 0.3.31.159.1 (2026-03-18)
+- Also release aarch64 manylinux_2_28 wheels
+
 ### 0.3.31.159.0 (2026-03-17)
 - Update to v0.3.31.159
 

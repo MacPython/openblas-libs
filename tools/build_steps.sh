@@ -5,7 +5,6 @@ BUILD_PREFIX=${BUILD_PREFIX:-/usr/local}
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 
-MB_PYTHON_VERSION=3.9
 
 function before_build {
     # install gfortran, objconv on macOS
@@ -20,8 +19,7 @@ function before_build {
             sudo chmod 777 /usr/local/include
             touch /usr/local/include/.dir_exists
         fi
-        # get_macpython_environment ${MB_PYTHON_VERSION} venv
-        python3.9 -m venv venv
+        python3.11 -m venv venv
         source venv/bin/activate
 
         unalias gfortran 2>/dev/null || true
@@ -132,6 +130,8 @@ function build_lib {
         Linux-aarch64)
             local bitness=64
             local target="ARMV8"
+            echo "Using gcc at $(which gcc)"
+            gcc --version
             ;;
         Darwin-arm64)
             local bitness=64
