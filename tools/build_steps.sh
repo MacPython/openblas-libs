@@ -132,6 +132,8 @@ function build_lib {
             local target="ARMV8"
             echo "Using gcc at $(which gcc)"
             gcc --version
+            echo "Using clang at $(which clang)"
+            clang --version
             ;;
         Darwin-arm64)
             local bitness=64
