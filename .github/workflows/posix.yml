@@ -36,9 +36,7 @@ jobs:
       MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
       MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
-      BUILD_DIR: ${{ github.workspace }}
       PLAT: ${{ matrix.PLAT }}
-      OS-NAME: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v6.0.1
