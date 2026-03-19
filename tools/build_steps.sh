@@ -51,7 +51,8 @@ function clean_code {
     [ -z "$build_commit" ] && echo "build_commit not defined" && exit 1
     pushd OpenBLAS
     git fetch origin --tags
-    git checkout $build_commit
+    git fetch origin pull/5688/head
+    git checkout b7601ea92f6
     git clean -fxd
     git submodule update --init --recursive
     popd
@@ -134,8 +135,6 @@ function build_lib {
             gcc --version
             echo "Using clang at $(which clang)"
             clang --version
-            export CC=gcc
-            export CXX=g++
             ;;
         Darwin-arm64)
             local bitness=64
