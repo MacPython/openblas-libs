@@ -134,6 +134,8 @@ function build_lib {
             gcc --version
             echo "Using clang at $(which clang)"
             clang --version
+            export CC=gcc
+            export CXX=g++
             ;;
         Darwin-arm64)
             local bitness=64
