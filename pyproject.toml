@@ -54,8 +54,5 @@ environment-pass = [
   "OS-NAME",
   "RUNNER_ARCH",
 ]
-[tool.cibuildwheel.linux]
-environment = { CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld" }
-
 [project.entry-points.pkg_config]
 scipy-openblas = 'scipy_openblas64.lib.pkgconfig'

@@ -24,10 +24,15 @@ fi
 sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
 echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
-if [ "$(uname)" != "Darwin" ]; then
-  ./tools/install-static-clang.sh
-  export PATH=/opt/clang/bin:$PATH
-fi
+case "$PLAT" in
+    ppc64le|s390x|riscv64)
+        ./tools/install-static-clang.sh
+        export PATH=/opt/clang/bin:$PATH
+        CC="/opt/clang/bin/clang"
+        CXX="/opt/clang/bin/clang++"
+        LDFLAGS="-fuse-ld=lld"
+        ;;
+esac
 
 # Build OpenBLAS
 source build-openblas.sh
