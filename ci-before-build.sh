@@ -27,9 +27,9 @@ echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 if [ "$COMPILER" == "clang" ]; then
   ./tools/install-static-clang.sh
   export PATH=/opt/clang/bin:$PATH
-  export CC = "/opt/clang/bin/clang"
-  export CXX = "/opt/clang/bin/clang++"
-  export LDFLAGS = "-fuse-ld=lld"
+  export CC="/opt/clang/bin/clang"
+  export CXX="/opt/clang/bin/clang++"
+  export LDFLAGS="-fuse-ld=lld"
 fi
 
 # Build OpenBLAS
