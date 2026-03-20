@@ -24,6 +24,14 @@ fi
 sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
 echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
+if [ "$COMPILER" == "clang" ]; then
+  ./tools/install-static-clang.sh
+  export PATH=/opt/clang/bin:$PATH
+  export CC = "/opt/clang/bin/clang"
+  export CXX = "/opt/clang/bin/clang++"
+  export LDFLAGS = "-fuse-ld=lld"
+fi
+
 # Build OpenBLAS
 source build-openblas.sh
 

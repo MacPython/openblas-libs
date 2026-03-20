@@ -51,6 +51,7 @@ environment-pass = [
   "MB_ML_VER",
   "INTERFACE64",
   "PLAT",
+  "COMPILER",
 ]
 
 [project.entry-points.pkg_config]
