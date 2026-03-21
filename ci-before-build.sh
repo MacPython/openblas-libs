@@ -28,9 +28,9 @@ case "$PLAT" in
     ppc64le|s390x|riscv64)
         ./tools/install-static-clang.sh
         export PATH=/opt/clang/bin:$PATH
-        CC="/opt/clang/bin/clang"
-        CXX="/opt/clang/bin/clang++"
-        LDFLAGS="-fuse-ld=lld"
+        export CC="/opt/clang/bin/clang"
+        export CXX="/opt/clang/bin/clang++"
+        export LDFLAGS="-fuse-ld=lld"
         ;;
 esac
 
