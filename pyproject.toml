@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "scipy-openblas64"
 # v0.3.31-188-g4956446c
-version = "0.3.31.188.0"
+version = "0.3.31.188.1"
 requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
 readme = "README.md"
@@ -55,8 +55,5 @@ environment-pass = [
   "OS-NAME",
   "RUNNER_ARCH",
 ]
-[tool.cibuildwheel.linux]
-environment = { CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld" }
-
 [project.entry-points.pkg_config]
 scipy-openblas = 'scipy_openblas64.lib.pkgconfig'
