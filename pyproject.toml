@@ -7,6 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
+name = "scipy-openblas64"
 # v0.3.31-188-g4956446c
 version = "0.3.31.188.1"
 requires-python = ">=3.7"
