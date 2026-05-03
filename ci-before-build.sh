@@ -21,7 +21,7 @@ obcommit=$OPENBLAS_COMMIT
 
 # convert - to . in OPENBLAS_COMMIT
 # strip off the last (build) number from version
-if [[ "${obcommit//-/.}" == *"${version%.*}"* ]]; then
+if [[ "${obcommit//-/.}" != *"${version%.*}"* ]]; then
     echo "OPENBLAS_COMMIT $OPENBLAS_COMMIT does not match the pyproject.toml version $version"
     exit -1
 fi
