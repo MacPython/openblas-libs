@@ -26,7 +26,7 @@ if [[ "${obcommit//-/.}" != *"${version%.*}"* ]]; then
     exit -1
 fi
 
-sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
+export OPENBLAS_VERSION=version
 echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
 case "$PLAT" in
