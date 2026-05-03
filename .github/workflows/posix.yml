@@ -127,4 +127,4 @@ jobs:
       uses: scientific-python/upload-nightly-action@0.6.4
       with:
         artifacts_path: dist
-        anaconda_nightly_upload_token: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
+        anaconda_nightly_upload_token: ${{secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD}}
