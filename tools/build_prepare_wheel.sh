@@ -18,6 +18,9 @@ tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas.tar.gz
 find local/scipy_openblas64/lib -maxdepth 1 -type l -delete
 rm local/scipy_openblas64/lib/*.a
 # Check that the pyproject.toml and the pkgconfig versions agree.
+echo "============ scipy-openblas.pc ======================="
+cat ./local/scipy_openblas64/lib/pkgconfig/scipy-openblas*.pc
+echo "============ scipy-openblas.pc ======================="
 py_version=$(grep "^version" pyproject.toml | sed -e "s/version = \"//")
 pkg_version=$(grep "version=" ./local/scipy_openblas64/lib/pkgconfig/scipy-openblas*.pc | sed -e "s/version=//" | sed -e "s/dev//")
 if [[ -z "$pkg_version" ]]; then
