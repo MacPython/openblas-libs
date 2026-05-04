@@ -124,6 +124,7 @@ jobs:
         path: dist/scipy_openblas*.whl
 
     - name: Upload to ananconda.org
+      if: ${{ inputs.publish == false && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
       uses: scientific-python/upload-nightly-action@0.6.4
       with:
         artifacts_path: dist
