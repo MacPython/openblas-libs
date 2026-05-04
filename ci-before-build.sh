@@ -15,13 +15,18 @@ else
     version=$(grep "^version =" pyproject.toml | sed 's/version = "//;s/"//')
 fi
 
-# Sanity check, strip off the last (build) number from version, convert - to . in OPENBLAS_COMMIT
-if [[ "${OPENBLAS_COMMIT//-/.}" != *"${version%.*}"* ]]; then
+obcommit=$OPENBLAS_COMMIT
+# add .0 if OPENBLAS_COMMIT is an actual tag
+[[ "$obcommit" == *-* ]] || obcommit="$obcommit.0"
+
+# convert - to . in OPENBLAS_COMMIT
+# strip off the last (build) number from version
+if [[ "${obcommit//-/.}" != *"${version%.*}"* ]]; then
     echo "OPENBLAS_COMMIT $OPENBLAS_COMMIT does not match the pyproject.toml version $version"
     exit -1
 fi
 
-sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak OpenBLAS/Makefile.rule
+export OPENBLAS_VERSION=$version
 echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
 case "$PLAT" in

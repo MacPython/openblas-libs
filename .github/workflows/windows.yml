@@ -170,7 +170,7 @@ jobs:
         python -m pip install pkgconf
         python -m pkgconf scipy-openblas --cflags
 
-    - uses: conda-incubator/setup-miniconda@v3.1.1
+    - uses: conda-incubator/setup-miniconda@v4.0.1
       with:
         channels: conda-forge
         channel-priority: true
