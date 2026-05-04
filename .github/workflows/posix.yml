@@ -82,7 +82,7 @@ jobs:
 
     - name: Set up QEMU
       if: matrix.PLAT == 'ppc64le' || matrix.PLAT == 's390x' || matrix.PLAT == 'riscv64'
-      uses: docker/setup-qemu-action@v3.7.0
+      uses: docker/setup-qemu-action@v4.0.0
       with:
         platforms: all
 
