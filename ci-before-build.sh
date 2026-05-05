@@ -30,7 +30,7 @@ export OPENBLAS_VERSION=$version
 echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
 case "$PLAT" in
-    ppc64le|s390x|riscv64)
+    loongarch64|ppc64le|s390x|riscv64)
         ./tools/install-static-clang.sh
         export PATH=/opt/clang/bin:$PATH
         export CC="/opt/clang/bin/clang"
