@@ -1,5 +1,8 @@
 ## OpenBLAS v0.3.33
 
+### 0.3.33.0.1 (2026-05-04)
+- Fix posix uploads to anaconda.org
+
 ### 0.3.33.0.0 (2026-05-03)
 - Update to OpenBLAS 0.3.33
 
