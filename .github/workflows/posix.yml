@@ -97,7 +97,7 @@ jobs:
     #     limit-access-to-actor: true
 
     - name: Build and Test wheels
-      uses: pypa/cibuildwheel@v3.3.1
+      uses: pypa/cibuildwheel@v4.1.0
       timeout-minutes: 60
       with:
         output-dir: dist

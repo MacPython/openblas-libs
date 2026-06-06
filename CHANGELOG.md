@@ -1,5 +1,8 @@
 ## OpenBLAS v0.3.33
 
+### 0.3.33.112.1 (2026-06-21)
+- chore: update cibuildwheel to v4.1.0
+
 ### 0.3.33.112.0 (2026-06-15)
 - Update to v0.3.33.112
 
