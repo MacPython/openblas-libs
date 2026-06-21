@@ -31,7 +31,7 @@ echo "creating wheel from $OPENBLAS_COMMIT (NIGHTLY is $NIGHTLY)"
 
 case "$PLAT" in
     loongarch64|ppc64le|s390x|riscv64)
-        ./tools/install-static-clang.sh
+        manylinux-install-clang -v 21.1.6.0
         export PATH=/opt/clang/bin:$PATH
         export CC="/opt/clang/bin/clang"
         export CXX="/opt/clang/bin/clang++"
