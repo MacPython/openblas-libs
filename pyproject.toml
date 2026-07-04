@@ -55,5 +55,9 @@ environment-pass = [
   "OS-NAME",
   "RUNNER_ARCH",
 ]
+
+[tool.cibuildwheel.linux]
+before-all = "pipx install -f patchelf==0.19.0.0rc1"
+
 [project.entry-points.pkg_config]
 scipy-openblas = 'scipy_openblas64.lib.pkgconfig'
