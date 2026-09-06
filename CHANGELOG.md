@@ -1,5 +1,8 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
+### 0.3.34.237.0 (2026-09~06)
+- pick up a fix for SVE indentification
+
 ### 0.3.34.106.0 (2026-08~08)
 - pick up a fix for windows threading
 
