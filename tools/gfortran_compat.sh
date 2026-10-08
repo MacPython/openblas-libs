@@ -130,8 +130,16 @@ function build_gfortran_compat {
         # Refuse anything that is not self-contained: a member with undefined
         # symbols would drag in libgfortran internals (and possibly non-PIC
         # objects), which is exactly what this approach avoids.
+        #
+        # Linker-synthesized symbols do not count.  On ppc64le every object
+        # that touches the TOC references .TOC., which ld provides itself --
+        # treating that as a dependency rejected a member that is in fact
+        # perfectly self-contained.  The shared-link check below remains the
+        # real gate: anything genuinely unresolvable fails there instead.
         local undef
-        undef=$(nm --undefined-only "$member" | awk '{print $2}' | tr '\n' ' ')
+        undef=$(nm --undefined-only "$member" | awk '{print $2}' \
+                | grep -vxF -e '.TOC.' -e '_GLOBAL_OFFSET_TABLE_' \
+                | tr '\n' ' ' || true)
         if [ -n "$undef" ]; then
             echo "gfortran_compat: $member is not self-contained: $undef" >&2
             cd "$here"; return 1
@@ -162,6 +170,25 @@ function build_gfortran_compat {
     echo "$workdir/libgfortran_compat.a"
 }
 
+# fortran_runtime_deps <library>
+#
+# Echo the libgfortran/libquadmath entries in a library's dependency list, or
+# nothing if there are none.  Used both by the assertion below and by
+# ci-test.sh, which needs to know what the build actually produced rather than
+# what it intended: on a toolchain that cannot support the compat archive
+# build_gfortran_compat falls back, and the wheel then legitimately still
+# bundles the runtime.
+function fortran_runtime_deps {
+    local lib=$1
+    if [ "$(uname -s)" == "Darwin" ]; then
+        otool -L "$lib" | tail -n +2 | awk '{print $1}' \
+            | grep -i 'gfortran\|quadmath' || true
+    else
+        readelf -d "$lib" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' \
+            | grep -i 'gfortran\|quadmath' || true
+    fi
+}
+
 # assert_no_fortran_runtime <library> ...
 #
 # Fail the build if a built library still depends on the Fortran runtime.
@@ -177,20 +204,14 @@ function assert_no_fortran_runtime {
         # file rather than treating it as a failure.
         [ -f "$lib" ] || continue
         checked=$((checked + 1))
-        local deps undef
+        local undef bad
         if [ "$(uname -s)" == "Darwin" ]; then
-            deps=$(otool -L "$lib" | tail -n +2 | awk '{print $1}')
             undef=$(nm -u "$lib" 2>/dev/null | grep -o '_gfortran_[A-Za-z0-9_]*' | sort -u || true)
         else
-            deps=$(readelf -d "$lib" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p')
             undef=$(nm -D --undefined-only "$lib" 2>/dev/null \
                     | grep -o '_gfortran_[A-Za-z0-9_]*' | sort -u || true)
         fi
-
-        local bad
-        # `|| true` on all three greps below: no match means the library is
-        # clean, which is what we want, but grep still exits 1.
-        bad=$(echo "$deps" | grep -i 'gfortran\|quadmath' || true)
+        bad=$(fortran_runtime_deps "$lib")
         if [ -n "$bad" ]; then
             echo "FAIL: $(basename "$lib") still links the Fortran runtime:" >&2
             echo "$bad" | sed 's/^/  /' >&2

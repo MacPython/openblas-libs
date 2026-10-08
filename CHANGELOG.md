@@ -1,6 +1,6 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
-## 0.3.34.237.1 (2026-10-9)
+### 0.3.34.237.1 (2026-10-08)
 
 - Build every manylinux and musllinux wheel without a runtime dependency on
   libgfortran, and therefore without libquadmath, which is only ever pulled in
