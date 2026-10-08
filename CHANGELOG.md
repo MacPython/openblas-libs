@@ -1,3 +1,16 @@
+## Unreleased
+
+- Build every manylinux and musllinux wheel without a runtime dependency on
+  libgfortran, and therefore without libquadmath, which is only ever pulled in
+  as a dependency of libgfortran itself.  This drops ~1MB (compressed) from the
+  wheels that bundled both and, since libquadmath is LGPL-2.1-or-later with no
+  GCC Runtime Library Exception, removes an LGPL obligation along with it.  The
+  two `x**n` entry points are taken as-is out of the toolchain's libgfortran.a
+  so results stay bit-for-bit identical; see tools/gfortran_compat.sh.  macOS
+  is unchanged for now (ld64 has no -Wl,--exclude-libs), and Windows already
+  static-links libgfortran.  A toolchain that cannot support it falls back to
+  linking libgfortran as before.
+
 ## OpenBLAS v0.3.34 (v0.3.34)
 
 ### 0.3.34.237.0 (2026-09~06)

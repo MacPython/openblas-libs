@@ -30,3 +30,26 @@ fi
 
 $PYTHON -m pip install pkgconf
 $PYTHON -m pkgconf scipy-openblas --cflags
+
+# On the platforms where the build drops the Fortran runtime, prove the
+# installed wheel really is free of it.  The build already asserts this on the
+# library it produces (build_lib in tools/build_steps.sh); checking again here
+# catches anything auditwheel/delocate might reintroduce while repairing the
+# wheel.  See tools/gfortran_compat.sh for the why.
+source tools/build_steps.sh
+if want_no_libgfortran "${PLAT}"; then
+    if [ "${INTERFACE64}" != "1" ]; then
+        pkgdir=$($PYTHON -c "import scipy_openblas32 as m, pathlib; print(pathlib.Path(m.__file__).parent)")
+    else
+        pkgdir=$($PYTHON -c "import scipy_openblas64 as m, pathlib; print(pathlib.Path(m.__file__).parent)")
+    fi
+    echo "checking installed package $pkgdir"
+    found=$(find "$pkgdir" -name 'libgfortran*' -o -name 'libquadmath*')
+    if [ -n "$found" ]; then
+        echo "FAIL: wheel still bundles the Fortran runtime:"
+        echo "$found"
+        exit 1
+    fi
+    assert_no_fortran_runtime "$pkgdir"/lib/libscipy_openblas*.so \
+                              "$pkgdir"/lib/libscipy_openblas*.dylib
+fi

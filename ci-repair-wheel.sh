@@ -22,13 +22,22 @@ else
     # Add an RPATH to libgfortran:
     # https://github.com/pypa/auditwheel/issues/451
     # Use zipfile since the manylinux images do not have `zip`
-    python3 -c "
+    #
+    # Platforms built with NO_LIBGFORTRAN=1 bundle no libgfortran (and so no
+    # libquadmath, which is the only reason this fixup is needed at all), so
+    # there is nothing to repair there.  Count what we extracted and skip the
+    # rest when the wheel is already clean.
+    n_gfortran=$(python3 -c "
 import re, sys, zipfile, pathlib
 whl = next(pathlib.Path(sys.argv[1]).glob('*.whl'))
 with zipfile.ZipFile(whl, 'a') as z:
     members = [m for m in z.namelist() if re.search(r'libgfortran', m)]
     z.extractall(members=members)
-    " "$1"
+print(len(members))
+    " "$1")
+    if [ "$n_gfortran" = "0" ]; then
+        echo "wheel bundles no libgfortran; skipping the auditwheel #451 rpath fixup"
+    else
     patchelf --force-rpath --set-rpath '$ORIGIN' */lib/libgfortran*
     python3 -c "
 import sys, zipfile, pathlib, glob
@@ -46,6 +55,7 @@ with zipfile.ZipFile(whl, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     for item, data in entries.items():
         z.writestr(item, data)    
 " "$1"
+    fi
     mkdir -p /output
     # copy libs/openblas*.tar.gz to dist/
     cp libs/openblas*.tar.gz /output/
