@@ -114,8 +114,11 @@ function build_gfortran_compat {
 
     local sym member
     for sym in $wanted; do
+        # `|| true`: grep exits 1 when the member is absent, and under
+        # `set -e` that would abort the build instead of returning non-zero
+        # here and letting the caller fall back to linking libgfortran.
         member=$(nm -A --defined-only "$archive" 2>/dev/null \
-                 | grep " $sym\$" | head -1 | cut -d: -f2)
+                 | grep " $sym\$" | head -1 | cut -d: -f2 || true)
         if [ -z "$member" ]; then
             echo "gfortran_compat: $sym not found in $archive" >&2
             cd "$here"; return 1
@@ -177,15 +180,17 @@ function assert_no_fortran_runtime {
         local deps undef
         if [ "$(uname -s)" == "Darwin" ]; then
             deps=$(otool -L "$lib" | tail -n +2 | awk '{print $1}')
-            undef=$(nm -u "$lib" 2>/dev/null | grep -o '_gfortran_[A-Za-z0-9_]*' | sort -u)
+            undef=$(nm -u "$lib" 2>/dev/null | grep -o '_gfortran_[A-Za-z0-9_]*' | sort -u || true)
         else
             deps=$(readelf -d "$lib" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p')
             undef=$(nm -D --undefined-only "$lib" 2>/dev/null \
-                    | grep -o '_gfortran_[A-Za-z0-9_]*' | sort -u)
+                    | grep -o '_gfortran_[A-Za-z0-9_]*' | sort -u || true)
         fi
 
         local bad
-        bad=$(echo "$deps" | grep -i 'gfortran\|quadmath')
+        # `|| true` on all three greps below: no match means the library is
+        # clean, which is what we want, but grep still exits 1.
+        bad=$(echo "$deps" | grep -i 'gfortran\|quadmath' || true)
         if [ -n "$bad" ]; then
             echo "FAIL: $(basename "$lib") still links the Fortran runtime:" >&2
             echo "$bad" | sed 's/^/  /' >&2

@@ -280,6 +280,9 @@ function build_lib {
         # not touch _gfortran_* names, so order is safe either way.
         local compat_dir=$(dirname "$compat_lib")
         for static_lib in $BUILD_PREFIX/lib/libscipy_openblas*.a; do
+            # An unmatched glob arrives as a literal, and `ar crs` would
+            # happily create an archive at that bogus path.
+            [ -f "$static_lib" ] || continue
             ar crs "$static_lib" "$compat_dir"/*.o
         done
         assert_no_fortran_runtime $BUILD_PREFIX/lib/libscipy_openblas*.so \
