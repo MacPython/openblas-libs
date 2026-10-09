@@ -80,7 +80,10 @@ REM sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
 
 for /f "tokens=3 delims= " %%v in ('findstr /b "version = " ..\pyproject.toml') do set version=%%v
 set version=%version:"=%
-powershell -Command "(Get-Content OpenBLAS/Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content Makefile.rule"
+REM cwd is already OpenBLAS here, so the source is Makefile.rule, not
+REM OpenBLAS/Makefile.rule -- that path never existed, Get-Content errored,
+REM and the VERSION substitution silently never happened.
+powershell -Command "(Get-Content Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content Makefile.rule"
 
 REM Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
@@ -94,9 +97,47 @@ if exist build (rmdir /S /Q build || exit /b 1)
 mkdir build || exit /b 1 & cd build || exit /b 1
  
 echo Setting up ARM64 Developer Command Prompt and running CMake...
- 
-REM Initialize VS ARM64 environment
-CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsarm64.bat"
+
+REM Initialize VS ARM64 environment.
+REM
+REM Ask vswhere where Visual Studio is rather than hardcoding the version and
+REM edition: the windows-11-arm image migrated from VS 2022 to VS 2026 in
+REM September 2026 (actions/runner-images#14602), which broke the old
+REM hardcoded 2022\Enterprise path.  That failed silently -- CALL on a missing
+REM batch file sets no errorlevel worth checking here -- so the vcvars
+REM environment was simply never applied and the first visible symptom was
+REM CMake reporting "CMAKE_MT-NOTFOUND" and "Detecting C compiler ABI info -
+REM failed", because mt.exe and the MSVC/SDK paths were missing.  Fail loudly
+REM instead, so the next image change is obvious from the log.
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+if not exist "%VSWHERE%" set "VSWHERE=%ProgramFiles%\Microsoft Visual Studio\Installer\vswhere.exe"
+if not exist "%VSWHERE%" (
+    echo Error: cannot find vswhere.exe, so cannot locate Visual Studio.
+    exit /b 1
+)
+set "VSINSTALL="
+for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -prerelease -products * -property installationPath`) do set "VSINSTALL=%%i"
+if not defined VSINSTALL (
+    echo Error: vswhere.exe reported no Visual Studio installation.
+    exit /b 1
+)
+set "VCVARSALL=%VSINSTALL%\VC\Auxiliary\Build\vcvarsall.bat"
+if not exist "%VCVARSALL%" (
+    echo Error: no VC\Auxiliary\Build\vcvarsall.bat under "%VSINSTALL%".
+    exit /b 1
+)
+echo Using Visual Studio at "%VSINSTALL%"
+CALL "%VCVARSALL%" arm64
+if errorlevel 1 (
+    echo Error: "%VCVARSALL%" arm64 failed.
+    exit /b 1
+)
+where mt.exe >NUL 2>&1
+if errorlevel 1 (
+    echo Error: mt.exe is not on PATH after vcvarsall; CMake will fail with
+    echo CMAKE_MT-NOTFOUND. The Windows SDK component may be missing.
+    exit /b 1
+)
  
 REM Prefer LLVM flang
 PATH=C:\Program Files\LLVM\bin;%PATH%

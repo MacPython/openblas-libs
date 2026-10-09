@@ -1,0 +1,68 @@
+diff --git a/Makefile.system b/Makefile.system
+index e8e732e9c..90c814ebd 100644
+--- a/Makefile.system
++++ b/Makefile.system
+@@ -1207,15 +1207,17 @@ FCOMMON_OPT += -Wall
+ FCOMMON_OPT += -frecursive
+ # work around ABI problem with passing single-character arguments
+ FCOMMON_OPT += -fno-optimize-sibling-calls
+-#Don't include -lgfortran, when NO_LAPACK=1 or lsbcc
++#Don't include -lgfortran, when NO_LAPACK=1 or lsbcc or NO_LIBGFORTRAN=1
+ ifneq ($(NOFORTRAN), 1)
+ ifneq ($(NOFORTRAN), 2)
+ ifneq ($(NO_LAPACK), 1)
++ifneq ($(NO_LIBGFORTRAN), 1)
+ EXTRALIB += -lgfortran
+ endif
+ endif
+ endif
+ endif
++endif
+ ifdef NO_BINARY_MODE
+ ifeq ($(ARCH), $(filter $(ARCH),mips64))
+ ifdef BINARY64
+@@ -1917,6 +1919,31 @@ export CROSS
+ export CROSS_SUFFIX
+ export NOFORTRAN
+ export C_LAPACK
++# NO_LIBGFORTRAN=1 builds a library with no runtime dependency on the Fortran
++# runtime.  LIBGFORTRAN_COMPAT must point at an archive supplying the few
++# libgfortran entry points the Fortran LAPACK sources reference; the link
++# fails loudly if it does not cover them all.  libquadmath goes away along
++# with libgfortran, being only ever a dependency of libgfortran itself.
++#
++# The archive is kept out of EXTRALIB on purpose: EXTRALIB is what
++# Makefile.install writes into the installed .pc file, and a build-time
++# absolute path has no business being there.  It goes into
++# LIBGFORTRAN_COMPAT_LINK, which the shared-library link rules add directly,
++# and into FEXTRALIB, which is what the macOS dylib rule uses.
++#
++# Kept here, at the end and at top level, so it sees the final value of
++# FEXTRALIB whatever the USE_OPENMP and compiler conditionals above did.
++ifeq ($(NO_LIBGFORTRAN), 1)
++FEXTRALIB := $(filter-out -lgfortran -lquadmath,$(FEXTRALIB))
++ifneq ($(LIBGFORTRAN_COMPAT), )
++LIBGFORTRAN_COMPAT_LINK = -Wl,--exclude-libs,$(notdir $(LIBGFORTRAN_COMPAT)) $(LIBGFORTRAN_COMPAT)
++FEXTRALIB += $(LIBGFORTRAN_COMPAT_LINK)
++endif
++endif
++
++export LIBGFORTRAN_COMPAT
++export LIBGFORTRAN_COMPAT_LINK
++export NO_LIBGFORTRAN
+ export NO_FBLAS
+ export EXTRALIB
+ export CEXTRALIB
+diff --git a/exports/Makefile b/exports/Makefile
+index c4633143b..55f086297 100644
+--- a/exports/Makefile
++++ b/exports/Makefile
+@@ -213,7 +213,7 @@ else
+ ifneq ($(C_COMPILER), LSB)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o ../$(LIBSONAME) \
+ 	-Wl,--whole-archive $< -Wl,--no-whole-archive \
+-	-Wl,-soname,$(INTERNALNAME) $(EXTRALIB)
++	-Wl,-soname,$(INTERNALNAME) $(EXTRALIB) $(LIBGFORTRAN_COMPAT_LINK)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) -w -o linktest linktest.c ../$(LIBSONAME) $(FEXTRALIB) && echo OK.
+ else
+ #for LSB
