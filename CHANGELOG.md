@@ -1,6 +1,6 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
-### 0.3.34.237.1 (2026-10-08)
+### 0.3.34.237.1 (2026-10-09)
 
 - Build every manylinux and musllinux wheel without a runtime dependency on
   libgfortran, and therefore without libquadmath, which is only ever pulled in
@@ -12,6 +12,7 @@
   is unchanged for now (ld64 has no -Wl,--exclude-libs), and Windows already
   static-links libgfortran.  A toolchain that cannot support it falls back to
   linking libgfortran as before.
+= Update windows devstudio 2022 to 2026
 
 
 ### 0.3.34.237.0 (2026-09-06)
