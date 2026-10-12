@@ -1,5 +1,5 @@
 diff --git a/Makefile.system b/Makefile.system
-index e8e732e9c..90c814ebd 100644
+index e8e732e9c..9b05ed213 100644
 --- a/Makefile.system
 +++ b/Makefile.system
 @@ -1207,15 +1207,17 @@ FCOMMON_OPT += -Wall
@@ -21,7 +21,7 @@ index e8e732e9c..90c814ebd 100644
  ifdef NO_BINARY_MODE
  ifeq ($(ARCH), $(filter $(ARCH),mips64))
  ifdef BINARY64
-@@ -1917,6 +1919,31 @@ export CROSS
+@@ -1917,6 +1919,43 @@ export CROSS
  export CROSS_SUFFIX
  export NOFORTRAN
  export C_LAPACK
@@ -42,7 +42,19 @@ index e8e732e9c..90c814ebd 100644
 +ifeq ($(NO_LIBGFORTRAN), 1)
 +FEXTRALIB := $(filter-out -lgfortran -lquadmath,$(FEXTRALIB))
 +ifneq ($(LIBGFORTRAN_COMPAT), )
++ifeq ($(OSNAME), Darwin)
++# ld64 has no --exclude-libs and needs none: the dylib link passes
++# -Wl,-exported_symbols_list,osx.def, which holds only the BLAS and LAPACK
++# names, so whatever the compat archive brings in is unexported already.
++# -dead_strip_dylibs is what macOS needs instead.  The dylib is linked by the
++# gfortran driver, which appends -lgfortran itself whatever FEXTRALIB says;
++# this drops the load command of a dylib no symbol resolves to, taking
++# libgfortran -- and with it libgfortran's own libquadmath dependency -- out
++# of the result.
++LIBGFORTRAN_COMPAT_LINK = $(LIBGFORTRAN_COMPAT) -Wl,-dead_strip_dylibs
++else
 +LIBGFORTRAN_COMPAT_LINK = -Wl,--exclude-libs,$(notdir $(LIBGFORTRAN_COMPAT)) $(LIBGFORTRAN_COMPAT)
++endif
 +FEXTRALIB += $(LIBGFORTRAN_COMPAT_LINK)
 +endif
 +endif
