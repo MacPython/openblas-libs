@@ -41,7 +41,7 @@
 # behavioural consequence is that LAPACK's SECOND/DSECND return 0.0, which is
 # already what OpenBLAS's own C_LAPACK build does.
 #
-# The libgfortran notice in tools/LICENSE_linux.txt and LICENSE_osx.txt has to
+# The libgfortran notice in tools/LICENSE_posix.txt has to
 # stay: the objects taken out of libgfortran.a are now statically part of the
 # library.
 #
