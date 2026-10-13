@@ -30,3 +30,28 @@ fi
 
 $PYTHON -m pip install pkgconf
 $PYTHON -m pkgconf scipy-openblas --cflags
+
+# Check that the installed wheel carries no Fortran runtime.
+source tools/gfortran_compat.sh
+
+if [ "${INTERFACE64}" != "1" ]; then
+    pkgdir=$($PYTHON -c "import scipy_openblas32 as m, pathlib; print(pathlib.Path(m.__file__).parent)")
+else
+    pkgdir=$($PYTHON -c "import scipy_openblas64 as m, pathlib; print(pathlib.Path(m.__file__).parent)")
+fi
+echo "checking installed package $pkgdir"
+
+openblas_lib=$(ls "$pkgdir"/lib/libscipy_openblas*.so "$pkgdir"/lib/libscipy_openblas*.dylib 2>/dev/null | head -1 || true)
+if [ -z "$openblas_lib" ]; then
+    echo "FAIL: no OpenBLAS library found under $pkgdir/lib"
+    exit 1
+fi
+
+# The library needs no Fortran runtime, so the wheel must not ship one.
+found=$(find "$pkgdir" \( -name 'libgfortran*' -o -name 'libquadmath*' \) -print)
+if [ -n "$found" ]; then
+    echo "FAIL: the wheel still bundles the Fortran runtime:"
+    echo "$found"
+    exit 1
+fi
+assert_no_fortran_runtime "$openblas_lib"

@@ -7,6 +7,8 @@ ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 
 MB_PYTHON_VERSION=3.9
 
+source $(dirname "${BASH_SOURCE[0]}")/gfortran_compat.sh
+
 function before_build {
     # install gfortran, objconv on macOS
     if [ "$(uname -s)" == "Darwin" ]; then
@@ -40,9 +42,29 @@ function before_build {
         # Deployment target set by gfortran_utils
         echo "Deployment target $MACOSX_DEPLOYMENT_TARGET"
 
+        # The tarball ships libgfortran as a dylib only; fetch the static
+        # archive of the same gcc release (tools/gfortran_compat.sh).
+        local libgfortran_a
+        if ! libgfortran_a=$(download_macos_libgfortran_a "${PLAT}"); then
+            echo "ERROR: cannot fetch the static libgfortran for ${PLAT}" >&2
+            exit 1
+        fi
+        export LIBGFORTRAN_A="$libgfortran_a"
+
         # Build the objconv tool
         if [[ ! -x  objconv/objconv ]]; then
             (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
+        fi
+    else
+        # Red Hat keeps static libraries in separate *-static subpackages, so
+        # the images on a system gcc rather than a gcc-toolset (manylinux_2_39,
+        # i.e. riscv64) have no libgfortran.a.  The archive is in the CRB repo,
+        # which they already enable.  A no-op on gcc-toolset images and Alpine.
+        if ! find_libgfortran_a > /dev/null; then
+            echo "no static libgfortran; installing libgfortran-static"
+            { dnf install -y libgfortran-static \
+              || yum install -y libgfortran-static; } \
+              || echo "WARNING: could not install libgfortran-static"
         fi
     fi
 }
@@ -169,6 +191,19 @@ function build_lib {
             ;;
     esac
     interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
+
+    # Replace the libgfortran/libquadmath runtime dependency with the compat
+    # archive; a toolchain that cannot supply it fails the build.  TIMER=NONE
+    # selects LAPACK's second_NONE.f/dsecnd_NONE.f, removing the only
+    # reference to _gfortran_etime.  See tools/gfortran_compat.sh.
+    local compat_lib
+    if ! compat_lib=$(build_gfortran_compat "$PWD/build/gfortran_compat" "$interface64"); then
+        echo "ERROR: cannot build the libgfortran compat archive for" \
+             "${MB_ML_LIBC:-manylinux}-$plat" >&2
+        exit 1
+    fi
+    interface_flags="$interface_flags NO_LIBGFORTRAN=1 LIBGFORTRAN_COMPAT=$compat_lib TIMER=NONE"
+
     mkdir -p libs
     set -x
     git config --global --add safe.directory '*'
@@ -217,6 +252,21 @@ function build_lib {
         sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     rm $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc.bak
     fi
+
+    # The shared library picked these up from the link line (see
+    # LIBGFORTRAN_COMPAT_LINK in the patch), but the static one is assembled
+    # from OpenBLAS's own objects only; add them there too, so that linking
+    # libscipy_openblas*.a does not need libgfortran either.  Must come after
+    # the INTERFACE64 branch above, which overwrites the installed archive.
+    local compat_dir=$(dirname "$compat_lib")
+    for static_lib in $BUILD_PREFIX/lib/libscipy_openblas*.a; do
+        # An unmatched glob arrives as a literal, and `ar crs` would happily
+        # create an archive at that bogus path.
+        [ -f "$static_lib" ] || continue
+        ar crs "$static_lib" "$compat_dir"/*.o
+    done
+    assert_no_fortran_runtime $BUILD_PREFIX/lib/libscipy_openblas*.so \
+                              $BUILD_PREFIX/lib/libscipy_openblas*.dylib
 
     local out_name="openblas.tar.gz"
     tar zcvf libs/$out_name \

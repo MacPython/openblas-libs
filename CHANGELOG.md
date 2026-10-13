@@ -1,9 +1,19 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
-### 0.3.34.237.0 (2026-09~06)
+### 0.3.34.237.1 (2026-10-09)
+
+- Build every manylinux, musllinux and macOS wheel without a runtime
+  dependency on libgfortran, and therefore without libquadmath, which is only
+  ever pulled in as a dependency of libgfortran itself.  This shrinks the
+  wheels and simplifies licensing.
+
+- Update windows devstudio 2022 to 2026
+
+
+### 0.3.34.237.0 (2026-09-06)
 - pick up a fix for SVE indentification
 
-### 0.3.34.106.0 (2026-08~08)
+### 0.3.34.106.0 (2026-08-08)
 - pick up a fix for windows threading
 
 ### 0.3.34.0.0 (2026-07-17)

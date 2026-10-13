@@ -46,11 +46,7 @@ mkdir local/scipy_openblas64/lib/pkgconfig
 echo "" >> LICENSE.txt
 echo "----" >> LICENSE.txt
 echo "" >> LICENSE.txt
-if [ $(uname) == "Darwin" ]; then
-    cat tools/LICENSE_osx.txt >> LICENSE.txt
-else
-    cat tools/LICENSE_linux.txt >> LICENSE.txt
-fi
+cat tools/LICENSE_posix.txt >> LICENSE.txt
 
 if [ "$(uname)" == "Darwin" -a "${PLAT}" == "x86_64" ]; then
     PYTHON="arch -x86_64 python3"
