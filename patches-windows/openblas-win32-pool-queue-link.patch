@@ -1,0 +1,101 @@
+Fix memory corruption from concurrent BLAS calls on Windows
+
+The Windows thread server keeps one global list of jobs waiting to be picked
+up, and it links that list through blas_queue_t::next -- the same field the
+*caller* owns and rebuilds on every call.
+
+diff --git a/common_thread.h b/common_thread.h
+index 7f5d7b2..cd7ca77 100644
+--- a/common_thread.h
++++ b/common_thread.h
+@@ -119,6 +119,14 @@ typedef struct blas_queue {
+   struct blas_queue *next;
+ 
+ #if defined( __WIN32__) || defined(__CYGWIN32__) || defined(_WIN32) || defined(__CYGWIN__)
++  /*
++   * Link used exclusively by the Windows thread pool to chain the jobs that
++   * are waiting to be picked up.  It is deliberately kept separate from
++   * "next" above, which is owned (and rebuilt on every call) by whoever
++   * submitted the job: appending to the pool must never write into the
++   * queue nodes of another caller.
++   */
++  struct blas_queue *pool_next;
+    CRITICAL_SECTION lock;
+    HANDLE finish;
+   volatile int finished;
+diff --git a/driver/others/blas_server_win32.c b/driver/others/blas_server_win32.c
+index e827cee..4f24823 100644
+--- a/driver/others/blas_server_win32.c
++++ b/driver/others/blas_server_win32.c
+@@ -57,6 +57,7 @@ typedef struct{
+   HANDLE killed;
+ 
+   blas_queue_t	*queue;    /* Parameter Pointer */
++  blas_queue_t	*tail;     /* Last job waiting in "queue", for O(1) append */
+   int		shutdown;  /* server shutdown flag */
+ 
+ } blas_pool_t;
+@@ -239,7 +240,10 @@ static DWORD WINAPI blas_thread_server(void *arg){
+     EnterCriticalSection(&pool.lock);
+ 
+     queue = pool.queue;
+-    if (queue) pool.queue = queue->next;
++    if (queue) {
++      pool.queue = queue->pool_next;
++      if (pool.queue == NULL) pool.tail = NULL;
++    }
+ 
+     LeaveCriticalSection(&pool.lock);
+ 
+@@ -374,6 +378,7 @@ int blas_thread_init(void){
+ 
+     pool.shutdown = 0;
+     pool.queue    = NULL;
++    pool.tail     = NULL;
+ 
+     for(i = 0; i < blas_cpu_number - 1; i++){
+       blas_threads[i] = CreateThread(NULL, 0,
+@@ -405,7 +410,7 @@ int exec_blas_async(BLASLONG pos, blas_queue_t *queue){
+   if (unlikely(blas_server_avail == 0)) blas_thread_init();
+ #endif
+ 
+-  blas_queue_t *current;
++  blas_queue_t *current, *last = NULL;
+ 
+   current = queue;
+ 
+@@ -419,19 +424,22 @@ int exec_blas_async(BLASLONG pos, blas_queue_t *queue){
+     __asm__ __volatile__ ("stmxcsr %0" : "=m" (current -> sse_mode));
+ #endif
+ 
++    /* Build the pool's own chain over this caller's jobs */
++    current -> pool_next = current -> next;
++    last = current;
++
+     current = current -> next;
+     pos ++;
+   }
+ 
+   EnterCriticalSection(&pool.lock);
+ 
+-  if (pool.queue) {
+-    current = pool.queue;
+-    while (current -> next) current = current -> next;
+-    current -> next = queue;
++  if (pool.tail) {
++    pool.tail -> pool_next = queue;
+   } else {
+     pool.queue = queue;
+   }
++  pool.tail = last;
+ 
+   LeaveCriticalSection(&pool.lock);
+ 
+@@ -568,6 +576,7 @@ void goto_set_num_threads(int num_threads)
+ 
+ 			pool.shutdown = 0;
+ 			pool.queue    = NULL;
++			pool.tail     = NULL;
+ 			blas_server_avail = 1;
+ 		}
+ 
