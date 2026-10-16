@@ -81,15 +81,12 @@ jobs:
         name: wheels-${{ env.PLAT }}-${{ env.INTERFACE64 }}
         path: dist/scipy_openblas*.whl
 
-    - name: Install Anaconda client
-      run: |
-        # Rust installation needed for rpds-py.
-        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
-        .\rustup-init.exe -y
-        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
-        # cryptography dropped win-arm64 for 46.0.4, make sure we don't try to compile from source
-        pip install --only-binary :all: cryptography
-        pip install anaconda-client
+    - uses: conda-incubator/setup-miniconda@v4.0.1
+      with:
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: upload
+        miniforge-version: latest
 
     - name: Upload
       # see https://github.com/marketplace/actions/setup-miniconda for why
@@ -98,5 +95,6 @@ jobs:
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
+        conda install -y anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels
