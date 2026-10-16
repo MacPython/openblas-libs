@@ -90,9 +90,10 @@ interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 
-# Patch OpenBLAS build to resolve all symbols and avoid linking
-# with libquadmath
-patch -p1 < ../patches-windows/openblas-make-libs.patch
+for p in ../patches-windows/*.patch; do
+    [ -e "$p" ] || continue
+    patch -p1 < "$p"
+done
 
 # Patch VERSION
 version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
