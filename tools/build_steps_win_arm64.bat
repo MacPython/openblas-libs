@@ -73,7 +73,7 @@ if errorlevel 1 (
 REM Patch
 set patch_rc=0
 for %%f in (..\patches\*.patch ..\patches-windows\*.patch) do (
-    git apply %%f
+    git apply --ignore-whitespace %%f
     if errorlevel 1 set patch_rc=1
 )
 if not "%patch_rc%"=="0" exit /b 1

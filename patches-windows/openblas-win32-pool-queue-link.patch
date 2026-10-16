@@ -1,11 +1,6 @@
-Fix memory corruption from concurrent BLAS calls on Windows
-
-The Windows thread server keeps one global list of jobs waiting to be picked
-up, and it links that list through blas_queue_t::next -- the same field the
-*caller* owns and rebuilds on every call.
+Give the Windows thread pool its own queue link, see MacPython/openblas-libs#283
 
 diff --git a/common_thread.h b/common_thread.h
-index 7f5d7b2..cd7ca77 100644
 --- a/common_thread.h
 +++ b/common_thread.h
 @@ -119,6 +119,14 @@ typedef struct blas_queue {
@@ -24,7 +19,6 @@ index 7f5d7b2..cd7ca77 100644
     HANDLE finish;
    volatile int finished;
 diff --git a/driver/others/blas_server_win32.c b/driver/others/blas_server_win32.c
-index e827cee..4f24823 100644
 --- a/driver/others/blas_server_win32.c
 +++ b/driver/others/blas_server_win32.c
 @@ -57,6 +57,7 @@ typedef struct{

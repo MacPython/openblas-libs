@@ -1,0 +1,3 @@
+# Patches must reach the build byte-identical: their line endings have to match
+# the files they patch, and checkout conversion would break that.
+*.patch -text
