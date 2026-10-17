@@ -168,20 +168,27 @@ jobs:
         python -m pip install pkgconf
         python -m pkgconf scipy-openblas --cflags
 
-    - uses: conda-incubator/setup-miniconda@v4.0.1
+  upload:
+    name: Upload to anaconda.org
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6.0.1
+
+    - uses: actions/setup-python@v6.2.0
       with:
-        channels: conda-forge
-        channel-priority: true
-        activate-environment: upload
-        miniforge-version: latest
+        python-version: 3.11
+
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        pattern: wheels-*
+        merge-multiple: true
+        path: dist
 
     - name: Upload
-      # see https://github.com/marketplace/actions/setup-miniconda for why
-      # `-el {0}` is required.
-      shell: bash -el {0}
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
-        conda install -y anaconda-client
+        python -m pip install anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels

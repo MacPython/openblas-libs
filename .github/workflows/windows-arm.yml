@@ -81,22 +81,27 @@ jobs:
         name: wheels-${{ env.PLAT }}-${{ env.INTERFACE64 }}
         path: dist/scipy_openblas*.whl
 
-    - name: Install Anaconda client
-      run: |
-        # Rust installation needed for rpds-py.
-        Invoke-WebRequest https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe -UseBasicParsing -Outfile rustup-init.exe
-        .\rustup-init.exe -y
-        $env:PATH="$env:PATH;$env:USERPROFILE\.cargo\bin"
-        # cryptography dropped win-arm64 for 46.0.4, make sure we don't try to compile from source
-        pip install --only-binary :all: cryptography
-        pip install anaconda-client
+  upload:
+    name: Upload to anaconda.org
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6.0.1
+
+    - uses: actions/setup-python@v6.2.0
+      with:
+        python-version: 3.11
+
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        pattern: wheels-*
+        merge-multiple: true
+        path: dist
 
     - name: Upload
-      # see https://github.com/marketplace/actions/setup-miniconda for why
-      # `-el {0}` is required.
-      shell: bash -el {0}
       env:
        ANACONDA_SCIENTIFIC_PYTHON_UPLOAD: ${{ secrets.ANACONDA_SCIENTIFIC_PYTHON_UPLOAD }}
       run: |
+        python -m pip install anaconda-client
         source tools/upload_to_anaconda_staging.sh
         upload_wheels

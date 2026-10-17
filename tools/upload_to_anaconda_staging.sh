@@ -9,9 +9,13 @@ upload_wheels() {
         cd $our_wd
     fi
 
-    pushd OpenBLAS
-    VERSION=$(git describe --tags --abbrev=8)
-    popd
+    # The upload job only checks out openblas-libs, not the submodule;
+    # openblas_commit.txt holds the same string git describe would print.
+    if [ -d OpenBLAS/.git ]; then
+        VERSION=$(git -C OpenBLAS describe --tags --abbrev=8)
+    else
+        VERSION=$(cat openblas_commit.txt)
+    fi
 
     if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
         echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping."

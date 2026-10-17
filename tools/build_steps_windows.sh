@@ -90,9 +90,13 @@ interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED
 GCC_TAG="gcc_$(gcc -dumpversion | tr .- _)"
 OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 
-# Patch OpenBLAS build to resolve all symbols and avoid linking
-# with libquadmath
-patch -p1 < ../patches-windows/openblas-make-libs.patch
+# --ignore-whitespace because the files patched here do not agree on line
+# endings (blas_server_win32.c is CRLF, common_thread.h is not) and neither
+# does checkout across platforms.
+for p in ../patches-windows/*.patch; do
+    [ -e "$p" ] || continue
+    git apply --ignore-whitespace "$p"
+done
 
 # Patch VERSION
 version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
