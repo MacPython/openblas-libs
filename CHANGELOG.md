@@ -1,5 +1,9 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
+### 0.3.34.438.r02 (2026-10-20)
+
+- update to latest develop HEAD, fix `NO_LIBGFORTRAN` patch
+
 ### 0.3.34.237.2 (2026-10-16)
 
 - Patch windows to use a per-thread queue instead of mistakenly sharing the

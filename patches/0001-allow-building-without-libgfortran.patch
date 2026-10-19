@@ -78,3 +78,78 @@ index c4633143b..55f086297 100644
  	$(CC) $(CFLAGS) $(LDFLAGS) -w -o linktest linktest.c ../$(LIBSONAME) $(FEXTRALIB) && echo OK.
  else
  #for LSB
+diff --git a/lapack-netlib/SRC/Makefile b/lapack-netlib/SRC/Makefile
+index 7f0454255..4f5620b4c 100644
+--- a/lapack-netlib/SRC/Makefile
++++ b/lapack-netlib/SRC/Makefile
+@@ -86,6 +86,9 @@ ALLAUX_O = ilaenv.o ilaenv2stage.o lsamen.o xerbla.o xerbla_array.o \
+ 
+ ifneq ($(C_LAPACK), 1)
+  ifeq ($(F_COMPILER), GFORTRAN)
++  ifeq ($(NO_LIBGFORTRAN), 1)
++    ALLAUX_O += ieeeck_const.o
++  else
+   FCVERSIONGT4 := $(shell expr `$(FC) -dumpversion | cut -f1 -d.` \> 4)
+   ifneq ($(FCVERSIONGT4), 1)
+     ALLAUX_O += DEPRECATED/ieeeck.o
+@@ -103,6 +106,7 @@ ifneq ($(C_LAPACK), 1)
+       ALLAUX_O += ieeeck.o
+     endif
+   endif
++  endif
+ else
+ ALLAUX_O += ieeeck.o
+ endif
+diff --git a/lapack-netlib/SRC/ieeeck_const.f b/lapack-netlib/SRC/ieeeck_const.f
+new file mode 100644
+index 000000000..7f7062b34
+--- /dev/null
++++ b/lapack-netlib/SRC/ieeeck_const.f
+@@ -0,0 +1,47 @@
++*> \brief \b IEEECK
++*
++*  =====================================================================
++*
++*  Replacement for LAPACK's IEEECK, selected only by builds that set
++*  NO_LIBGFORTRAN=1.  See patches/0001-allow-building-without-
++*  libgfortran.patch in the openblas-libs repository.
++*
++*  IEEECK reports whether the machine has IEEE infinity (ISPEC = 0),
++*  or IEEE infinity and NaN (ISPEC = 1); ILAENV queries it for ISPEC
++*  10 and 11 to decide whether the aggressive-deflation code paths
++*  may be used.  Every target these wheels are built for is IEEE-754,
++*  so the answer is 1 in both cases -- which is exactly what upstream
++*  SRC/ieeeck.f computes through IEEE_SUPPORT_INF/IEEE_SUPPORT_NAN.
++*
++*  Answering directly avoids both of the alternatives:
++*
++*    * USE, INTRINSIC :: IEEE_ARITHMETIC makes gfortran reference four
++*      libgfortran entry points -- ieee_support_inf_4/ieee_support_
++*      nan_4, plus the _gfortran_ieee_procedure_entry/exit pair gcc
++*      wraps around any procedure that accesses an IEEE module -- and
++*      the compat archive supplies none of them.
++*
++*    * The pre-F2003 routine kept in DEPRECATED/ieeeck.f detects the
++*      same thing by computing 0/0 and Inf-Inf at run time, which
++*      raises FE_INVALID on every ILAENV 10/11 call and takes a SIGFPE
++*      in a caller that has unmasked it (OpenBLAS issue 6093).
++*
++*  =====================================================================
++      INTEGER          FUNCTION IEEECK( ISPEC, ZERO, ONE )
++      IMPLICIT NONE
++*
++*  -- LAPACK auxiliary routine --
++*
++*     .. Scalar Arguments ..
++      INTEGER            ISPEC
++      REAL               ONE, ZERO
++*     ..
++*
++*  =====================================================================
++*
++      IEEECK = 1
++      RETURN
++*
++*     End of IEEECK
++*
++      END
