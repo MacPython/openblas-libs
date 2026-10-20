@@ -1,6 +1,6 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
-### 0.3.34.438.r02 (2026-10-20)
+### 0.3.34.438.0 (2026-10-20)
 
 - update to latest develop HEAD, fix `NO_LIBGFORTRAN` patch
 

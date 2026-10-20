@@ -72,7 +72,7 @@ if errorlevel 1 (
  
 REM Patch
 set patch_rc=0
-for %%f in (..\patches\*.patch ..\patches-windows\*.patch) do (
+for %%f in (..\patches-common\*.patch ..\patches\*.patch ..\patches-windows\*.patch) do (
     git apply --ignore-whitespace %%f
     if errorlevel 1 set patch_rc=1
 )

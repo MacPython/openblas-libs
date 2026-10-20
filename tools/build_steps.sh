@@ -111,9 +111,10 @@ function get_plat_tag {
 function patch_source {
     # Runs inside OpenBLAS directory
     # Make the patches by git format-patch <old commit>
-    for f in $(ls ../patches); do
+    for f in ../patches-common/*.patch ../patches/*.patch; do
+        [ -e "$f" ] || continue
         echo applying patch $f
-        git apply ../patches/$f
+        git apply "$f"
     done
 }
 

@@ -93,8 +93,9 @@ OPENBLAS_VERSION=$(git describe --tags --abbrev=8)
 # --ignore-whitespace because the files patched here do not agree on line
 # endings (blas_server_win32.c is CRLF, common_thread.h is not) and neither
 # does checkout across platforms.
-for p in ../patches-windows/*.patch; do
+for p in ../patches-common/*.patch ../patches-windows/*.patch; do
     [ -e "$p" ] || continue
+    echo applying patch $p
     git apply --ignore-whitespace "$p"
 done
 
