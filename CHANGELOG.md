@@ -1,5 +1,16 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
+### 0.3.34.481.0 (2026-10-20)
+
+- update to latest develop HEAD, fix `NO_LIBGFORTRAN` patch
+
+- Upstream's `SRC/ieeeck.f` now reaches for the `IEEE_ARITHMETIC` intrinsic
+  module, which pulls `libgfortran.a(ieee_arithmetic.o)` into the link.  On
+  mingw that object references `sqrtq`, so the statically linked Windows DLL
+  started dragging in `libquadmath`.  The replacement `IEEECK` that the posix
+  build already used moved out of the `NO_LIBGFORTRAN` patch into the new
+  `patches-common/`, which both the posix and the Windows build apply.
+
 ### 0.3.34.237.2 (2026-10-16)
 
 - Patch windows to use a per-thread queue instead of mistakenly sharing the

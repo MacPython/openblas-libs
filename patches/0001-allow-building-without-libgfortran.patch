@@ -21,7 +21,7 @@ index e8e732e9c..9b05ed213 100644
  ifdef NO_BINARY_MODE
  ifeq ($(ARCH), $(filter $(ARCH),mips64))
  ifdef BINARY64
-@@ -1917,6 +1919,43 @@ export CROSS
+@@ -1917,6 +1919,47 @@ export CROSS
  export CROSS_SUFFIX
  export NOFORTRAN
  export C_LAPACK
@@ -30,6 +30,10 @@ index e8e732e9c..9b05ed213 100644
 +# libgfortran entry points the Fortran LAPACK sources reference; the link
 +# fails loudly if it does not cover them all.  libquadmath goes away along
 +# with libgfortran, being only ever a dependency of libgfortran itself.
++#
++# The IEEE_ARITHMETIC entry points are deliberately not among them:
++# patches-common/0001-ieeeck-without-ieee-arithmetic.patch removes the
++# only reference to them, on every platform this repository builds for.
 +#
 +# The archive is kept out of EXTRALIB on purpose: EXTRALIB is what
 +# Makefile.install writes into the installed .pc file, and a build-time

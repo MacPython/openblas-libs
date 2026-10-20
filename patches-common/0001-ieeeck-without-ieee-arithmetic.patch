@@ -1,0 +1,69 @@
+diff --git a/lapack-netlib/SRC/ieeeck.f b/lapack-netlib/SRC/ieeeck.f
+--- a/lapack-netlib/SRC/ieeeck.f
++++ b/lapack-netlib/SRC/ieeeck.f
+@@ -77,9 +77,6 @@
+ *
+ *  =====================================================================
+       INTEGER          FUNCTION IEEECK( ISPEC, ZERO, ONE )
+-      USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY:
+-     &                                     IEEE_SUPPORT_INF,
+-     &                                     IEEE_SUPPORT_NAN
+       IMPLICIT NONE
+ *
+ *  -- LAPACK auxiliary routine --
+@@ -93,27 +90,36 @@
+ *
+ *  =====================================================================
+ *
+-*     ..
+-*     .. Executable Statements ..
+-      IEEECK = 1
+-*
+-      IF ( .NOT.IEEE_SUPPORT_INF(ONE) ) THEN
+-         IEEECK = 0
+-         RETURN
+-      END IF
+-*
+-*
++*     Body replaced by the openblas-libs wheel build; see
++*     patches-common/0001-ieeeck-without-ieee-arithmetic.patch there.
+ *
++*     IEEECK reports whether the machine has IEEE infinity (ISPEC = 0),
++*     or IEEE infinity and NaN (ISPEC = 1); ILAENV queries it for ISPEC
++*     10 and 11 to decide whether the aggressive-deflation code paths may
++*     be used.  Every target these wheels are built for is IEEE-754, so
++*     the answer is 1 in both cases -- which is exactly what the upstream
++*     body computes through IEEE_SUPPORT_INF/IEEE_SUPPORT_NAN.
++*
++*     Answering directly avoids both of the alternatives:
++*
++*       * USE, INTRINSIC :: IEEE_ARITHMETIC makes gfortran reference four
++*         libgfortran entry points -- ieee_support_inf_4/ieee_support_nan_4
++*         plus the _gfortran_ieee_procedure_entry/exit pair gcc wraps
++*         around any procedure that accesses an IEEE module.  All four live
++*         in libgfortran.a(ieee_arithmetic.o), which on mingw references
++*         sqrtq and so drags libquadmath into the statically linked Windows
++*         DLL; on posix, where the Fortran runtime is replaced by the compat
++*         archive of tools/gfortran_compat.sh, nothing supplies them at all.
++*
++*       * The pre-F2003 routine kept in DEPRECATED/ieeeck.f detects the
++*         same thing by computing 0/0 and Inf-Inf at run time, which raises
++*         FE_INVALID on every ILAENV 10/11 call and takes a SIGFPE in a
++*         caller that has unmasked it (OpenBLAS issue 6093).
+ *
+-*     Return if we were only asked to check infinity arithmetic
+-*
+-      IF( ISPEC.EQ.0 )
+-     $   RETURN
++*     .. Executable Statements ..
++      IEEECK = 1
++      RETURN
+ *
+-      IF( .NOT.IEEE_SUPPORT_NAN(ONE) ) THEN
+-         IEEECK = 0
+-         RETURN
+-      END IF
++*     End of IEEECK
+ *
+-      RETURN
+       END
