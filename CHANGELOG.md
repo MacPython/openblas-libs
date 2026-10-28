@@ -1,5 +1,12 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
+### 0.3.34.497.0 (2026-11-03)
+
+- update to OpenBLAS develop 791b02a1, which includes OpenMathLib/OpenBLAS#6105.
+  This fixes a crash in the default allocator's overflow area: overflow slots
+  re-mapped a new buffer on every allocation and eventually wrote past the end
+  of `new_release_info`. Seen on Windows ARM64 with many concurrent callers.
+
 ### 0.3.34.481.3 (2026-11-2)
 
 - Refactor gha upload to anaconda.org
