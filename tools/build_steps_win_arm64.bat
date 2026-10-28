@@ -161,7 +161,7 @@ cmake .. -G Ninja ^
  -DSYMBOLPREFIX="scipy_" ^
  -DLIBNAMEPREFIX="scipy_" ^
  -DUSE_THREADS=1 ^
- -DNUM_THREADS=24 ^
+ -DNUM_THREADS=64 ^
  %interface_flags%
 
 if errorlevel 1 exit /b 1

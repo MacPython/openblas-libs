@@ -6,6 +6,8 @@
   This fixes a crash in the default allocator's overflow area: overflow slots
   re-mapped a new buffer on every allocation and eventually wrote past the end
   of `new_release_info`. Seen on Windows ARM64 with many concurrent callers.
+- raise `NUM_THREADS` from 24 to 64 on Windows (amd64 and arm64), matching
+  the Linux and macOS builds.
 
 ### 0.3.34.481.0 (2026-10-20)
 
