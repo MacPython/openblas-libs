@@ -1,5 +1,9 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
+### 0.3.34.481.1 (2026-10-29)
+
+- Add a weekly scheduled run to both Windows workflows against OpenBLAS HEAD.
+
 ### 0.3.34.481.0 (2026-10-20)
 
 - update to latest develop HEAD, fix `NO_LIBGFORTRAN` patch

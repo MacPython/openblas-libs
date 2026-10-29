@@ -7,7 +7,15 @@ on:
     branches:
       - main
       - maintenance/**
+  workflow_dispatch: null
+  schedule:
+    - cron: '0 0 * * 0'
   workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        default: false
+        required: false
 
 
 env:
@@ -29,6 +37,10 @@ jobs:
 
     env:
       INTERFACE64: ${{ matrix.INTERFACE64 }}
+      # A scheduled or manually triggered run builds against the latest
+      # OpenBLAS HEAD instead of openblas_commit.txt
+      # A run called from publish.yml builds the pinned commit.
+      NIGHTLY: ${{ inputs.publish == false && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
 
     steps:
 
