@@ -62,7 +62,14 @@ set /p OPENBLAS_COMMIT=<openblas_commit.txt
  
 REM Enter OpenBLAS directory and checkout buildable commit
 cd OpenBLAS
-git checkout %OPENBLAS_COMMIT%
+if "%NIGHTLY%"=="true" (
+    REM Build the latest HEAD of develop
+    git fetch origin
+    git checkout -B develop origin/develop
+) else (
+    git checkout %OPENBLAS_COMMIT%
+)
+if errorlevel 1 exit /b 1
 git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
 if errorlevel 1 (
     echo OpenBLAS commit does not contain WoA build fixes.
@@ -81,6 +88,12 @@ if not "%patch_rc%"=="0" exit /b 1
 REM Patch VERSION
 REM version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
 REM sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
+
+if "%NIGHTLY%"=="true" (
+    REM v0.3.24-30-g138ed79f -> 0.3.24.30.0 in pyproject.toml
+    powershell -Command "$v = ((git describe --tags --abbrev=8) -replace '^v(.*)-g.*', '$1') -replace '-', '.'; (Get-Content ..\pyproject.toml) -replace '^version = .*', ('version = \"' + $v + '.0\"') | Set-Content ..\pyproject.toml"
+    if errorlevel 1 exit /b 1
+)
 
 for /f "tokens=3 delims= " %%v in ('findstr /b "version = " ..\pyproject.toml') do set version=%%v
 set version=%version:"=%

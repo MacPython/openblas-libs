@@ -49,7 +49,12 @@ git submodule update --init --recursive
 
 # Get / clean code
 git fetch origin
-git checkout $(cat ../openblas_commit.txt)
+if [ "$NIGHTLY" == "true" ]; then
+    # Build the latest HEAD of develop
+    git checkout -B develop origin/develop
+else
+    git checkout $(cat ../openblas_commit.txt)
+fi
 git clean -fxd
 git reset --hard
 rm -rf $openblas_root/$build_bits
@@ -100,7 +105,13 @@ for p in ../patches-common/*.patch ../patches-windows/*.patch; do
 done
 
 # Patch VERSION
-version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
+if [ "$NIGHTLY" == "true" ]; then
+    # v0.3.24-30-g138ed79f -> 0.3.24.30.0 in pyproject.toml
+    version=$(echo $OPENBLAS_VERSION | sed -e "s/^v\(.*\)-g.*/\1/" | sed -e "s/-/./g").0
+    sed -e "s/^version = .*/version = \"${version}\"/" -i.bak ../pyproject.toml
+else
+    version=$(grep "^version =" ../pyproject.toml | sed 's/version = "//;s/"//')
+fi
 sed -e "s/^VERSION = .*/VERSION = ${version}/" -i.bak Makefile.rule
 
 # Build OpenBLAS

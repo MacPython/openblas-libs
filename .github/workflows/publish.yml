@@ -27,10 +27,14 @@ jobs:
 
   call-windows:
     uses: ./.github/workflows/windows.yml
+    with:
+      publish: true
 
 
   call-windows-arm:
     uses: ./.github/workflows/windows-arm.yml
+    with:
+      publish: true
 
 
 # -------------------------------------------------------------------------------------
