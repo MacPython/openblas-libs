@@ -94,7 +94,10 @@ jobs:
         path: dist/scipy_openblas*.whl
 
   upload:
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    if: >-
+      github.repository == 'MacPython/openblas-libs'
+      && !inputs.publish
+      && github.event_name != 'pull_request'
     name: Upload to anaconda.org
     needs: build
     runs-on: ubuntu-latest

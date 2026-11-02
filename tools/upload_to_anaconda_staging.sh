@@ -17,15 +17,16 @@ upload_wheels() {
         VERSION=$(cat openblas_commit.txt)
     fi
 
-    if [ "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" == "" ]; then
-        echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined: skipping."
-    else
-        echo "Uploading OpenBLAS $VERSION to anaconda.org staging:"
-        # This needs renewal yearly, see 
-        # https://github.com/scientific-python/upload-nightly-action?tab=readme-ov-file#access-to-the-scientific-python-nightly-wheels-channel 
-
-        anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
-                --no-progress --force -u scientific-python-nightly-wheels \
-                dist/scipy_openblas*.whl
+    if [ -z "$ANACONDA_SCIENTIFIC_PYTHON_UPLOAD" ]; then
+        echo "ANACONDA_SCIENTIFIC_PYTHON_UPLOAD is not defined" >&2
+        return 1
     fi
+
+    echo "Uploading OpenBLAS $VERSION to anaconda.org staging:"
+    # This needs renewal yearly, see
+    # https://github.com/scientific-python/upload-nightly-action?tab=readme-ov-file#access-to-the-scientific-python-nightly-wheels-channel
+
+    anaconda -t $ANACONDA_SCIENTIFIC_PYTHON_UPLOAD upload \
+            --no-progress --force -u scientific-python-nightly-wheels \
+            dist/scipy_openblas*.whl
 }
