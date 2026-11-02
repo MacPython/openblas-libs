@@ -5,6 +5,7 @@
 import ctypes
 import os
 from pathlib import Path
+import re
 import sys
 from textwrap import dedent
 import platform
@@ -91,11 +92,20 @@ def get_pkg_config(use_preloading=False, use_prefix=False):
         # Don't use `$prefix` since the file may be located outside the package tree
         libdir = get_lib_dir()
         incdir = get_include_dir()
+
+    variables = {}
+    with open(f"{get_lib_dir()}/pkgconfig/scipy-openblas.pc") as pc_file:
+        for line in pc_file:
+            # The CMake build used by Windows ARM64 produces a Version: keyword but not
+            # a version= variable, so parse both kinds of line.
+            if match := re.fullmatch(r"(.+?)[:=](.*)", line.strip()):
+                variables[match[1].strip()] = match[2].strip()
+
     return dedent(f"""\
         libdir={libdir}
         includedir={incdir}
-        openblas_config= {get_openblas_config()}
-        version={get_openblas_config().split(" ")[1]}
+        openblas_config= {variables["openblas_config"]}
+        version={variables.get("version") or variables["Version"]}
         extralib={extralib}
         Name: openblas
         Description: OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version
@@ -146,5 +156,10 @@ def get_openblas_config():
     bytes = openblas_config()
     return bytes.decode("utf8")
 
-# Import the DLL which will make the namespace available to NumPy/SciPy
-get_openblas_config()
+
+if "CIBUILDWHEEL" in os.environ and sys.platform == "android":
+    # We're cross-compiling, so we can't load the library.
+    pass
+else:
+    # Import the DLL which will make the namespace available to NumPy/SciPy
+    get_openblas_config()

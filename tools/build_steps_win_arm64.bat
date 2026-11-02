@@ -238,30 +238,16 @@ xcopy /Y "..\lapack-netlib\lapacke\include\*.h" "%DEST_DIR%\include\"
 if errorlevel 1 exit /b 1
 
 echo Create pkgconfig scipy-openblas.pc
-cd ../../local
-if errorlevel 1 (
-    echo Current directory %CD%, cannot cd ../../local
-    exit /b 1
-)
-if "%if_bits%"=="32" (
-    mkdir scipy_openblas32\lib\pkgconfig
-    python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
-) else (
-    mkdir scipy_openblas64\lib\pkgconfig
-    python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
-)
+if not exist "%DEST_DIR%\lib\pkgconfig" mkdir "%DEST_DIR%\lib\pkgconfig"
+copy /Y openblas*.pc "%DEST_DIR%\lib\pkgconfig\scipy-openblas.pc"
+if errorlevel 1 exit /b 1
+cd ../..
+bash -e tools\get_pkg_config.sh
 if errorlevel 1 (
     echo could not construct scipy-openblas.pc
     exit /b 1
 )
 
-REM Move back to the root directory
-cd ..
-if errorlevel 1 (
-    echo Current directory %CD%, cannot cd ..
-    exit /b 1
-)
- 
 REM Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel in %CD%
 python -c "import build" 2>NUL || pip install build

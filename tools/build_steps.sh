@@ -1,17 +1,15 @@
 #!bash
 
-# Build script for manylinux and OSX
+# Build script for posix platforms
 BUILD_PREFIX=${BUILD_PREFIX:-/usr/local}
 
-ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
-
-MB_PYTHON_VERSION=3.9
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 source $(dirname "${BASH_SOURCE[0]}")/gfortran_compat.sh
 
 function before_build {
     # install gfortran, objconv on macOS
-    if [ "$(uname -s)" == "Darwin" ]; then
+    if [ "$MB_ML_LIBC" == "macosx" ]; then
         if [ ! -e /usr/local/lib ]; then
             sudo mkdir -p /usr/local/lib
             sudo chmod 777 /usr/local/lib
@@ -22,9 +20,6 @@ function before_build {
             sudo chmod 777 /usr/local/include
             touch /usr/local/include/.dir_exists
         fi
-        # get_macpython_environment ${MB_PYTHON_VERSION} venv
-        python3.9 -m venv venv
-        source venv/bin/activate
 
         unalias gfortran 2>/dev/null || true
         source tools/gfortran_utils.sh
@@ -55,7 +50,7 @@ function before_build {
         if [[ ! -x  objconv/objconv ]]; then
             (cd ${ROOT_DIR}/objconv && bash ../tools/build_objconv.sh)
         fi
-    else
+    elif [[ "$MB_ML_LIBC" == *linux ]]; then
         # Red Hat keeps static libraries in separate *-static subpackages, so
         # the images on a system gcc rather than a gcc-toolset (manylinux_2_39,
         # i.e. riscv64) have no libgfortran.a.  The archive is in the CRB repo,
@@ -76,36 +71,10 @@ function clean_code {
     pushd OpenBLAS
     git fetch origin --tags
     git checkout $build_commit
-    git clean -fxd
+    git checkout .
+    git clean -fxdq
     git submodule update --init --recursive
     popd
-}
-
-function get_plat_tag {
-    # Copied from gfortran-install/gfortran_utils.sh, modified for MB_ML_LIBC
-
-    # Modify fat architecture tags on macOS to reflect compiled architecture
-    # For non-darwin, report manylinux version
-    local plat=$1
-    local mb_ml_ver=${MB_ML_VER:-1}
-    local mb_ml_libc=${MB_ML_LIBC:-manylinux}
-    case $plat in
-        i686|x86_64|arm64|universal2|intel|aarch64|s390x|ppc64le|loongarch64|riscv64) ;;
-        *) echo Did not recognize plat $plat; return 1 ;;
-    esac
-    local uname=${2:-$(uname)}
-    if [ "$uname" != "Darwin" ]; then
-        if [ "$plat" == "intel" ]; then
-            echo plat=intel not allowed for Manylinux
-            return 1
-        fi
-        echo "${mb_ml_libc}${mb_ml_ver}_${plat}"
-        return
-    fi
-    # macOS 32-bit arch is i386
-    [ "$plat" == "i686" ] && plat="i386"
-    local target=$(echo $MACOSX_DEPLOYMENT_TARGET | tr .- _)
-    echo "macosx_${target}_${plat}"
 }
 
 function patch_source {
@@ -119,27 +88,26 @@ function patch_source {
 }
 
 function build_lib {
-    # OSX or manylinux build
-    #
     # Input arg
     #     plat - one of i686, x86_64, arm64
     #     interface64 - 1 if build with INTERFACE64 and SYMBOLSUFFIX
     #
     # Depends on globals
     #     BUILD_PREFIX - install suffix e.g. "/usr/local"
-    #     MB_ML_VER
+    #     MB_ML_LIBC
 
     set -x
     local plat=${1:-$PLAT}
     local interface64=${2:-$INTERFACE64}
 
-    case $(uname -s)-$plat in
-        Linux-x86_64)
+    local libc_plat=${MB_ML_LIBC}_$plat
+    case $libc_plat in
+        *linux_x86_64)
             local bitness=64
             local target="PRESCOTT"
             local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
-        Darwin-x86_64)
+        macosx_x86_64)
             local bitness=64
             local target="CORE2"
             CFLAGS="$CFLAGS -arch x86_64"
@@ -147,39 +115,45 @@ function build_lib {
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             local dynamic_list="CORE2 NEHALEM SANDYBRIDGE HASWELL SKYLAKEX"
             ;;
-        *-i686)
+        android_x86_64)
+            # This target corresponds to the instruction set extensions listed at
+            # https://developer.android.com/ndk/guides/abis#86-64.
+            local bitness=64
+            local target="NEHALEM"
+            ;;
+        *_i686)
             local bitness=32
             local target="PRESCOTT"
             local dynamic_list="PRESCOTT NEHALEM SANDYBRIDGE HASWELL"
             ;;
-        Linux-aarch64)
+        *linux_aarch64 | android_arm64_v8a)
             local bitness=64
             local target="ARMV8"
             ;;
-        Darwin-arm64)
+        macosx_arm64)
             local bitness=64
             local target="VORTEX"
             CFLAGS="$CFLAGS -ftrapping-math -mmacos-version-min=11.0"
             MACOSX_DEPLOYMENT_TARGET="11.0"
             export SDKROOT=${SDKROOT:-$(xcrun --show-sdk-path)}
             ;;
-        *-s390x)
+        *_s390x)
             # The TargetList.txt has only ZARCH_GENERIC, Z13, Z14. Not worth
             # messing with dynamic lists.
             local bitness=64
             local target="ZARCH_GENERIC"
             ;;
-        *-ppc64le)
+        *_ppc64le)
             local bitness=64
             local target="POWER8"
             ;;
-        Linux-loongarch64)
+        *linux_loongarch64)
             local target="GENERIC"
             ;;
-        Linux-riscv64)
+        *linux_riscv64)
             local target="GENERIC"
             ;;
-        *) echo "Strange plat value $plat"; exit 1 ;;
+        *) echo "Strange libc_plat value '$libc_plat'"; exit 1 ;;
     esac
     case $interface64 in
         1)
@@ -193,17 +167,32 @@ function build_lib {
     esac
     interface_flags="$interface_flags SYMBOLPREFIX=scipy_ LIBNAMEPREFIX=scipy_ FIXED_LIBNAME=1"
 
-    # Replace the libgfortran/libquadmath runtime dependency with the compat
-    # archive; a toolchain that cannot supply it fails the build.  TIMER=NONE
-    # selects LAPACK's second_NONE.f/dsecnd_NONE.f, removing the only
-    # reference to _gfortran_etime.  See tools/gfortran_compat.sh.
-    local compat_lib
-    if ! compat_lib=$(build_gfortran_compat "$PWD/build/gfortran_compat" "$interface64"); then
-        echo "ERROR: cannot build the libgfortran compat archive for" \
-             "${MB_ML_LIBC:-manylinux}-$plat" >&2
-        exit 1
+    if [ "$MB_ML_LIBC" = "android" ]; then
+        # It's difficult to install a Fortran compiler for this platform.
+        interface_flags+=" NOFORTRAN=1"
+
+        # This is the compiler for the build machine, which is used to generate some
+        # build files.
+        interface_flags+=" HOSTCC=cc"
+
+        # OpenBLAS assumes objcopy has the same filename prefix as CC.
+        interface_flags+=" OBJCOPY=$(dirname "$CC")/llvm-objcopy"
+    else
+        # DYNAMIC_ARCH isn't enabled on Android because library size is more important
+        # on that platform.
+        interface_flags+=" DYNAMIC_ARCH=1"
+
+        # Replace the libgfortran/libquadmath runtime dependency with the compat
+        # archive; a toolchain that cannot supply it fails the build.  TIMER=NONE
+        # selects LAPACK's second_NONE.f/dsecnd_NONE.f, removing the only
+        # reference to _gfortran_etime.  See tools/gfortran_compat.sh.
+        local compat_lib
+        if ! compat_lib=$(build_gfortran_compat "$PWD/build/gfortran_compat" "$interface64"); then
+            echo "ERROR: cannot build the libgfortran compat archive for $libc_plat" >&2
+            exit 1
+        fi
+        interface_flags="$interface_flags NO_LIBGFORTRAN=1 LIBGFORTRAN_COMPAT=$compat_lib TIMER=NONE"
     fi
-    interface_flags="$interface_flags NO_LIBGFORTRAN=1 LIBGFORTRAN_COMPAT=$compat_lib TIMER=NONE"
 
     mkdir -p libs
     set -x
@@ -226,14 +215,14 @@ function build_lib {
     fi
     if [ -n "$dynamic_list" ]; then
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             DYNAMIC_LIST="$dynamic_list" \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
     else
         CFLAGS="$CFLAGS -fvisibility=protected -Wno-uninitialized" \
-        make BUFFERSIZE=20 DYNAMIC_ARCH=1 QUIET_MAKE=1 \
+        make BUFFERSIZE=20 QUIET_MAKE=1 \
             USE_OPENMP=0 NUM_THREADS=64 \
             BINARY="$bitness" $interface_flags \
             TARGET="$target"
@@ -241,7 +230,6 @@ function build_lib {
     make PREFIX=$BUILD_PREFIX $interface_flags install
     popd
     mv $BUILD_PREFIX/lib/pkgconfig/openblas*.pc $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
-    local plat_tag=$(get_plat_tag $plat)
     if [ "$interface64" = "1" ]; then
         # OpenBLAS does not install the symbol suffixed static library,
         # do it ourselves
@@ -251,29 +239,33 @@ function build_lib {
         sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_ -DBLAS_SYMBOL_SUFFIX=64_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
     else
         sed -e "s/\(^Cflags.*\)/\1 -DBLAS_SYMBOL_PREFIX=scipy_/" -i.bak $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc
+    fi
     rm $BUILD_PREFIX/lib/pkgconfig/scipy-openblas.pc.bak
+
+    if [ -n "$compat_lib" ]; then
+        # The shared library picked these up from the link line (see
+        # LIBGFORTRAN_COMPAT_LINK in the patch), but the static one is assembled
+        # from OpenBLAS's own objects only; add them there too, so that linking
+        # libscipy_openblas*.a does not need libgfortran either.  Must come after
+        # the INTERFACE64 branch above, which overwrites the installed archive.
+        local compat_dir=$(dirname "$compat_lib")
+        for static_lib in $BUILD_PREFIX/lib/libscipy_openblas*.a; do
+            # An unmatched glob arrives as a literal, and `ar crs` would happily
+            # create an archive at that bogus path.
+            [ -f "$static_lib" ] || continue
+            ar crs "$static_lib" "$compat_dir"/*.o
+        done
+        assert_no_fortran_runtime $BUILD_PREFIX/lib/libscipy_openblas*.so \
+                                $BUILD_PREFIX/lib/libscipy_openblas*.dylib
     fi
 
-    # The shared library picked these up from the link line (see
-    # LIBGFORTRAN_COMPAT_LINK in the patch), but the static one is assembled
-    # from OpenBLAS's own objects only; add them there too, so that linking
-    # libscipy_openblas*.a does not need libgfortran either.  Must come after
-    # the INTERFACE64 branch above, which overwrites the installed archive.
-    local compat_dir=$(dirname "$compat_lib")
-    for static_lib in $BUILD_PREFIX/lib/libscipy_openblas*.a; do
-        # An unmatched glob arrives as a literal, and `ar crs` would happily
-        # create an archive at that bogus path.
-        [ -f "$static_lib" ] || continue
-        ar crs "$static_lib" "$compat_dir"/*.o
-    done
-    assert_no_fortran_runtime $BUILD_PREFIX/lib/libscipy_openblas*.so \
-                              $BUILD_PREFIX/lib/libscipy_openblas*.dylib
-
     local out_name="openblas.tar.gz"
-    tar zcvf libs/$out_name \
-        $BUILD_PREFIX/include/*blas* \
-        $BUILD_PREFIX/include/*lapack* \
-        $BUILD_PREFIX/lib/libscipy_openblas* \
-        $BUILD_PREFIX/lib/pkgconfig/scipy-openblas* \
-        $BUILD_PREFIX/lib/cmake/openblas
+    pushd $BUILD_PREFIX
+    tar zcvf $ROOT_DIR/libs/$out_name \
+        include/*blas* \
+        include/*lapack* \
+        lib/libscipy_openblas* \
+        lib/pkgconfig/scipy-openblas* \
+        lib/cmake/openblas
+    popd
 }

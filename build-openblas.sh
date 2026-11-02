@@ -1,6 +1,11 @@
 #! /bin/bash
 
 set -xeo pipefail
+
+# Check the required environment variables are set.
+: ${MB_ML_LIBC:?}
+: ${PLAT:?}
+
 source tools/build_steps.sh
 echo "------ BEFORE BUILD ---------"
 before_build

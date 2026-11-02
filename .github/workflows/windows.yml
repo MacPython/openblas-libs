@@ -119,7 +119,6 @@ jobs:
         rm local/scipy_openblas64/lib/*.a
         rm -f local/scipy_openblas64/lib/*.exp  # may not exist?
         rm local/scipy_openblas64/lib/*.def
-        rm -rf local/scipy_openblas64/lib/pkgconfig
         if [[ -d local/scipy_openblas64/64 ]]; then
             rm -rf local/scipy_openblas64/64
         else
@@ -127,7 +126,7 @@ jobs:
         fi
         sed -e "s/bin/lib/" -i local/scipy_openblas64/lib/cmake/openblas/OpenBLASConfig.cmake
         sed -e "s/dll/lib/" -i local/scipy_openblas64/lib/cmake/openblas/OpenBLASConfig.cmake
-        mkdir  local/scipy_openblas64/lib/pkgconfig
+
         if [[ "${INTERFACE64}" != "1" ]]; then
             mv local/scipy_openblas64 local/scipy_openblas32
             # rewrite the name of the project to scipy-openblas32
@@ -138,10 +137,10 @@ jobs:
             sed -e "s/cflags =.*/cflags = '-DBLAS_SYMBOL_PREFIX=scipy_'/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__init__.py
             sed -e "s/openblas64/openblas32/" -i local/scipy_openblas32/__main__.py
-            PYTHONPATH=$PWD/local python -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
-        else
-            PYTHONPATH=$PWD/local python -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
         fi
+
+        source tools/get_pkg_config.sh
+
         echo "" >> LICENSE.txt
         echo "----" >> LICENSE.txt
         echo "" >> LICENSE.txt

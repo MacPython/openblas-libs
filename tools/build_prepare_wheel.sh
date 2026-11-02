@@ -7,12 +7,12 @@ if [ "$?" != "0" ]; then
     # inside docker
     cd /project
 fi
-PYTHON=${PYTHON:-python3.9}
 
 mkdir -p local/openblas
 mkdir -p dist
 
-tar -C local/scipy_openblas64 --strip-components=2 -xf libs/openblas.tar.gz
+rm -rf local/scipy_openblas64/{include,lib}
+tar -C local/scipy_openblas64 -xf libs/openblas.tar.gz
 
 # do not package the static libs and symlinks, only take the shared object
 find local/scipy_openblas64/lib -maxdepth 1 -type l -delete
@@ -32,7 +32,7 @@ if [[ $py_version != $pkg_version* ]]; then
   exit 1
 fi
 
-if [ $(uname) == "Darwin" ]; then
+if [ "$MB_ML_LIBC" == "macosx" ]; then
   soname=$(cd local/scipy_openblas64/lib; ls libscipy_openblas*.dylib)
   echo otool -D local/scipy_openblas64/lib/$soname
   otool -D local/scipy_openblas64/lib/$soname
@@ -41,18 +41,11 @@ if [ $(uname) == "Darwin" ]; then
   install_name_tool -id @rpath/$soname local/scipy_openblas64/lib/$soname
 fi
 
-rm -rf local/scipy_openblas64/lib/pkgconfig
-mkdir local/scipy_openblas64/lib/pkgconfig
 echo "" >> LICENSE.txt
 echo "----" >> LICENSE.txt
 echo "" >> LICENSE.txt
 cat tools/LICENSE_posix.txt >> LICENSE.txt
 
-if [ "$(uname)" == "Darwin" -a "${PLAT}" == "x86_64" ]; then
-    PYTHON="arch -x86_64 python3"
-else
-    PYTHON=python3
-fi
 if [ "${INTERFACE64}" != "1" ]; then
     # rewrite the name of the project to scipy-openblas32
     # this is a hack, but apparently there is no other way to change the name
@@ -67,10 +60,9 @@ if [ "${INTERFACE64}" != "1" ]; then
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__main__.py
     sed -e "s/openblas64/openblas32/" -i.bak local/scipy_openblas32/__init__.py
     rm local/scipy_openblas32/*.bak
-    PYTHONPATH=$PWD/local $PYTHON -c "import scipy_openblas32 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas32/lib/pkgconfig/scipy-openblas.pc
-else
-    PYTHONPATH=$PWD/local $PYTHON -c "import scipy_openblas64 as s; print(s.get_pkg_config(use_prefix=True))" > local/scipy_openblas64/lib/pkgconfig/scipy-openblas.pc
 fi
+
+source tools/get_pkg_config.sh
 
 rm -rf dist/*
 

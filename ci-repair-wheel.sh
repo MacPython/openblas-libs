@@ -1,10 +1,8 @@
 #! /bin/bash
 set -xe
 
-PYTHON=${PYTHON:-python3.9}
-
 if [ $(uname) == "Darwin" ]; then
-    $PYTHON -m pip install delocate
+    python3 -m pip install delocate
     # move the mis-named scipy_openblas64-none-any.whl to a platform-specific name
     # if [ "${PLAT}" == "arm64" ]; then
     #     for f in $2/*.whl; do mv $f "${f/%any.whl/macosx_11_0_$PLAT.whl}"; done

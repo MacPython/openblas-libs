@@ -20,6 +20,7 @@ on:
 
 jobs:
   build:
+    name: ${{ matrix.MB_ML_LIBC }}_${{ matrix.PLAT}}, ${{ matrix.INTERFACE64 == '1' && '64' || '32' }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -57,12 +58,15 @@ jobs:
           - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '0', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
           - { os: ubuntu-24.04-arm, PLAT: riscv64, INTERFACE64: '1', MB_ML_VER: '_2_39', MB_ML_LIBC: manylinux}
 
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_LIBC: android}
+          - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '1', MB_ML_LIBC: android}
+
+          - { os: ubuntu-latest, PLAT: arm64_v8a, INTERFACE64: '0', MB_ML_LIBC: android}
+          - { os: ubuntu-latest, PLAT: arm64_v8a, INTERFACE64: '1', MB_ML_LIBC: android}
+
     env:
       NIGHTLY: ${{ inputs.publish == false && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
-      MB_ML_LIBC: ${{ matrix.MB_ML_LIBC }}
-      MB_ML_VER: ${{ matrix.MB_ML_VER }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
-      PLAT: ${{ matrix.PLAT }}
 
     steps:
     - uses: actions/checkout@v6.0.1
@@ -82,10 +86,6 @@ jobs:
       with:
         platforms: all
 
-    - name: Print some Environment variable
-      run: |
-        echo "PLAT: ${PLAT}"
-
     # - name: Setup tmate session
     #   if: ${{ failure() }}
     #   uses: mxschmitt/action-tmate@v3
@@ -96,11 +96,12 @@ jobs:
       uses: pypa/cibuildwheel@v4.1.0
       timeout-minutes: 60
       with:
+        # For Android, cibuildwheel has a minimum of Python 3.13, but the exact version
+        # doesn't matter because setup.py will replace the tag with "py3".
+        only: "cp313-${{ matrix.MB_ML_LIBC }}_${{matrix.PLAT}}"
         output-dir: dist
       env:
-        CIBW_ARCHS: ${{matrix.PLAT}}
         CIBW_BUILD_VERBOSITY: 1
-        CIBW_BUILD:  "cp39-${{ matrix.MB_ML_LIBC }}_${{matrix.PLAT}}"
 
         CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}
         CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.MB_ML_LIBC }}${{matrix.MB_ML_VER}}

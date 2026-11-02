@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "scipy-openblas64"
 # 0.3.34-481-g5137bb62
-version = "0.3.34.481.1"
+version = "0.3.34.481.2"
 requires-python = ">=3.7"
 description = "Provides OpenBLAS for python packaging"
 readme = "README.md"
@@ -45,15 +45,31 @@ before-build = "bash ci-before-build.sh"
 repair-wheel-command = "bash ci-repair-wheel.sh {dest_dir} {wheel}"
 test-command = "cd {package} && bash ci-test.sh"
 environment-pass = [
-  "OPENBLAS_COMMIT",
   "NIGHTLY",
-  "MB_ML_LIBC",
-  "MB_ML_VER",
   "INTERFACE64",
-  "BUILD_DIR",
-  "PLAT",
-  "OS-NAME",
+
+  # On emulated architectures, RUNNER_ARCH makes manylinux-install-clang install a
+  # compiler for the native architecture, which will be much faster.
   "RUNNER_ARCH",
 ]
+
+[tool.cibuildwheel.android]
+# The Linux code in ci-repair-wheel.sh isn't relevant to Android, so use the default
+# repair command from the cibuildwheel documentation.
+repair-wheel-command = "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"
+
+# Mobile platforms only support Python test-commands, not shell scripts.
+test-command = """python -c '
+import runpy
+
+def run_module(mod_name):
+    runpy.run_module(mod_name, run_name="__main__", alter_sys=True)
+
+try:
+    run_module("scipy_openblas32")
+except ImportError:
+    run_module("scipy_openblas64")
+'"""
+
 [project.entry-points.pkg_config]
 scipy-openblas = 'scipy_openblas64.lib.pkgconfig'
