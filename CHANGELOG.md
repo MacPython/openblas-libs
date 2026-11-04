@@ -1,11 +1,13 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
-### 0.3.34.497.0 (2026-11-03)
+### 0.3.34.678.0 (2026-11-04)
 
-- update to OpenBLAS develop 791b02a1, which includes OpenMathLib/OpenBLAS#6105.
+- update to OpenBLAS develop 02f58544, which includes OpenMathLib/OpenBLAS#6105.
   This fixes a crash in the default allocator's overflow area: overflow slots
   re-mapped a new buffer on every allocation and eventually wrote past the end
   of `new_release_info`. Seen on Windows ARM64 with many concurrent callers.
+  It also includes OpenMathLib/OpenBLAS#6220, which exports `xerbla_` again
+  (hidden since the switch to `-fvisibility=hidden`).
 - raise `NUM_THREADS` from 24 to 64 on Windows (amd64 and arm64), matching
   the Linux and macOS builds.
 
