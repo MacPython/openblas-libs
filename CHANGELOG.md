@@ -1,5 +1,9 @@
 ## OpenBLAS v0.3.34 (v0.3.34)
 
+### 0.3.34.481.4 (2026-11-19)
+
+- Drop 32-bit windows wheels, update rtools
+
 ### 0.3.34.481.3 (2026-11-2)
 
 - Refactor gha upload to anaconda.org

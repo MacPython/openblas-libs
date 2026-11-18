@@ -22,18 +22,16 @@ env:
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
   CHERE_INVOKING: "yes"
-  BASH_PATH: "c:\\rtools40\\usr\\bin\\bash.exe"
+  BASH_PATH: "c:\\rtools45\\usr\\bin\\bash.exe"
 
 jobs:
   build:
     strategy:
       matrix:
-        plat: ['x64', 'x86']
+        plat: ['x64']
         INTERFACE64: ['1', '0']
         os: [windows-latest]
         exclude:
-          - plat: x86
-            INTERFACE64: '1'
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -48,28 +46,16 @@ jobs:
     - uses: actions/checkout@v6.0.1
     - name: install-rtools
       run: |
-        # rtools 42+ does not support 32 bits builds.
-        choco install -y rtools --no-progress --force --version=4.0.0.20220206
+        choco install -y rtools --no-progress --force --version=4.5.6768
 
     - name: Set env variables
       run: |
         echo "START_DIR=$PWD" >> $env:GITHUB_ENV
-        # For interpretation of MSYSTEM, see:
-        # https://sourceforge.net/p/msys2/discussion/general/thread/b7dfdac8/#3939
-        if ( "${{ matrix.plat }}" -eq "x86") {
-          echo "PLAT=i686" >> $env:GITHUB_ENV
-          echo "WHEEL_PLAT=win32" >> $env:GITHUB_ENV
-          echo "MSYSTEM=MINGW32" >> $env:GITHUB_ENV
-          # No ucrt on 32-bits, so use _snprintf_c instead
-          echo "LDFLAGS=-static -static-libgcc -Wl,--defsym,_quadmath_snprintf=__snprintf_c" >> $env:GITHUB_ENV
-          echo "BUILD_BITS=32" >> $env:GITHUB_ENV
-        } else {
-          echo "PLAT=x86_64" >> $env:GITHUB_ENV
-          echo "WHEEL_PLAT=win_amd64" >> $env:GITHUB_ENV
-          echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
-          echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
-          echo "BUILD_BITS=64" >> $env:GITHUB_ENV
-        }
+        echo "PLAT=x86_64" >> $env:GITHUB_ENV
+        echo "WHEEL_PLAT=win_amd64" >> $env:GITHUB_ENV
+        echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
+        echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
+        echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
           echo "INTERFACE64=1" >> $env:GITHUB_ENV
         }
