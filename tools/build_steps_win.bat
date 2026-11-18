@@ -1,17 +1,17 @@
-REM Build script for scipy_openblas wheel on Windows on ARM64
+REM Build script for scipy_openblas wheels on Windows, x86_64 and ARM64 alike.
 
-REM Usage: build_steps_win_arm64.bat [build_bits] [if_bits]
-REM e.g build_steps_win_arm64.bat 64 64
+REM Usage: build_steps_win.bat [build_bits] [if_bits]
+REM e.g build_steps_win.bat 64 64
 
 REM build_bits  (default binary architecture, 32 or 64, unspec -> 64).
 REM if_bits (default interface size, 32 or 64, unspec -> 32)
 REM If INTERFACE64 environment variable is 1, then if_bits defaults to 64
+REM PLAT  (target architecture, x86_64 or arm64; unspec -> derived from
+REM        PROCESSOR_ARCHITECTURE)
+REM WHEEL_PLAT  (wheel platform tag, win_amd64 or win_arm64; unspec ->
+REM        derived from PLAT)
 REM Expects these binaries on the PATH:
 REM   clang-cl, flang-new, cmake, perl
-REM First commit containing WoA build fixes.
-REM Minimum OpenBLAS commit to build; we'll update to this if commit not
-REM present.
-set first_woa_buildable_commit="de2380e5a6149706a633322a16a0f66faa5591fc"
 
 @echo off
 setlocal enabledelayedexpansion
@@ -31,8 +31,29 @@ if "%2"=="" (
 ) else (
     set "if_bits=%2"
 )
-echo Building for %build_bits%-bit binary, %if_bits%-bit interface...
- 
+REM Resolve the target architecture.  The workflow passes PLAT and WHEEL_PLAT,
+REM but derive them when running locally so the script is usable by hand.
+if "%PLAT%"=="" (
+    if /I "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+        set "PLAT=arm64"
+    ) else (
+        set "PLAT=x86_64"
+    )
+)
+if "%WHEEL_PLAT%"=="" (
+    if "%PLAT%"=="arm64" (
+        set "WHEEL_PLAT=win_arm64"
+    ) else (
+        set "WHEEL_PLAT=win_amd64"
+    )
+)
+if "%PLAT%"=="arm64" (
+    set "vcvars_arch=arm64"
+) else (
+    set "vcvars_arch=x64"
+)
+echo Building %PLAT% for %build_bits%-bit binary, %if_bits%-bit interface, wheel tag %WHEEL_PLAT%...
+
 REM Define destination directory
 pushd "%~dp0\.."
 set "ob_out_root=%CD%\local\scipy_openblas"
@@ -70,13 +91,7 @@ if "%NIGHTLY%"=="true" (
     git checkout %OPENBLAS_COMMIT%
 )
 if errorlevel 1 exit /b 1
-git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
-if errorlevel 1 (
-    echo OpenBLAS commit does not contain WoA build fixes.
-    echo Commit needs to contain %first_woa_buildable_commit%.
-    exit /b 2
-)
- 
+
 REM Patch
 set patch_rc=0
 for %%f in (..\patches-common\*.patch ..\patches\*.patch ..\patches-windows\*.patch) do (
@@ -113,9 +128,9 @@ REM Create build directory and navigate to it
 if exist build (rmdir /S /Q build || exit /b 1)
 mkdir build || exit /b 1 & cd build || exit /b 1
  
-echo Setting up ARM64 Developer Command Prompt and running CMake...
+echo Setting up %vcvars_arch% Developer Command Prompt and running CMake...
 
-REM Initialize VS ARM64 environment.
+REM Initialize the VS environment for the target architecture.
 REM
 REM Ask vswhere where Visual Studio is rather than hardcoding the version and
 REM edition: the windows-11-arm image migrated from VS 2022 to VS 2026 in
@@ -144,9 +159,9 @@ if not exist "%VCVARSALL%" (
     exit /b 1
 )
 echo Using Visual Studio at "%VSINSTALL%"
-CALL "%VCVARSALL%" arm64
+CALL "%VCVARSALL%" %vcvars_arch%
 if errorlevel 1 (
-    echo Error: "%VCVARSALL%" arm64 failed.
+    echo Error: "%VCVARSALL%" %vcvars_arch% failed.
     exit /b 1
 )
 where mt.exe >NUL 2>&1
@@ -159,22 +174,47 @@ if errorlevel 1 (
 REM Prefer LLVM flang
 PATH=C:\Program Files\LLVM\bin;%PATH%
 
+REM Visual Studio ships its own LLVM with an incomplete flang, so confirm
+REM which compilers we actually resolved to.
+where clang-cl
+if errorlevel 1 (
+    echo Error: clang-cl is not on PATH.
+    exit /b 1
+)
+where flang-new
+if errorlevel 1 (
+    echo Error: flang-new is not on PATH.
+    exit /b 1
+)
+clang-cl --version
+flang-new --version
+
 REM Run CMake and Ninja build
+
+if "%PLAT%"=="arm64" (
+    set "arch_flags=-DTARGET=ARMV8 -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_SYSTEM_NAME=Windows"
+) else (
+    set "arch_flags=-DTARGET=PRESCOTT -DDYNAMIC_ARCH=ON -DDYNAMIC_LIST=NEHALEM;SANDYBRIDGE;HASWELL;SKYLAKEX"
+)
 
 set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
 cmake .. -G Ninja ^
  -DCMAKE_BUILD_TYPE=Release ^
- -DTARGET=ARMV8 ^
  -DBINARY=%build_bits% ^
  -DCMAKE_C_COMPILER=clang-cl ^
  -DCMAKE_Fortran_COMPILER=flang-new ^
  -DBUILD_SHARED_LIBS=ON ^
- -DCMAKE_SYSTEM_PROCESSOR=arm64 ^
- -DCMAKE_SYSTEM_NAME=Windows ^
  -DSYMBOLPREFIX="scipy_" ^
  -DLIBNAMEPREFIX="scipy_" ^
- -DUSE_THREADS=1 ^
+ -DUSE_THREAD=1 ^
+ -DUSE_OPENMP=0 ^
  -DNUM_THREADS=24 ^
+ -DNO_WARMUP=1 ^
+ -DCONSISTENT_FPCSR=1 ^
+ -DBUILD_LAPACK_DEPRECATED=ON ^
+ -DFIXED_LIBNAME=1 ^
+ -DBUFFERSIZE=20 ^
+ %arch_flags% ^
  %interface_flags%
 
 if errorlevel 1 exit /b 1
@@ -248,6 +288,14 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Append the bundled-software notices to LICENSE.txt, as the posix build and
+REM the old mingw Windows build both do.
+(echo.)>> LICENSE.txt
+(echo ----)>> LICENSE.txt
+(echo.)>> LICENSE.txt
+type tools\LICENSE_win32.txt >> LICENSE.txt
+if errorlevel 1 exit /b 1
+
 REM Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel in %CD%
 python -c "import build" 2>NUL || pip install build
@@ -269,7 +317,7 @@ REM Rename the wheel
 for %%f in (dist\*any.whl) do (
     set WHEEL_FILE=dist\%%f
     set "filename=%%~nxf"
-    set "newname=!filename:any.whl=win_arm64.whl!"
+    set "newname=!filename:any.whl=%WHEEL_PLAT%.whl!"
     ren "dist\!filename!" "!newname!"
 )
 
