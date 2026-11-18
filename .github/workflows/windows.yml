@@ -43,9 +43,10 @@ jobs:
     timeout-minutes: 90
     steps:
     - uses: actions/checkout@v6.0.1
-    - name: install-rtools
-      run: |
-        choco install -y rtools --no-progress --force --version=4.5.6768
+    # Already installed
+    # - name: install-rtools
+    #   run: |
+    #     choco install -y rtools --no-progress --force --version=4.5.6768
 
     - name: Set env variables
       run: |

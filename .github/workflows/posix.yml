@@ -29,6 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Pin docker builds to ubuntu-24.04 https://github.com/actions/runner-images/issues/14790
           - { os: ubuntu-24.04, PLAT: i686, INTERFACE64: '0', MB_ML_VER: '_2_28', MB_ML_LIBC: manylinux}
 
           - { os: ubuntu-latest, PLAT: x86_64, INTERFACE64: '0', MB_ML_VER: '_2_28', MB_ML_LIBC: manylinux}
