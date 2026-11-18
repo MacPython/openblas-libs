@@ -31,7 +31,6 @@ jobs:
         plat: ['x64']
         INTERFACE64: ['1', '0']
         os: [windows-latest]
-        exclude:
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
