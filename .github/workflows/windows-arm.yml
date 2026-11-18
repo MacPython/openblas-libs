@@ -24,11 +24,12 @@ env:
   # Without this, invoking bash will cd to the home directory
   CHERE_INVOKING: "yes"
   BASH_PATH: "C:\\Program Files\\Git\\bin\\bash.exe"
-  LLVM_VERSION: "20.1.8"
+  LLVM_VERSION: "22.1.8"
   NINJA_VERSION: "1.13.1"
 
 jobs:
   build:
+    name: ${{ matrix.PLAT }}_${{ matrix.INTERFACE64 }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
 

@@ -11,7 +11,7 @@ REM        PROCESSOR_ARCHITECTURE)
 REM WHEEL_PLAT  (wheel platform tag, win_amd64 or win_arm64; unspec ->
 REM        derived from PLAT)
 REM Expects these binaries on the PATH:
-REM   clang-cl, flang-new, cmake, perl
+REM   clang-cl, flang, cmake, perl
 
 @echo off
 setlocal enabledelayedexpansion
@@ -181,20 +181,23 @@ if errorlevel 1 (
     echo Error: clang-cl is not on PATH.
     exit /b 1
 )
-where flang-new
+where flang
 if errorlevel 1 (
-    echo Error: flang-new is not on PATH.
+    echo Error: flang is not on PATH.
     exit /b 1
 )
 clang-cl --version
-flang-new --version
+flang --version
 
 REM Run CMake and Ninja build
 
+REM CONSISTENT_FPCSR is x86-only: it makes blas_server_win32.c save and restore
+REM the FPU/SSE control words with ldmxcsr/fldcw/fnstcw/stmxcsr inline asm,
+REM which clang-cl rejects on arm64 ("unrecognized instruction mnemonic").
 if "%PLAT%"=="arm64" (
     set "arch_flags=-DTARGET=ARMV8 -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_SYSTEM_NAME=Windows"
 ) else (
-    set "arch_flags=-DTARGET=PRESCOTT -DDYNAMIC_ARCH=ON -DDYNAMIC_LIST=NEHALEM;SANDYBRIDGE;HASWELL;SKYLAKEX"
+    set "arch_flags=-DTARGET=PRESCOTT -DDYNAMIC_ARCH=ON -DDYNAMIC_LIST=NEHALEM;SANDYBRIDGE;HASWELL;SKYLAKEX -DCONSISTENT_FPCSR=1"
 )
 
 set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
@@ -202,7 +205,7 @@ cmake .. -G Ninja ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DBINARY=%build_bits% ^
  -DCMAKE_C_COMPILER=clang-cl ^
- -DCMAKE_Fortran_COMPILER=flang-new ^
+ -DCMAKE_Fortran_COMPILER=flang ^
  -DBUILD_SHARED_LIBS=ON ^
  -DSYMBOLPREFIX="scipy_" ^
  -DLIBNAMEPREFIX="scipy_" ^
@@ -210,7 +213,6 @@ cmake .. -G Ninja ^
  -DUSE_OPENMP=0 ^
  -DNUM_THREADS=24 ^
  -DNO_WARMUP=1 ^
- -DCONSISTENT_FPCSR=1 ^
  -DBUILD_LAPACK_DEPRECATED=ON ^
  -DFIXED_LIBNAME=1 ^
  -DBUFFERSIZE=20 ^
