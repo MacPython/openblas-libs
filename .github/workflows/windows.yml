@@ -22,11 +22,9 @@ env:
   # Preserve working directory for calls into bash
   # Without this, invoking bash will cd to the home directory
   CHERE_INVOKING: "yes"
-  BASH_PATH: "c:\\rtools45\\usr\\bin\\bash.exe"
 
 jobs:
   build:
-    if: false  # disable
     strategy:
       matrix:
         plat: ['x64']
@@ -44,17 +42,26 @@ jobs:
     timeout-minutes: 90
     steps:
     - uses: actions/checkout@v6.0.1
-    # Already installed
-    # - name: install-rtools
-    #   run: |
-    #     choco install -y rtools --no-progress --force --version=4.5.6768
+
+    - name: Install MSYS2 toolchain
+      uses: msys2/setup-msys2@v2.33.0
+      with:
+        msystem: UCRT64
+        update: true
+        install: >-
+          git
+          make
+          zip
+          unzip
+        pacboy: >-
+          cc:p
+          fc:p
 
     - name: Set env variables
       run: |
         echo "START_DIR=$PWD" >> $env:GITHUB_ENV
         echo "PLAT=x86_64" >> $env:GITHUB_ENV
         echo "WHEEL_PLAT=win_amd64" >> $env:GITHUB_ENV
-        echo "MSYSTEM=UCRT64" >> $env:GITHUB_ENV
         echo "LDFLAGS=-lucrt -static -static-libgcc -Wl,--defsym,quadmath_snprintf=snprintf" >> $env:GITHUB_ENV
         echo "BUILD_BITS=64" >> $env:GITHUB_ENV
         if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
@@ -69,15 +76,17 @@ jobs:
         echo CIBW_ENVIRONMENT_WINDOWS=$env:CIBW_ENVIRONMENT_WINDOWS
 
     - name: Build
+      shell: msys2 {0}
       run: |
         git submodule update --init --recursive
-        & $env:BASH_PATH -lc tools/build_steps_windows.sh
+        tools/build_steps_windows.sh
 
     - name: Test
+      shell: msys2 {0}
       run: |
-        & $env:BASH_PATH -lc tools/build_gfortran.sh
+        tools/build_gfortran.sh
         echo "Dynamic test"
-        .\for_test\test_dyn.exe
+        ./for_test/test_dyn.exe
 
     - name: Copy
       run: |
@@ -172,7 +181,6 @@ jobs:
       github.repository == 'MacPython/openblas-libs'
       && !inputs.publish
       && github.event_name != 'pull_request'
-      && false    # disable
     name: Upload to anaconda.org
     needs: build
     runs-on: ubuntu-latest
