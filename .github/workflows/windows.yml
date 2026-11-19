@@ -26,6 +26,7 @@ env:
 
 jobs:
   build:
+    if: false  # disable
     strategy:
       matrix:
         plat: ['x64']
@@ -171,6 +172,7 @@ jobs:
       github.repository == 'MacPython/openblas-libs'
       && !inputs.publish
       && github.event_name != 'pull_request'
+      && false    # disable
     name: Upload to anaconda.org
     needs: build
     runs-on: ubuntu-latest
