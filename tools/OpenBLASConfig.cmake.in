@@ -1,0 +1,35 @@
+# OpenBLASConfig.cmake for the scipy_openblas wheels.
+#
+# OpenBLAS's own cmake export (OpenBLASConfig.cmake plus an
+# OpenBLASTargets.cmake that it does not write into the build tree) describes
+# the layout of "make install", where the DLL lands in bin/.  In these wheels
+# everything lives in <package>/lib, so build_steps_win.bat writes this file
+# from tools/OpenBLASConfig.cmake.in instead.
+#
+# Sets:
+#   OpenBLAS_VERSION       - version of the bundled OpenBLAS
+#   OpenBLAS_INCLUDE_DIR   - directory holding the headers
+#   OpenBLAS_INCLUDE_DIRS  - same as above
+#   OpenBLAS_LIBRARY       - import library to link against
+#   OpenBLAS_LIBRARIES     - same as above
+#   OpenBLAS_FOUND         - TRUE
+# and defines the imported target OpenBLAS::OpenBLAS.
+
+set(OpenBLAS_VERSION "@VERSION@")
+
+get_filename_component(_OpenBLAS_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+
+set(OpenBLAS_INCLUDE_DIR "${_OpenBLAS_ROOT_DIR}/include")
+set(OpenBLAS_INCLUDE_DIRS "${OpenBLAS_INCLUDE_DIR}")
+set(OpenBLAS_LIBRARY "${_OpenBLAS_ROOT_DIR}/lib/@LIBNAME@.lib")
+set(OpenBLAS_LIBRARIES "${OpenBLAS_LIBRARY}")
+
+if (NOT TARGET OpenBLAS::OpenBLAS)
+  add_library(OpenBLAS::OpenBLAS SHARED IMPORTED)
+  set_target_properties(OpenBLAS::OpenBLAS PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${OpenBLAS_INCLUDE_DIR}"
+    IMPORTED_LOCATION "${_OpenBLAS_ROOT_DIR}/lib/@LIBNAME@.dll"
+    IMPORTED_IMPLIB "${OpenBLAS_LIBRARY}")
+endif ()
+
+set(OpenBLAS_FOUND TRUE)

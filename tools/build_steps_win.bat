@@ -112,10 +112,18 @@ if "%NIGHTLY%"=="true" (
 
 for /f "tokens=3 delims= " %%v in ('findstr /b "version = " ..\pyproject.toml') do set version=%%v
 set version=%version:"=%
-REM cwd is already OpenBLAS here, so the source is Makefile.rule, not
-REM OpenBLAS/Makefile.rule -- that path never existed, Get-Content errored,
-REM and the VERSION substitution silently never happened.
-powershell -Command "(Get-Content Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content Makefile.rule"
+REM The cmake build ignores Makefile.rule and takes the version from
+REM CMakeLists.txt, which bakes it into scipy-openblas.pc,
+REM OpenBLASConfigVersion.cmake and the OPENBLAS_VERSION in openblas_config.h
+REM that openblas_get_config() reports.  Without this it stays at 0.3.34.dev.
+powershell -Command "(Get-Content CMakeLists.txt) -replace '^set\(OpenBLAS_VERSION .*', 'set(OpenBLAS_VERSION \"%version%\")' | Set-Content CMakeLists.txt"
+if errorlevel 1 exit /b 1
+findstr /b /c:"set(OpenBLAS_VERSION" CMakeLists.txt
+findstr /b /c:"set(OpenBLAS_VERSION" CMakeLists.txt | findstr /c:"%version%" >NUL
+if errorlevel 1 (
+    echo Error: could not set OpenBLAS_VERSION to %version% in CMakeLists.txt.
+    exit /b 1
+)
 
 REM Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
@@ -275,7 +283,7 @@ if "%if_bits%"=="32" (
 REM Prepare destination directory
 cd OpenBLAS/build
 echo Preparing destination directory at %DEST_DIR%
-if not exist "%DEST_DIR%\lib\cmake\OpenBLAS" mkdir "%DEST_DIR%\lib\cmake\OpenBLAS"
+if not exist "%DEST_DIR%\lib\cmake\openblas" mkdir "%DEST_DIR%\lib\cmake\openblas"
 if not exist "%DEST_DIR%\include" mkdir "%DEST_DIR%\include"
  
 REM Move library files
@@ -294,9 +302,22 @@ if exist lib\release (
     exit /b 1
 )
  
-REM Copy CMake configuration files
-echo Copying CMake configuration files...
-if exist openblasconfig.cmake copy /Y openblasconfig.cmake "%DEST_DIR%\lib\cmake\openblas\"
+REM Write the CMake package configuration.  OpenBLAS generates
+REM OpenBLAS<SUFFIX64>Config.cmake, which include()s an OpenBLASTargets.cmake
+REM describing the "make install" layout; neither suits the wheel, so write
+REM our own from the template and keep OpenBLAS's version file.
+echo Writing CMake configuration files...
+if "%if_bits%"=="64" (
+    set "cm_libname=scipy_openblas_64"
+) else (
+    set "cm_libname=scipy_openblas"
+)
+powershell -Command "(Get-Content '%~dp0OpenBLASConfig.cmake.in') -replace '@VERSION@', '%version%' -replace '@LIBNAME@', '%cm_libname%' | Set-Content '%DEST_DIR%\lib\cmake\openblas\OpenBLASConfig.cmake'"
+if errorlevel 1 exit /b 1
+if not exist "%DEST_DIR%\lib\cmake\openblas\OpenBLASConfig.cmake" (
+    echo Error: failed to write OpenBLASConfig.cmake.
+    exit /b 1
+)
 if exist openblasconfigversion.cmake copy /Y openblasconfigversion.cmake "%DEST_DIR%\lib\cmake\openblas\"
  
 REM Copy header files
