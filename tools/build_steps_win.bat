@@ -189,6 +189,32 @@ if errorlevel 1 (
 clang-cl --version
 flang --version
 
+REM flang's objects carry a /DEFAULTLIB:flang_rt.runtime.dynamic directive, but
+REM OpenBLAS links the DLL with a hand-written lld-link call (no flang driver,
+REM no /LIBPATH), so the runtime archive must be findable through LIB.  It
+REM lives in LLVM's per-target resource directory, whose version component
+REM tracks the LLVM release, so look it up rather than hardcoding it.
+if "%PLAT%"=="arm64" (
+    set "flang_rt_triple=aarch64-pc-windows-msvc"
+) else (
+    set "flang_rt_triple=x86_64-pc-windows-msvc"
+)
+REM "for /d" over a quoted wildcard matches nothing, and the path has a space
+REM in it, so list the version directories with dir instead.
+set "clang_res_root=C:\Program Files\LLVM\lib\clang"
+set "FLANG_RT_DIR="
+for /f "delims=" %%v in ('dir /b /ad "%clang_res_root%" 2^>NUL') do (
+    if exist "%clang_res_root%\%%v\lib\%flang_rt_triple%\flang_rt.runtime.dynamic.lib" set "FLANG_RT_DIR=%clang_res_root%\%%v\lib\%flang_rt_triple%"
+)
+if not defined FLANG_RT_DIR (
+    echo Error: no flang_rt.runtime.dynamic.lib for %flang_rt_triple% under
+    echo "%clang_res_root%" - the DLL link would fail with
+    echo "lld-link: error: could not open flang_rt.runtime.dynamic.lib".
+    exit /b 1
+)
+echo Using flang runtime from "%FLANG_RT_DIR%"
+set "LIB=%FLANG_RT_DIR%;%LIB%"
+
 REM Run CMake and Ninja build
 
 REM CONSISTENT_FPCSR is x86-only: it makes blas_server_win32.c save and restore
@@ -200,9 +226,15 @@ if "%PLAT%"=="arm64" (
     set "arch_flags=-DTARGET=PRESCOTT -DDYNAMIC_ARCH=ON -DDYNAMIC_LIST=NEHALEM;SANDYBRIDGE;HASWELL;SKYLAKEX -DCONSISTENT_FPCSR=1"
 )
 
-set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
+REM OpenBLAS's cmake/cc.cmake appends -Wall for any Clang, but clang-cl parses
+REM -Wall as MSVC /Wall, i.e. -Weverything: that produced 63k warnings and a
+REM 30MB log.  It is appended to CMAKE_C_FLAGS after anything we put in CFLAGS,
+REM so the only slot that lands later is CMAKE_C_FLAGS_RELEASE.
+set CFLAGS=
+set "release_flags=/MD /O2 /Ob2 /DNDEBUG -Wno-everything"
 cmake .. -G Ninja ^
  -DCMAKE_BUILD_TYPE=Release ^
+ -DCMAKE_C_FLAGS_RELEASE="%release_flags%" ^
  -DBINARY=%build_bits% ^
  -DCMAKE_C_COMPILER=clang-cl ^
  -DCMAKE_Fortran_COMPILER=flang ^
