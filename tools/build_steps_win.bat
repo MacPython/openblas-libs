@@ -322,12 +322,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Append the bundled-software notices to LICENSE.txt, as the posix build and
-REM the old mingw Windows build both do.
 (echo.)>> LICENSE.txt
 (echo ----)>> LICENSE.txt
 (echo.)>> LICENSE.txt
-type tools\LICENSE_win32.txt >> LICENSE.txt
+type tools\LICENSE_win_flang.txt >> LICENSE.txt
 if errorlevel 1 exit /b 1
 
 REM Build the Wheel & Install It
