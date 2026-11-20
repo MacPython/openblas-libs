@@ -239,10 +239,11 @@ REM -Wall as MSVC /Wall, i.e. -Weverything: that produced 63k warnings and a
 REM 30MB log.  It is appended to CMAKE_C_FLAGS after anything we put in CFLAGS,
 REM so the only slot that lands later is CMAKE_C_FLAGS_RELEASE.
 set CFLAGS=
-set "release_flags=/MD /O2 /Ob2 /DNDEBUG -Wno-everything /Gy"
+set "release_flags=/MD /O2 /Ob2 /DNDEBUG -Wno-everything"
 cmake .. -G Ninja ^
  -DCMAKE_BUILD_TYPE=Release ^
  -DCMAKE_C_FLAGS_RELEASE="%release_flags%" ^
+ -DCMAKE_Fortran_FLAGS_RELEASE="-O2 -DNDEBUG" ^
  -DBINARY=%build_bits% ^
  -DCMAKE_C_COMPILER=clang-cl ^
  -DCMAKE_Fortran_COMPILER=flang ^
