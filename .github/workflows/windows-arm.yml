@@ -1,4 +1,4 @@
-name: Windows-on-ARM
+name: Windows
 
 on:
   push:
@@ -24,18 +24,30 @@ env:
   # Without this, invoking bash will cd to the home directory
   CHERE_INVOKING: "yes"
   BASH_PATH: "C:\\Program Files\\Git\\bin\\bash.exe"
-  PLAT: arm64
+  LLVM_VERSION: "22.1.8"
+  NINJA_VERSION: "1.13.1"
 
 jobs:
   build:
-    runs-on: windows-11-arm
+    name: ${{ matrix.PLAT }}_${{ matrix.INTERFACE64 }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 90
 
     strategy:
+      fail-fast: false
       matrix:
-        INTERFACE64: ['1', '0']
+        # Both architectures build with the same toolchain (clang-cl +
+        # flang-new + cmake + ninja) and the same script, so they differ only
+        # in the runner, the installer assets and the wheel tag.
+        include:
+          - { os: windows-latest, PLAT: x86_64, WHEEL_PLAT: win_amd64, PY_ARCH: x64,   LLVM_ASSET: win64, NINJA_ASSET: win,      INTERFACE64: '0' }
+          - { os: windows-latest, PLAT: x86_64, WHEEL_PLAT: win_amd64, PY_ARCH: x64,   LLVM_ASSET: win64, NINJA_ASSET: win,      INTERFACE64: '1' }
+          - { os: windows-11-arm, PLAT: arm64,  WHEEL_PLAT: win_arm64, PY_ARCH: arm64, LLVM_ASSET: woa64, NINJA_ASSET: winarm64, INTERFACE64: '0' }
+          - { os: windows-11-arm, PLAT: arm64,  WHEEL_PLAT: win_arm64, PY_ARCH: arm64, LLVM_ASSET: woa64, NINJA_ASSET: winarm64, INTERFACE64: '1' }
 
     env:
+      PLAT: ${{ matrix.PLAT }}
+      WHEEL_PLAT: ${{ matrix.WHEEL_PLAT }}
       INTERFACE64: ${{ matrix.INTERFACE64 }}
       # A scheduled or manually triggered run builds against the latest
       # OpenBLAS HEAD instead of openblas_commit.txt
@@ -50,28 +62,39 @@ jobs:
       uses: actions/setup-python@v6.2.0
       with:
         python-version: 3.12
-        architecture: arm64
+        architecture: ${{ matrix.PY_ARCH }}
 
     - name: Download and install LLVM installer
+      # The runner images' preinstalled LLVM has no flang; the official
+      # installer does.
       run: |
-        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/LLVM-20.1.8-woa64.exe -UseBasicParsing -OutFile LLVM-woa64.exe
-        Start-Process -FilePath ".\LLVM-woa64.exe" -ArgumentList "/S" -Wait
+        $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-${env:LLVM_VERSION}/LLVM-${env:LLVM_VERSION}-${{ matrix.LLVM_ASSET }}.exe"
+        echo "Downloading $url"
+        Invoke-WebRequest $url -UseBasicParsing -OutFile LLVM-installer.exe
+        Start-Process -FilePath ".\LLVM-installer.exe" -ArgumentList "/S" -Wait
         echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Install CMake and Ninja for Win-ARM64
+    - name: Install Ninja
+      shell: pwsh
+      run: |
+        $url = "https://github.com/ninja-build/ninja/releases/download/v${env:NINJA_VERSION}/ninja-${{ matrix.NINJA_ASSET }}.zip"
+        echo "Downloading $url"
+        Invoke-WebRequest $url -OutFile ninja.zip
+        Expand-Archive ninja.zip -DestinationPath ninja
+        Copy-Item ninja\ninja.exe -Destination "C:\Windows\System32"
+
+    - name: Install CMake for Win-ARM64
+      # windows-latest already ships a usable cmake; the ARM64 image does not.
+      if: matrix.PLAT == 'arm64'
       shell: pwsh
       run: |
         Invoke-WebRequest https://github.com/Kitware/CMake/releases/download/v3.29.4/cmake-3.29.4-windows-arm64.msi -OutFile cmake-arm64.msi
         Start-Process msiexec.exe -ArgumentList "/i cmake-arm64.msi /quiet /norestart" -Wait
         echo "C:\Program Files\CMake\bin" >> $env:GITHUB_PATH
 
-        Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-winarm64.zip -OutFile ninja-winarm64.zip
-        Expand-Archive ninja-winarm64.zip -DestinationPath ninja
-        Copy-Item ninja\ninja.exe -Destination "C:\Windows\System32"
-
     - name: Set env variables
       run: |
-        if ( ${{ matrix.INTERFACE64 }} -eq "1" ) {
+        if ( "${{ matrix.INTERFACE64 }}" -eq "1" ) {
           echo "INTERFACE_BITS=64" >> $env:GITHUB_ENV
         } else {
           echo "INTERFACE_BITS=32" >> $env:GITHUB_ENV
@@ -80,9 +103,9 @@ jobs:
     - name: Build
       run: |
         git submodule update --init --recursive
-        .\tools\build_steps_win_arm64.bat 64 ${env:INTERFACE_BITS}
+        .\tools\build_steps_win.bat 64 ${env:INTERFACE_BITS}
 
-    - name: Test ${{ matrix.INTERFACE_BITS }}-bit interface wheel
+    - name: Test wheel, INTERFACE64=${{ matrix.INTERFACE64 }}
       run: |
         python -m pip install --no-index --find-links dist scipy_openblas${env:INTERFACE_BITS}
         python -m scipy_openblas${env:INTERFACE_BITS}
@@ -90,7 +113,7 @@ jobs:
 
     - uses: actions/upload-artifact@v6.0.0
       with:
-        name: wheels-${{ env.PLAT }}-${{ env.INTERFACE64 }}
+        name: wheels-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}
         path: dist/scipy_openblas*.whl
 
   upload:

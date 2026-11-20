@@ -8,7 +8,6 @@ from pathlib import Path
 import re
 import sys
 from textwrap import dedent
-import platform
 
 _HERE = Path(__file__).resolve().parent
 
@@ -74,12 +73,10 @@ def get_pkg_config(use_preloading=False, use_prefix=False):
     """
     extralib = ""
     if sys.platform == "win32":
-        machine = platform.machine().lower()
-        if machine != "arm64":
-            extralib = "-defaultlib:advapi32 -lgfortran -lquadmath"
+        extralib = "-defaultlib:advapi32"
         libs_flags = f"-L${{libdir}} -l{get_library()}"
     else:
-        extralib = f"-lm -lpthread -lgfortran -lquadmath -L${{libdir}} -l{get_library()}"
+        extralib = f"-lm -lpthread -L${{libdir}} -l{get_library()}"
         if use_preloading:
             libs_flags = ""
         else:

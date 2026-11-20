@@ -1,17 +1,17 @@
-REM Build script for scipy_openblas wheel on Windows on ARM64
+REM Build script for scipy_openblas wheels on Windows, x86_64 and ARM64 alike.
 
-REM Usage: build_steps_win_arm64.bat [build_bits] [if_bits]
-REM e.g build_steps_win_arm64.bat 64 64
+REM Usage: build_steps_win.bat [build_bits] [if_bits]
+REM e.g build_steps_win.bat 64 64
 
 REM build_bits  (default binary architecture, 32 or 64, unspec -> 64).
 REM if_bits (default interface size, 32 or 64, unspec -> 32)
 REM If INTERFACE64 environment variable is 1, then if_bits defaults to 64
+REM PLAT  (target architecture, x86_64 or arm64; unspec -> derived from
+REM        PROCESSOR_ARCHITECTURE)
+REM WHEEL_PLAT  (wheel platform tag, win_amd64 or win_arm64; unspec ->
+REM        derived from PLAT)
 REM Expects these binaries on the PATH:
-REM   clang-cl, flang-new, cmake, perl
-REM First commit containing WoA build fixes.
-REM Minimum OpenBLAS commit to build; we'll update to this if commit not
-REM present.
-set first_woa_buildable_commit="de2380e5a6149706a633322a16a0f66faa5591fc"
+REM   clang-cl, flang, cmake, perl
 
 @echo off
 setlocal enabledelayedexpansion
@@ -31,8 +31,29 @@ if "%2"=="" (
 ) else (
     set "if_bits=%2"
 )
-echo Building for %build_bits%-bit binary, %if_bits%-bit interface...
- 
+REM Resolve the target architecture.  The workflow passes PLAT and WHEEL_PLAT,
+REM but derive them when running locally so the script is usable by hand.
+if "%PLAT%"=="" (
+    if /I "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+        set "PLAT=arm64"
+    ) else (
+        set "PLAT=x86_64"
+    )
+)
+if "%WHEEL_PLAT%"=="" (
+    if "%PLAT%"=="arm64" (
+        set "WHEEL_PLAT=win_arm64"
+    ) else (
+        set "WHEEL_PLAT=win_amd64"
+    )
+)
+if "%PLAT%"=="arm64" (
+    set "vcvars_arch=arm64"
+) else (
+    set "vcvars_arch=x64"
+)
+echo Building %PLAT% for %build_bits%-bit binary, %if_bits%-bit interface, wheel tag %WHEEL_PLAT%...
+
 REM Define destination directory
 pushd "%~dp0\.."
 set "ob_out_root=%CD%\local\scipy_openblas"
@@ -70,13 +91,7 @@ if "%NIGHTLY%"=="true" (
     git checkout %OPENBLAS_COMMIT%
 )
 if errorlevel 1 exit /b 1
-git merge-base --is-ancestor %first_woa_buildable_commit% HEAD 2>NUL
-if errorlevel 1 (
-    echo OpenBLAS commit does not contain WoA build fixes.
-    echo Commit needs to contain %first_woa_buildable_commit%.
-    exit /b 2
-)
- 
+
 REM Patch
 set patch_rc=0
 for %%f in (..\patches-common\*.patch ..\patches\*.patch ..\patches-windows\*.patch) do (
@@ -97,10 +112,18 @@ if "%NIGHTLY%"=="true" (
 
 for /f "tokens=3 delims= " %%v in ('findstr /b "version = " ..\pyproject.toml') do set version=%%v
 set version=%version:"=%
-REM cwd is already OpenBLAS here, so the source is Makefile.rule, not
-REM OpenBLAS/Makefile.rule -- that path never existed, Get-Content errored,
-REM and the VERSION substitution silently never happened.
-powershell -Command "(Get-Content Makefile.rule) -replace '^VERSION = .*', 'VERSION = %version%' | Set-Content Makefile.rule"
+REM The cmake build ignores Makefile.rule and takes the version from
+REM CMakeLists.txt, which bakes it into scipy-openblas.pc,
+REM OpenBLASConfigVersion.cmake and the OPENBLAS_VERSION in openblas_config.h
+REM that openblas_get_config() reports.  Without this it stays at 0.3.34.dev.
+powershell -Command "(Get-Content CMakeLists.txt) -replace '^set\(OpenBLAS_VERSION .*', 'set(OpenBLAS_VERSION \"%version%\")' | Set-Content CMakeLists.txt"
+if errorlevel 1 exit /b 1
+findstr /b /c:"set(OpenBLAS_VERSION" CMakeLists.txt
+findstr /b /c:"set(OpenBLAS_VERSION" CMakeLists.txt | findstr /c:"%version%" >NUL
+if errorlevel 1 (
+    echo Error: could not set OpenBLAS_VERSION to %version% in CMakeLists.txt.
+    exit /b 1
+)
 
 REM Set suffixed-ILP64 flags
 if "%if_bits%"=="64" (
@@ -113,9 +136,9 @@ REM Create build directory and navigate to it
 if exist build (rmdir /S /Q build || exit /b 1)
 mkdir build || exit /b 1 & cd build || exit /b 1
  
-echo Setting up ARM64 Developer Command Prompt and running CMake...
+echo Setting up %vcvars_arch% Developer Command Prompt and running CMake...
 
-REM Initialize VS ARM64 environment.
+REM Initialize the VS environment for the target architecture.
 REM
 REM Ask vswhere where Visual Studio is rather than hardcoding the version and
 REM edition: the windows-11-arm image migrated from VS 2022 to VS 2026 in
@@ -144,9 +167,9 @@ if not exist "%VCVARSALL%" (
     exit /b 1
 )
 echo Using Visual Studio at "%VSINSTALL%"
-CALL "%VCVARSALL%" arm64
+CALL "%VCVARSALL%" %vcvars_arch%
 if errorlevel 1 (
-    echo Error: "%VCVARSALL%" arm64 failed.
+    echo Error: "%VCVARSALL%" %vcvars_arch% failed.
     exit /b 1
 )
 where mt.exe >NUL 2>&1
@@ -159,22 +182,82 @@ if errorlevel 1 (
 REM Prefer LLVM flang
 PATH=C:\Program Files\LLVM\bin;%PATH%
 
+REM Visual Studio ships its own LLVM with an incomplete flang, so confirm
+REM which compilers we actually resolved to.
+where clang-cl
+if errorlevel 1 (
+    echo Error: clang-cl is not on PATH.
+    exit /b 1
+)
+where flang
+if errorlevel 1 (
+    echo Error: flang is not on PATH.
+    exit /b 1
+)
+clang-cl --version
+flang --version
+
+REM flang's objects carry a /DEFAULTLIB:flang_rt.runtime.dynamic directive, but
+REM OpenBLAS links the DLL with a hand-written lld-link call (no flang driver,
+REM no /LIBPATH), so the runtime archive must be findable through LIB.  It
+REM lives in LLVM's per-target resource directory, whose version component
+REM tracks the LLVM release, so look it up rather than hardcoding it.
+if "%PLAT%"=="arm64" (
+    set "flang_rt_triple=aarch64-pc-windows-msvc"
+) else (
+    set "flang_rt_triple=x86_64-pc-windows-msvc"
+)
+REM "for /d" over a quoted wildcard matches nothing, and the path has a space
+REM in it, so list the version directories with dir instead.
+set "clang_res_root=C:\Program Files\LLVM\lib\clang"
+set "FLANG_RT_DIR="
+for /f "delims=" %%v in ('dir /b /ad "%clang_res_root%" 2^>NUL') do (
+    if exist "%clang_res_root%\%%v\lib\%flang_rt_triple%\flang_rt.runtime.dynamic.lib" set "FLANG_RT_DIR=%clang_res_root%\%%v\lib\%flang_rt_triple%"
+)
+if not defined FLANG_RT_DIR (
+    echo Error: no flang_rt.runtime.dynamic.lib for %flang_rt_triple% under
+    echo "%clang_res_root%" - the DLL link would fail with
+    echo "lld-link: error: could not open flang_rt.runtime.dynamic.lib".
+    exit /b 1
+)
+echo Using flang runtime from "%FLANG_RT_DIR%"
+set "LIB=%FLANG_RT_DIR%;%LIB%"
+
 REM Run CMake and Ninja build
 
-set CFLAGS=-Wno-reserved-macro-identifier -Wno-unsafe-buffer-usage -Wno-unused-macros -Wno-sign-conversion -Wno-reserved-identifier
+REM CONSISTENT_FPCSR is x86-only: it makes blas_server_win32.c save and restore
+REM the FPU/SSE control words with ldmxcsr/fldcw/fnstcw/stmxcsr inline asm,
+REM which clang-cl rejects on arm64 ("unrecognized instruction mnemonic").
+if "%PLAT%"=="arm64" (
+    set "arch_flags=-DTARGET=ARMV8 -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_SYSTEM_NAME=Windows"
+) else (
+    set "arch_flags=-DTARGET=PRESCOTT -DDYNAMIC_ARCH=ON -DDYNAMIC_LIST=NEHALEM;SANDYBRIDGE;HASWELL;SKYLAKEX -DCONSISTENT_FPCSR=1"
+)
+
+REM OpenBLAS's cmake/cc.cmake appends -Wall for any Clang, but clang-cl parses
+REM -Wall as MSVC /Wall, i.e. -Weverything: that produced 63k warnings and a
+REM 30MB log.  It is appended to CMAKE_C_FLAGS after anything we put in CFLAGS,
+REM so the only slot that lands later is CMAKE_C_FLAGS_RELEASE.
+set CFLAGS=
+set "release_flags=/MD /O2 /Ob2 /DNDEBUG -Wno-everything"
 cmake .. -G Ninja ^
  -DCMAKE_BUILD_TYPE=Release ^
- -DTARGET=ARMV8 ^
+ -DCMAKE_C_FLAGS_RELEASE="%release_flags%" ^
+ -DCMAKE_Fortran_FLAGS_RELEASE="-O2 -DNDEBUG" ^
  -DBINARY=%build_bits% ^
  -DCMAKE_C_COMPILER=clang-cl ^
- -DCMAKE_Fortran_COMPILER=flang-new ^
+ -DCMAKE_Fortran_COMPILER=flang ^
  -DBUILD_SHARED_LIBS=ON ^
- -DCMAKE_SYSTEM_PROCESSOR=arm64 ^
- -DCMAKE_SYSTEM_NAME=Windows ^
  -DSYMBOLPREFIX="scipy_" ^
  -DLIBNAMEPREFIX="scipy_" ^
- -DUSE_THREADS=1 ^
+ -DUSE_THREAD=1 ^
+ -DUSE_OPENMP=0 ^
  -DNUM_THREADS=24 ^
+ -DNO_WARMUP=1 ^
+ -DBUILD_LAPACK_DEPRECATED=ON ^
+ -DFIXED_LIBNAME=1 ^
+ -DBUFFERSIZE=20 ^
+ %arch_flags% ^
  %interface_flags%
 
 if errorlevel 1 exit /b 1
@@ -201,7 +284,7 @@ if "%if_bits%"=="32" (
 REM Prepare destination directory
 cd OpenBLAS/build
 echo Preparing destination directory at %DEST_DIR%
-if not exist "%DEST_DIR%\lib\cmake\OpenBLAS" mkdir "%DEST_DIR%\lib\cmake\OpenBLAS"
+if not exist "%DEST_DIR%\lib\cmake\openblas" mkdir "%DEST_DIR%\lib\cmake\openblas"
 if not exist "%DEST_DIR%\include" mkdir "%DEST_DIR%\include"
  
 REM Move library files
@@ -220,9 +303,22 @@ if exist lib\release (
     exit /b 1
 )
  
-REM Copy CMake configuration files
-echo Copying CMake configuration files...
-if exist openblasconfig.cmake copy /Y openblasconfig.cmake "%DEST_DIR%\lib\cmake\openblas\"
+REM Write the CMake package configuration.  OpenBLAS generates
+REM OpenBLAS<SUFFIX64>Config.cmake, which include()s an OpenBLASTargets.cmake
+REM describing the "make install" layout; neither suits the wheel, so write
+REM our own from the template and keep OpenBLAS's version file.
+echo Writing CMake configuration files...
+if "%if_bits%"=="64" (
+    set "cm_libname=scipy_openblas_64"
+) else (
+    set "cm_libname=scipy_openblas"
+)
+powershell -Command "(Get-Content '%~dp0OpenBLASConfig.cmake.in') -replace '@VERSION@', '%version%' -replace '@LIBNAME@', '%cm_libname%' | Set-Content '%DEST_DIR%\lib\cmake\openblas\OpenBLASConfig.cmake'"
+if errorlevel 1 exit /b 1
+if not exist "%DEST_DIR%\lib\cmake\openblas\OpenBLASConfig.cmake" (
+    echo Error: failed to write OpenBLASConfig.cmake.
+    exit /b 1
+)
 if exist openblasconfigversion.cmake copy /Y openblasconfigversion.cmake "%DEST_DIR%\lib\cmake\openblas\"
  
 REM Copy header files
@@ -248,6 +344,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
+(echo.)>> LICENSE.txt
+(echo ----)>> LICENSE.txt
+(echo.)>> LICENSE.txt
+type tools\LICENSE_win_flang.txt >> LICENSE.txt
+if errorlevel 1 exit /b 1
+
 REM Build the Wheel & Install It
 echo Running 'python -m build' to build the wheel in %CD%
 python -c "import build" 2>NUL || pip install build
@@ -269,7 +371,7 @@ REM Rename the wheel
 for %%f in (dist\*any.whl) do (
     set WHEEL_FILE=dist\%%f
     set "filename=%%~nxf"
-    set "newname=!filename:any.whl=win_arm64.whl!"
+    set "newname=!filename:any.whl=%WHEEL_PLAT%.whl!"
     ren "dist\!filename!" "!newname!"
 )
 
